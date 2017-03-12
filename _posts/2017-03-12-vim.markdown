@@ -4,8 +4,9 @@ title:  "Vim之从入门到放弃!"
 date:   2017-03-12 20:00:00 +0800
 categories: Linux
 ---
+## [入门](#vim理解)
+## [放弃](http://vim-adventures.com/)
 ## Vim常用命令
-
 ```
 语法：动词 介词/数词 名词
 ```
