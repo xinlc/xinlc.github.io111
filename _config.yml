@@ -23,7 +23,7 @@ github_username:  xinlc
 
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-minimal
+theme: minima
 gems:
   - jekyll-feed
 exclude:
