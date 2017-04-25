@@ -23,7 +23,7 @@ github_username:  xinlc
 
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-architect
+theme: jekyll-theme-cayman
 gems:
   - jekyll-feed
 exclude:
