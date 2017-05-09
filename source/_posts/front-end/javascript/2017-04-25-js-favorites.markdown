@@ -7,7 +7,7 @@ categories: JavaScript
 # JavaScript 常用代码片段
 
 ---
-- document ready
+## document ready
 
 ```js
 const ready = function() {
@@ -31,7 +31,7 @@ if ( document.readyState === "complete" ||
 }
 ```
 
-- HTML5图片压缩 或使用[localResizeIMG](https://github.com/think2011/localResizeIMG)
+## HTML5图片压缩 或使用[localResizeIMG](https://github.com/think2011/localResizeIMG)
 
 ```js
 const image = new Image();
@@ -56,7 +56,7 @@ image.onload = function() {
 reader.readAsDataURL(file);
 ```
 
-- js获取search参数
+## js获取search参数
 
 ```js
 window.getUrlParam = function (name) {
@@ -66,7 +66,7 @@ window.getUrlParam = function (name) {
 }
 ```
 
-- 获得URL中GET参数值
+## 获得URL中GET参数值
 
 ```js
 // 用法：如果地址是 test.htm?t1=1&t2=2&t3=3, 那么能取得：GET["t1"], GET["t2"], GET["t3"]
@@ -85,7 +85,7 @@ function get_get(){
 }
 ```
 
-- 阻止事件冒泡
+## 阻止事件冒泡
 [return false](http://stackoverflow.com/questions/1357118/event-preventdefault-vs-return-false)
 
 ```js
@@ -97,7 +97,7 @@ function get_get(){
 // 停止callback function的执行并且立即return回来
 ```
 
-- js 自定义事件 [参考](http://www.zhangxinxu.com/wordpress/2012/04/js-dom自定义事件/)
+## js 自定义事件 [参考](http://www.zhangxinxu.com/wordpress/2012/04/js-dom自定义事件/)
 
 ```js
 /**
@@ -164,7 +164,7 @@ export default Event;
 
 ```
 
-- js 高精度计算
+## js 高精度计算
 
 ```js
 //除法函数，用来得到精确的除法结果 
@@ -241,7 +241,7 @@ function Subtr(arg1,arg2){
 }
 ```
 
-- 根据生日计算星座
+## 根据生日计算星座
 
 ```js
 /**
@@ -261,7 +261,7 @@ Utils.calConstellation = (birthday) => {
   return s.substr(month * 3 - (day < arr[month - 1] ? 3 : 0), 3);
 };
 ```
-- 计算年龄
+## 计算年龄
 
 ```js
 Utils.calAge = (birthday) => {
@@ -291,7 +291,7 @@ Utils.calAge = (birthday) => {
 };
 ```
 
-- 格式化Date
+## 格式化Date
 
 ```js
 /**
@@ -333,7 +333,7 @@ Utils.dateFormat = (date, fmt = 'yyyy-MM-dd') => {
 };
 ```
 
-- Date diff
+## Date diff
 
 ```js
 /**
@@ -383,7 +383,7 @@ Utils.dateDiff = (strInterval, start, end) => {
 };
 ```
 
-- 截取字符串并支持`emoji`
+## 截取字符串并支持`emoji`
 
 ```js
 // 支持4个字节 emoji
@@ -432,7 +432,7 @@ function cutstr(str, len) {
     return strre + "..."
 }
 ```
-- 生成UUID
+## 生成UUID
 
 ```js
 Utils.generateUUID = () => {
@@ -446,7 +446,7 @@ Utils.generateUUID = () => {
 };
 ```
 
-- js对象深拷贝
+## js对象深拷贝
 
 ```js
 Utils.deepCopy = (p, _c) => {
@@ -466,13 +466,13 @@ Utils.deepCopy = (p, _c) => {
 };
 ```
 
-- 返回指定范围的随机数(m-n之间)的公式
+## 返回指定范围的随机数(m-n之间)的公式
 
 ```js
 Math.random()*(n-m)+m
 ```
 
-- 随机数时间戳
+## 随机数时间戳
 
 ```js
 function uniqueId(){
@@ -481,7 +481,7 @@ function uniqueId(){
 }
 ```
 
-- 防止被Iframe嵌套
+## 防止被Iframe嵌套
 
 ```js
 if(top != self){
@@ -489,7 +489,7 @@ if(top != self){
 }
 ```
 
-- [iOS，Safari浏览器，input等表单focus后fixed元素错位问题](https://www.snip2code.com/Snippet/176582/--iOS-Safari----input---focus-fixed-----)
+## [iOS，Safari浏览器，input等表单focus后fixed元素错位问题](https://www.snip2code.com/Snippet/176582/--iOS-Safari----input---focus-fixed-----)
 
 ```js
 if( /iPhone|iPod|iPad/i.test(navigator.userAgent) ) {
@@ -505,7 +505,7 @@ if( /iPhone|iPod|iPad/i.test(navigator.userAgent) ) {
 } 
 ```
 
-- 得到地理位置
+## 得到地理位置
 
 ```js
 function getLocation(callback){
@@ -522,7 +522,7 @@ function getLocation(callback){
 }
 ```
 
-- 获取js所在路径
+## 获取js所在路径
 
 ```js
 function getJsDir (src) {
@@ -538,7 +538,7 @@ function getJsDir (src) {
 }
 ```
 
-- 从全局捕获错误
+## 从全局捕获错误
 
 ```js
 window.onerror = function (errMsg, scriptURI, lineNumber, columnNumber, errorObj) {
@@ -556,7 +556,7 @@ window.onerror = function (errMsg, scriptURI, lineNumber, columnNumber, errorObj
 };
 ```
 
-- 转义html标签
+## 转义html标签
 
 ```js
 function HtmlEncode(text) {
@@ -564,7 +564,7 @@ function HtmlEncode(text) {
 }
 ```
 
-- cookie 操作
+## cookie 操作
 
 ```js
 // 设置cookie值
@@ -586,7 +586,7 @@ function getCookie(name) {
 }
 ```
 
-- 加载样式文件表
+## 加载样式文件表
 
 ```js
 function LoadStyle(url) {
@@ -603,7 +603,7 @@ function LoadStyle(url) {
 }
 ```
 
-- 返回脚本内容
+## 返回脚本内容
 
 ```js
 function evalscript(s) {
@@ -626,7 +626,7 @@ function evalscript(s) {
 }
 ```
 
-- 清除脚本内容
+## 清除脚本内容
 
 ```js
 function stripscript(s) {
@@ -634,7 +634,7 @@ function stripscript(s) {
 }
 ```
 
-- 动态加载脚本文件
+## 动态加载脚本文件
 
 ```js
 function appendscript(src, text, reload, charset) {
@@ -671,7 +671,7 @@ function appendscript(src, text, reload, charset) {
 }
 ```
 
-- 检验URL链接是否有效
+## 检验URL链接是否有效
 
 ```js
 function getUrlState(URL){ 
@@ -695,7 +695,7 @@ function getUrlState(URL){
 }
 ```
 
-- 获取页面高度
+## 获取页面高度
 
 ```js
 // 获取页面高度
@@ -721,7 +721,7 @@ function getPageWidth(){
 }
 ```
 
-- 返回顶部的通用方法
+## 返回顶部的通用方法
 
 ```js
 function backTop(btnId) {
@@ -746,7 +746,7 @@ function backTop(btnId) {
 backTop('goTop');
 ```
 
-- 数组去重
+## 数组去重
 
 ```js
 String.prototype.unique=function(){
@@ -761,7 +761,7 @@ String.prototype.unique=function(){
 };
 ```
 
-- 按字典顺序，对每行进行数组排序
+## 按字典顺序，对每行进行数组排序
 ```js
 
 function SetSort(){
@@ -771,7 +771,7 @@ function SetSort(){
 }
 ```
 
-- 字符串反序输出
+## 字符串反序输出
 
 ```js
 function IsReverse(text){
@@ -779,7 +779,7 @@ function IsReverse(text){
 }
 ```
 
-- 金额大写转换函数
+## 金额大写转换函数
 
 ```js
 //格式转换
@@ -859,7 +859,7 @@ function splits(tranvalue) {
 }
 ```
 
-- HTML5全屏
+## HTML5全屏
 
 ```js
 function fullscreen(element) {
@@ -876,7 +876,7 @@ function fullscreen(element) {
 fullscreen(document.documentElement)
 ```
 
-- js获取验证码倒计时效果
+## js获取验证码倒计时效果
 
 ```js
 function getCode(obj,n){
@@ -894,7 +894,7 @@ function getCode(obj,n){
 }
 ```
 
--  加入收藏夹代码
+## 加入收藏夹代码
 
 ```js
 <script type="text/javascript">  
@@ -913,7 +913,7 @@ function AddFavorite(sURL,sTitle){
 <a href=”javascript:favorite(‘李刚的学习专栏’,’http://blog.csdn.net/ligang2585116’)”>加入收藏</a> 
 ```
 
-- JS继承的实现方式 [参考](http://www.cnblogs.com/humin/p/4556820.html)
+## JS继承的实现方式 [参考](http://www.cnblogs.com/humin/p/4556820.html)
 
 ```js
 // 定义一个动物类
@@ -978,7 +978,7 @@ console.log(cat instanceof Animal); // true
 console.log(cat instanceof Cat); //true
 ```
 
-- H5页检测手机是否安装app 相关流程 [参考](https://segmentfault.com/a/1190000009123583)
+## H5页检测手机是否安装app 相关流程 [参考](https://segmentfault.com/a/1190000009123583)
 
 ```js
 export const openApp = function(openUrl, callback) {
@@ -1033,7 +1033,7 @@ export const openApp = function(openUrl, callback) {
 }
 ```
 
-- [柯里化函数](https://segmentfault.com/a/1190000008263193)
+## [柯里化函数](https://segmentfault.com/a/1190000008263193)
 
 ```js
  var curring = function(fn){
@@ -1064,7 +1064,7 @@ var calc = curring(multi);
 calc(1,2)(3)(4,5,6);    console.log(calc()); //空白调用时才真正计算
 ```
 
-- `px` `pt`互转
+## `px` `pt`互转
 
 ```js
 96dpi   1px = 1/96in
@@ -1096,5 +1096,4 @@ px to pd
 - [原生对象方法](/resource/js/prototyp-js-Util.js)
 - [js 常用排序算法](/resource/js/js-sort.js)
 - [react-native Utils](/resource/js/RN-CommonUtil.js)
-
-- [JavaScript奇技淫巧44招](https://mp.weixin.qq.com/s?__biz=MzI0ODA2ODU2NQ==&mid=2651130449&idx=2&sn=2630be33cb92c13ad3441db0237d1deb&chksm=f257caebc52043fd2550f25179349bb250185a780a6099d8255263d8a573465eb21557395efb&scene=0&key=577548e0b5759ac8991a4e677699128919627b90d2f7ec02d44b907a1da1ca89fd83842738123b53696ce02dcab7b75d2f2b5863fee238f3a3a6369278e16ae1623cd795b1a18be71ff203eb09579c48&ascene=0&uin=MTY3NzMyODk4Mw%3D%3D&devicetype=iMac+MacBookPro12%2C1+OSX+OSX+10.12.4+build(16E195)&version=12020510&nettype=WIFI&fontScale=100&pass_ticket=LA7qRmAiDFUI1h%2BSge48VDXqC9T9bc62WSGHdrFm9pnsuESg%2FxwfW577Eq3oPdWE)
+- [JavaScript奇技淫巧44招](https://chensd.com/2015-01/45-useful-javascript-tips-tricks-and-best-practices.html)
