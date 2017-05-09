@@ -4,8 +4,8 @@
 
 # Site
 title: Leo Xin's Blog
-subtitle:
-description:
+subtitle: Leo Xin's Blog
+description: Leo Xin's Blog
 author: Leo
 language: zh-Hans
 timezone:
@@ -34,7 +34,7 @@ titlecase: false # Transform title into titlecase
 external_link: true # Open external links in new tab
 filename_case: 0
 render_drafts: false
-post_asset_folder: false
+post_asset_folder: true
 relative_link: false
 future: true
 highlight:
@@ -68,7 +68,10 @@ theme: next
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type:
+  type: git
+  repo: https://github.com/xinlc/xinlc.github.io
+  branch: master
+  message: 
 
 # 搜索
 ## Docs: http://theme-next.iissnan.com/third-party-services.html#algolia-search
