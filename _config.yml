@@ -3,16 +3,16 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
+title: Leo Xin's Blog
 subtitle:
 description:
-author: John Doe
-language:
+author: Leo
+language: zh-Hans
 timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: http://xinlc.github.io
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -63,9 +63,19 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: next
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type:
+
+# 搜索
+## Docs: http://theme-next.iissnan.com/third-party-services.html#algolia-search
+## https://www.algolia.com/explorer#?index=xinlc.github.io
+algolia:
+  applicationID: 'NZUC9QEBYB'
+  apiKey: '6b7a490b1545362bcd40bce2bbea43e2'
+  adminApiKey: '8ca10f767f1c81e83b12c0fb053f343a'
+  indexName: 'xinlc.github.io'
+  chunkSize: 5000
