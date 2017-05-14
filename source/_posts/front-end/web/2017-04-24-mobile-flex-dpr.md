@@ -3,6 +3,10 @@ layout: post
 title:  "移动端高清适配方案"
 date:   2017-04-24 17:15:00 +0800
 categories: Web
+tags:
+  - mobile
+  - css
+  - js
 ---
 # 移动端高清适配方案
 > 主要参考 [移动端高清、多屏适配方案](http://div.io/topic/1092) 写的非常详细，以下只是为了方便自己记忆理解。

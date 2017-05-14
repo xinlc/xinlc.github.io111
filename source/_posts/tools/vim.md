@@ -3,6 +3,9 @@ layout: post
 title:  "Vim之从入门到放弃!"
 date:   2017-03-12 20:00:00 +0800
 categories: 工欲善其事必先利其器
+tags:
+  - linux
+  - vim
 ---
 ## [入门](#vim理解)
 ## [放弃](http://vim-adventures.com/)
