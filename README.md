@@ -24,3 +24,5 @@ hexo g == hexo generate
 hexo s == hexo server
 hexo d == hexo deploy
 ```
+
+## [travis](https://www.travis-ci.org/)
