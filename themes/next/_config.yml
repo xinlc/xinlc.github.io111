@@ -294,7 +294,7 @@ mathjax:
 
 
 # Han Support docs: https://hanzi.pro/
-han: true
+han: false
 
 # Swiftype Search API Key
 # swiftype_key:

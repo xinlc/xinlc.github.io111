@@ -32,7 +32,7 @@ if ( document.readyState === "complete" ||
     window.addEventListener( "load", completed );
 }
 ```
-
+<!--more-->
 ## HTML5图片压缩 或使用[localResizeIMG](https://github.com/think2011/localResizeIMG)
 
 ```js
