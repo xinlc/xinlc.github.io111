@@ -13,11 +13,13 @@ tags:
 
 ## 基本使用
 常见符号所代表的意义如下
-- `M(eta)` 在 Mac 下为 Option 键
+- `M(eta)`  在 Mac 下为 Option 键
 - `s(uper)` 在 Mac 环境下为左 Command 键
 - `S(Shift)`
 - `C(trl)`
-
+- `C-x`     字符扩展。  C-x 之后输入另一个字符或者组合键。
+- `M-x`     命令名扩展。M-x 之后输入一个命令名。
+- `C-g` 		用于终端取消之前的指令
 
 光标的移动是编辑器中最常用的操作所以必须熟知。
 - `C-h t` 打开 Emacs 提供的官方教程(t 在这里代表 tutorial）
@@ -27,19 +29,56 @@ tags:
 - `C-n` 为上移至下一行， n 代表 next。
 - `C-a` 为移至行首， a 代表 ahead。
 - `C-e` 为移至行尾， e 代表 end。
-<!--more-->
-常用的文件操作快捷键组合也必须熟记。
+- `M-a` 为移至句首
+- `M-e` 为移至句尾
+- `M-f` 为前移一个单词，中文移动到下一个标点符号
+- `M-b` 为后移一个单词
+- `C-v` 向前移动一屏
+- `M-v` 向后移动一屏
+- `C-l` 重绘屏幕，并将光标所在行置于屏幕的中央
+- `M-<` 移动到页首
+- `M->` 移动到页尾
+- `C-u` 前缀参数，举例来说， C-u 8 C-f 会向前移动 8 个字符。
 
+<!--more-->
+文本操作
+- `<DEL>`  		  删除光标前的一个字符
+- `C-d`    		  删除光标后的一个字符
+- `M-<DEL>`		  移除光标前的一个词
+- `M-d`    		  移除光标后的一个词
+- `C-k`    		  移除从光标到“行尾”间的字符
+- `M-k`    		  移除从光标到“句尾”间的字符
+- `C-w`					剪切需要先 Mark set
+- `M-w`         复制需要先 Mark set
+- `C-@,C-w`		  剪切选中段，或者用`C-<SPC>`选中，一般这个键被输入法占用了
+- `C-y`    		  召回最近一次（yank, 复制）被移除的文字
+- `M-y`    		  按下C-y后, 可以连续召回前几次移除的文字
+- `C-/`			 		undo命令，`C-/`, `C-_`, `C-x u`作用一致
+- `C-s`				  向前搜索
+- `C-r`				  向后搜索
+- `M-%`					交互式替换，y or n
+- `M-x repl s`  `repl s<TAB>` 替换文本, 或输入`replace-string` 例如： M-x repl s<Return>changed<Return>altered<Return>。
+
+常用的文件操作快捷键组合也必须熟记。
 - `C-x C-f` 为打开目标文件， f 代表 find/file
 - `C-x C-s` 为保存当前缓冲区（Buffer）， s 代表 save
-- `C-x` 是 Emacs 的快捷键中常用的前缀命令。这些前缀命令常常代表了一系列有关联的指令
-- `C-g` 用于终端取消之前的指令
+- `C-x C-b` 列出缓冲区（buffer）
+- `C-x b`   选中缓冲区
+- `C-x s`   保存多个缓冲区
 
 
 分屏操作
-- `C-x 1` 仅保留当前窗口
-- `C-x 2` 将当前窗口分到上边
-- `C-x 3` 将当前窗口分到右边
+- `C-x 1` 						仅保留当前窗口
+- `C-x 2` 						将当前窗口分到上边
+- `C-x 3` 						将当前窗口分到右边
+- `C-x 0` 						将当前窗口关闭
+- `C-M-v` 						滚动下方的窗格。（如果你并没有 META 键，用 ESC C-v 也可以。）
+- `C-M-S-v` 					向上滚动
+- `C-x o`  	 					将光标转移到下方的窗格。（“o”指的是“其它（other）”）
+- `C-x 4 C-f`					在新窗格中打开文件
+- `M-x make-frame`  	打开新的窗口
+- `M-x delete-frame`  关闭选中窗口
+
 
 获取帮助   
 Emacs 是一个富文档编辑器（Self document, extensible editor）而下面的三种方法在学 习 Emacs 的过程中也非常重要。他们分别是
@@ -48,7 +87,13 @@ Emacs 是一个富文档编辑器（Self document, extensible editor）而下面
 - `C-h f` 寻找函数的帮助信息
 
 其他
-- `C-h m` 来显示当前所有开启 的全部 Minor Mode 的信息。
+- `C-x C-c`           离开 Emacs
+- `C-h m` 						来显示当前所有开启 的全部 Minor Mode 的信息。
+- `C-x C-e` 					在代码块后面按键来编译elisp
+- `M-x eval-buffer`  	编译当前文件elisp
+- `M-x recover file`  恢复你的自动保存文件
+- `<ESC> <ESC> <ESC>` 退出递归编辑（RECURSIVE EDITING LEVELS）
+- (define-key global-map [C-return] 'set-mark-command) 修改 mark set 快捷键为 C-return
 
 ## 学习基础 Elisp
 Emacs Lisp 为一个函数式的语言，所以它全部 功能都是由函数来实现的。
@@ -62,150 +107,7 @@ Emacs 的配置文件默认保存在 ~/.emacs.d/init.el 文件中。如果其不
 - 更好的版本控制
 *注意： 如果希望把配置放在 ~/.emacs.d/init.el 文件中，那么需要手工删除 ~/.emacs 文件。*
 
-```lisp
-
-;; =======配置 MELPA =========
-
-(when (>= emacs-major-version 24)
-     (require 'package)
-     (package-initialize)
-     (setq package-archives '(("gnu"   . "http://elpa.emacs-china.org/gnu/")
-		      ("melpa" . "http://elpa.emacs-china.org/melpa/"))))
-
-;; 注意 elpa.emacs-china.org 是 Emacs China 中文社区在国内搭建的一个 ELPA 镜像
-
- ;; cl - Common Lisp Extension
- (require 'cl)
-
- ;; Add Packages
-(defvar my/packages '(
-		evil
-		;; --- Auto-completion ---
-		company
-		;; --- Better Editor ---
-		hungry-delete
-		swiper
-		counsel
-		smartparens
-		;; --- Major Mode ---
-		js2-mode
-		;; --- Minor Mode ---
-		nodejs-repl
-		exec-path-from-shell
-		;; --- Themes ---
-		monokai-theme
-		;; solarized-theme
-		) "Default packages")
-
- (setq package-selected-packages my/packages)
-
- (defun my/packages-installed-p ()
-     (loop for pkg in my/packages
-	   when (not (package-installed-p pkg)) do (return nil)
-	   finally (return t)))
-
- (unless (my/packages-installed-p)
-     (message "%s" "Refreshing package database...")
-     (package-refresh-contents)
-     (dolist (pkg my/packages)
-       (when (not (package-installed-p pkg))
-	 (package-install pkg))))
-
- ;; Find Executable Path on OS X
- (when (memq window-system '(mac ns))
-   (exec-path-from-shell-initialize))
-
-
-;; =============插件配置============
-
-;; 开启全局 Company 补全
-(global-company-mode 1)
-
-;; 每次打开编辑器时加载主题
-(load-theme 'monokai 1)
-
-;; Emacs 提供的默认 JavaScript Major Mode 并不是非常好用。
-;; 所以我们可以将默认的模式 替换成 js2-mode 一个比默认模式好用的 Major Mode。
-;; 我们可以通过 MELPA 来下载它，然 后用下面的代码将其启用。
-(setq auto-mode-alist
-      (append
-       '(("\\.js\\'" . js2-mode))
-       auto-mode-alist))
-
-;; 激活evil
-(evil-mode 1)
-
-;; ================其他配置==========
-
-;; 关闭工具栏，tool-bar-mode 即为一个 Minor Mode
-(tool-bar-mode -1)
-
-;; 关闭文件滑动控件
-(scroll-bar-mode -1)
-
-;; 显示行号
-(global-linum-mode 1)
-
-;; 更改光标的样式（不能生效，解决方案见第二集）
-;;(setq cursor-type 'bar)
-(setq-default cursor-type 'bar)
-
-;; 关闭启动帮助画面
-(setq inhibit-splash-screen 1)
-
-;; 关闭缩进 (第二天中被去除)
-;; (electric-indent-mode -1)
-
-;; 关闭备份文件 xxx~
-(setq make-backup-files nil)
-
-;; 更改显示字体大小 16pt
-;; http://stackoverflow.com/questions/294664/how-to-set-the-font-size-in-emacs
-(set-face-attribute 'default nil :height 160)
-
-;; 快速打开配置文件
-(defun open-init-file()
-  (interactive)
-  (find-file "~/.emacs.d/init.el"))
-
-;; 这一行代码，将函数 open-init-file 绑定到 <f2> 键上
-(global-set-key (kbd "<f2>") 'open-init-file)
-
-;; 最近 编辑过的文件。
-(require 'recentf)
-(recentf-mode 1)
-(setq recentf-max-menu-item 10)
-
-;; 这个快捷键绑定可以用之后的插件 counsel 代替
-;; (global-set-key (kbd "C-x C-r") 'recentf-open-files)
-
-;; 当你选中一段文字 之后输入一个字符会替换掉你选中部分的文字。
-(delete-selection-mode 1)
-
-;; 将 Emacs 设置为开启默认全屏
-(setq initial-frame-alist (quote ((fullscreen . maximized))))
-
-;; 启用自动括号匹配（Highlight Matching Parenthesis）
-(add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
-
-;; 高亮当前行，当文本内容很多时可以很容易找到光标的位置。
-(global-hl-line-mode 1)
-
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(evil-want-C-u-scroll t))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
-```
+- [配置文件](https://github.com/xinlc/dotfiles/tree/master/mac/emacs/zlsr)
 
 ## 常用插件
 - [company](http://company-mode.github.io/)
@@ -213,6 +115,31 @@ Emacs 的配置文件默认保存在 ~/.emacs.d/init.el 文件中。如果其不
 - [Smex])(https://github.com/nonsequitur/smex) (如果你使用 Counsel 来增强你的 M-x ，那么就不需要再安装 Smex 了)
 - [Swiper & Counsel](https://github.com/abo-abo/swiper)
 - [smartparens](https://github.com/Fuco1/smartparens)
+
+## 插件管理
+- `M-x package-list-packages` 或点击Options -> Manage Emacs Packages # 打开插件管理
+- 在插件名上按 `i`标记安装, 按`u`取消
+- 按 `d` 标记删除
+- `U` 更新所有
+- `x` 执行
+- `C-s` 搜索
+- `M-x package-autoremove` 删除没用的packages
+
+
+## Dired Mode
+Dired Mode 是一个强大的模式它能让我们完成和文件管理相关的所有操作。
+
+使用 C-x d 就可以进入 Dired Mode，这个模式类似于图形界面系统中的资源管理器。你 可以在其中查看文件和目录的详细信息，对他们进行各种操作，甚至复制粘贴缓冲区中的内 容。下面是一些常用的操作（下面的所有键均需在 Dired Mode 下使用），
+
+- + 创建目录
+- g 刷新目录
+- C 拷贝
+- D 删除
+- R 重命名
+- d 标记删除
+- u 取消标记
+- x 执行所有的标记
+- `Shift + 6` 跳转到上级目录
 
 ## 参考资料
 
