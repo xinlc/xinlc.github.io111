@@ -1,5 +1,5 @@
 ---
-title: Docker命令指令详情-持续更新
+title: Docker命令指令详情
 date: 2017-06-20 17:05:00
 categories: Linux
 tags: 
