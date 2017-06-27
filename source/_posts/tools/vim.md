@@ -458,3 +458,4 @@ q 停止录制.
 - [vi替换字符串](http://blog.csdn.net/aldenphy/article/details/4019486)
 - [vim中寄存器使用和vim标记](http://blog.csdn.net/rainysia/article/details/7721691)
 - [how-to-boost-your-vim-productivity](https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/)
+- [Vim 配置选项说明](http://blog.csdn.net/shuimengzhilong/article/details/45340361)
