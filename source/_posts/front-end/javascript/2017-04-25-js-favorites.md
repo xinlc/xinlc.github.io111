@@ -293,7 +293,7 @@ Utils.calAge = (birthday) => {
 };
 ```
 
-## 格式化Date
+## 格式化Date ([建议使用 moment](https://github.com/moment/moment/))
 
 ```js
 /**
@@ -1064,6 +1064,86 @@ var multi = function(){
 var calc = curring(multi);
 
 calc(1,2)(3)(4,5,6);    console.log(calc()); //空白调用时才真正计算
+```
+
+
+## js判断是否含有emoij
+```js
+function isEmojiCharacter(substring) {
+
+  for (var i = 0; i < substring.length; i++) {
+    var hs = substring.charCodeAt(i);
+    if (0xd800 <= hs && hs <= 0xdbff) {
+      if (substring.length > 1) {
+        var ls = substring.charCodeAt(i + 1);
+        var uc = ((hs - 0xd800) * 0x400) + (ls - 0xdc00) + 0x10000;
+        if (0x1d000 <= uc && uc <= 0x1f77f) {
+          return true;
+        }
+      }
+    } else if (substring.length > 1) {
+      var ls = substring.charCodeAt(i + 1);
+      if (ls == 0x20e3) {
+        return true;
+      }
+    } else {
+      if (0x2100 <= hs && hs <= 0x27ff) {
+        return true;
+      } else if (0x2B05 <= hs && hs <= 0x2b07) {
+        return true;
+      } else if (0x2934 <= hs && hs <= 0x2935) {
+        return true;
+      } else if (0x3297 <= hs && hs <= 0x3299) {
+        return true;
+      } else if (hs == 0xa9 || hs == 0xae || hs == 0x303d || hs == 0x3030 || hs == 0x2b55 || hs == 0x2b1c || hs == 0x2b1b || hs == 0x2b50) {
+        return true;
+      }
+    }
+  }
+}
+
+// 过滤掉表情：
+function filteremoji() {
+  var ranges = ['\ud83c[\udf00-\udfff]', '\ud83d[\udc00-\ude4f]', '\ud83d[\ude80-\udeff]'];
+  var emojireg = $("#emoji_input").val();
+  emojireg = emojireg.replace(new RegExp(ranges.join('|'), 'g'), ''));
+}
+```
+
+
+## 树状结构转list
+```js
+// 把树状结构转list， value => key
+Utils.option2remap = (options, prefix) => {
+  const _map = {};
+  for (let i = 0; i < options.length; i++) {
+    if (typeof (options[i]) == 'object') {
+      _map[(prefix || '') + options[i].label] = options[i].value;
+      if (options[i].children) {
+        let _prefix = (prefix || '');
+        if (options[i].label.indexOf('省') === -1)_prefix += `${options[i].label}$`;
+        const _childMap = Utils.option2remap(options[i].children, _prefix);
+        Object.assign(_map, _childMap);
+      }
+    }
+  }
+  return _map;
+};
+
+// 把树状结构转list
+Utils.option2map = (options, prefix) => {
+  const _map = {};
+  for (let i = 0; i < options.length; i++) {
+    if (typeof (options[i]) == 'object') {
+      _map[(prefix || '') + options[i].label] = options[i].value;
+      if (options[i].children) {
+        const _childMap = Utils.option2map(options[i].children, `${(prefix || '') + options[i].value}$`);
+        Object.assign(_map, _childMap);
+      }
+    }
+  }
+  return _map;
+};
 ```
 
 ## `px` `pt`互转
