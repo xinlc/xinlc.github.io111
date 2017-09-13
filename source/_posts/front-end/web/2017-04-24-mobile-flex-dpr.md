@@ -9,7 +9,7 @@ tags:
   - js
 ---
 # 移动端高清适配方案
-> 主要参考 [移动端高清、多屏适配方案](http://div.io/topic/1092) 写的非常详细，以下只是为了方便自己记忆理解。
+> 主要参考 [移动端高清、多屏适配方案](http://div.io/topic/1092) 写的非常详细
 
 ### 背景
 公司前端在用[React](https://facebook.github.io/react/)，找了几个基于React 组件UI库 [Ant Design Mobile](https://mobile.ant.design/index-cn)、[SUI Mobile](http://m.sui.taobao.org/components/)、[amaze UI](http://amazeui.org)。由于`antd-mobile`支持`React Native`(公司也在用RN) 最终选择`antd-mobile`。上来就遇到个[高清方案](https://github.com/ant-design/ant-design-mobile/wiki/antd-mobile-0.8-以上版本「高清」方案设置)的坑 o_O||
