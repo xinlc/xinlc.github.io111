@@ -1199,6 +1199,47 @@ console.log(String.fromCharCode(parseInt(141, 8)));
 console.log(parseInt('ff', 16).toString(2));
 ```
 
+## unicode 转换
+```js
+
+function toUnicode(data) {
+	var str =''; 
+	for(var i = 0; i < data.length; i++){
+		str += "\\u" + parseInt(data[i].charCodeAt(0), 10).toString(16);
+	}
+	return str;
+}
+function toHanzi(data) {
+	data = data.split("\u");
+	var str ='';
+	for(var i = 0; i < data.length; i++) {
+		str += String.fromCharCode(parseInt(data[i], 16).toString(10));
+	}
+	return str;
+}
+
+// escape unescape 版
+var UnicodeConverter = {
+	encodeUnicode:function(str){
+		return escape(str).toLocaleLowerCase().replace(/%u/gi,'\\u');
+	},
+	decodeUnicode:function(str){
+		return unescape(str.replace(/\\u/gi,'%u'));
+	}
+};
+
+// 只转换汉字，避免转换回车，空格，换行，tab
+function toUnicode(s){ 
+	return s.replace(/([\u4E00-\u9FA5]|[\uFE30-\uFFA0])/g, function(newStr) {
+		return "\\u" + newStr.charCodeAt(0).toString(16); 
+　}); 
+}
+
+// 用 eval 解码
+var str = "\\u6211\\u662Funicode\\u7F16\\u7801";
+str = eval("'" + str + "'"); // "我是unicode编码"
+```
+
 ## 节流/去抖 （建议使用 Lodash.js 或 Underscore.js）
 ```js
 /*

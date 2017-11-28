@@ -254,6 +254,23 @@ windows:
         - # empty
 ```
 
+### vim 插件
+```
+christoomey/vim-tmux-navigator, 安装更便捷的导航跳转
+```
+
+### Tmate
+Tmate 是一个 Tmux 的管理工具，使用它不但能够轻松地创建 Tmux 会话而且还能够通过互联网把该会话共享给其他人
+
+#### 安装和使用
+```bash
+# 安装
+brew install mate
+
+# 使用 Tmate 开启一个新的 session，从 Tmux 的会话中复制由 Tmate 产生的 SSH URL，其他人可以使用SSH访问 session
+tmate
+```
+
 ## 配置
 - [k-tmux](https://github.com/wklken/k-tmux)
 - [我的TMUX配置及说明](http://www.wklken.me/posts/2015/08/06/linux-tmux.html)
