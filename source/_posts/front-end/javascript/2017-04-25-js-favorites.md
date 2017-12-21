@@ -1297,6 +1297,7 @@ var debounce = function (fn, delay, immediate) {
 };
 ```
 
+- [30-seconds-of-code](https://github.com/Chalarangelo/30-seconds-of-code)
 - [检查浏览器环境](/resource/js/browser.js)
 - [storage Utils](/resource/js/storage.js)
 - [常用正则](/resource/js/validator.js)
