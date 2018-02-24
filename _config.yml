@@ -114,18 +114,41 @@ links_title: 常用链接
 
 # links
 links:
-  css检索: http://cssvalues.com/
-  醉牛前端: http://f2er.club/
+  W3Cschool: https://www.w3cschool.cn/
+  菜鸟教程: http://www.runoob.com
+  CTOLib: http://www.ctolib.com
+  阿里妈妈: http://mux.alimama.com
+  美团技术: https://tech.meituan.com
+  segmentfault: https://segmentfault.com
+  资源库: http://www.dowebok.com
+  Learn X in Y minutes: https://learnxinyminutes.com
+  知识库: http://lib.csdn.net/home
+  V2EX: https://www.v2ex.com
   前端网址: http://caibaojian.com/links
-  前端css88: http://www.css88.com/nav/
-  程序资料: http://codecloud.net/
-  构建工具: https://www.awesomes.cn/
-  OverAPI: http://overapi.com/
-  DevDocs: http://devdocs.io/
-  JS花园: http://www.jb51.net/onlineread/JavaScript-Garden-CN/#intro
-  工具索引: http://tool.oschina.net/
-  设计导航: http://hao.shejidaren.com/
-  JSbin: http://jsbin.com/
-  Codepen: http://codepen.io/pen
-  RunJs: http://runjs.cn/
+  博客墙: http://blogwall.us
+  awesomes: https://www.awesomes.cn/
+  醉牛前端: http://f2er.club/
+  粉丝日志: http://blog.fens.me
+  极客教程: https://www.geekjc.com
+  黄峰达/blog: https://www.phodal.com
+  justjavac: http://justjavac.com
+  阮一峰: http://www.ruanyifeng.com/blog/
+  廖雪峰: https://www.liaoxuefeng.com
+  张鑫旭: http://www.zhangxinxu.com
+  吕立青: https://blog.jimmylv.info
+  李亚飞: https://yafeilee.me
+  马海祥: http://www.mahaixiang.cn
+  魏义齐: http://www.xwblog.net
+  贾鹏辉: http://www.devio.org
+  caniuse/工具: https://caniuse.com
+  css检索: http://cssvalues.com/
+  短连接生成: https://git.io
+  css88/doc: http://www.css88.com/nav/
+  OverAPI/api: http://overapi.com/
+  DevDocs/api: http://devdocs.io/
+  JS花园/js语法: http://www.jb51.net/onlineread/JavaScript-Garden-CN/#intro
+  在线工具/索引: http://tool.oschina.net/
   ToolBox: http://tool.lu/
+  设计导航: http://hao.shejidaren.com/
+  JSbin/环境: http://jsbin.com/
+  RunJs/环境: http://runjs.cn/

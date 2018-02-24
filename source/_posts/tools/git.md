@@ -433,3 +433,4 @@ ssh-keygen -t rsa -C "youremail@example.com"
 - [Pro Git](http://git-scm.com/book/zh/v2)
 - [Git 在线练习](http://learngitbranching.js.org)
 - [Git 在线练习（英）](http://try.github.io/)
+- [Git Community Book 中文版](http://gitbook.liuhui998.com/index.html)
