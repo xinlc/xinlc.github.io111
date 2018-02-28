@@ -183,13 +183,13 @@ Tmuxinator的一个工程(Project)对应tmux的一个session。
 tmuxinator命令已alias为mux。   
 new简写为n，open简写为o，edit简写为e，list简写为l，copy简写为c，delete简写为d。
 ```bash
-> mux n ws      # 创建工程ws
-> mux o ws      # 打开工程ws的配置文件
-> mux e ws      # 同上
-> mux c ws ws1  # 复制ws工程到ws1
-> mux d ws      # 删除ws工程
-> mux l         # 显示所有工程
-> mux ws        # 开启ws工程
+$ mux n ws      # 创建工程ws
+$ mux o ws      # 打开工程ws的配置文件
+$ mux e ws      # 同上
+$ mux c ws ws1  # 复制ws工程到ws1
+$ mux d ws      # 删除ws工程
+$ mux l         # 显示所有工程
+$ mux ws        # 开启ws工程
 ```
 
 ### 配置
@@ -226,7 +226,7 @@ panes:
 如果不满足layout默认值，layout项可以自定义值。    
 首先调整好窗口的Pane，prefix d关闭Session。    
 ```bash
-> tmux list-windows
+$ tmux list-windows
 1: bash* (4 panes) [211x47] [layout 9a0a,211x47,0,0{110x47,0,0,12,100x47,111,0[100x23,111,0,13,100x23,111,24{49x23,111,24,14,50x23,161,24,15}]}
 ```
 

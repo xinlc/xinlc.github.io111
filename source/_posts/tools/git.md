@@ -19,8 +19,9 @@ Git和SVN最大区别是`Git`是分布式版本控制，`SVN`是集中式版本�
 2. 缺点:
   1. 服务器压力太大，数据库容量暴增。 
   2. 如果不能连接到服务器上，基本上不可以工作，如果服务器不能连接上，就不能提交，还原，对比等等。 
-  3. 不适合开源开发（开发人数非常非常多)。
+  3. 不适合开源开发（开发人数非常非常多)。   
 <!--more-->
+
 ### Git优缺点
 1. 优点:
   1. 适合分布式开发，强调个体。 
@@ -49,6 +50,7 @@ sudo apt-get install git
 $ git status               # 查看工作区文件状态
 $ git add -A               # 添加工作区所有文件到暂存区
 $ git checkout –- [file]   # 取消对文件的修改
+$ git checkout –- .        # 取消对工作区所有文件的修改
 $ git diff                 # 比较当前文件和暂存区文件差异 
 $ git commit -m “注释内容”  # 提交代码到本地库
 $ git commit --amend       # 修改最后一次提交的注释内容
@@ -62,6 +64,7 @@ $ git log -10              # 查看最近10次提交记录
 $ git log --stat           # 查看提交统计信息
 $ git log [file]           # 查看该文件每次提交记录
 $ git log -p               # 查看每次详细修改内容的diff 
+$ git log --pretty=oneline # 显示成一行， 其他参数：short，full 和 fuller
 $ git reflog               # 显示操作记录（commit，reset等）
 $ git show $id             # 显示某次提交的内容
 $ git reset [file]         # 从暂存区恢复到工作文件
@@ -172,6 +175,9 @@ $ git log -5 --pretty --oneline
 
 # 显示分支merge关系图
 $ git log --graph
+
+# 格式化 graph
+git log --graph --pretty=format:'%C(bold red)%h %Creset- %C(bold yellow)%d %C(bold cyan)%s %C(bold green)[%cr] %C(bold magenta)[%cn] %C(bold green)[%ci]'
 
 # 显示所有提交过的用户，按提交次数排序
 $ git shortlog -sn

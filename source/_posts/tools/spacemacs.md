@@ -7,15 +7,12 @@ tags:
   - emacs
 ---
 
-[Spacemacs](https://github.com/syl20bnr/spacemacs)
----
-
 ## 安装 Spacemacs
 ```bash
-cd ~
-mv .emacs.d .emacs.d.bak
-mv .emacs .emacs.bak
-git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+$ cd ~
+$ mv .emacs.d .emacs.d.bak
+$ mv .emacs .emacs.bak
+$ git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
 ```
 在克隆完成后直接运行 Emacs. 在第一次使用 Spacemacs 时需要下载一些 Package, 然后在 Bootstrap 完成之后你需要进行如下一些配置:
 
