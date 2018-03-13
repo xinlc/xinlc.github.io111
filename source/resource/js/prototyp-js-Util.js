@@ -105,6 +105,40 @@ String.prototype.endWith = function (s) {
     return (d >= 0 && this.lastIndexOf(s) == d)
 }
 
+
+// 字符串截取方法
+String.prototype.getCharactersLen = function (charStr, cutCount) {
+    if (charStr == null || charStr == '') 
+    return '';        
+    var totalCount = 0;        
+    var newStr = '';        
+    for (var i = 0; i < charStr.length; i++) {            
+    var c = charStr.charCodeAt(i);            
+    if (c < 255 && c > 0) {
+        totalCount++;
+    } else {
+        totalCount += 2;
+    } 
+    if (totalCount >= cutCount) {
+        newStr += charStr.charAt(i);
+        break;
+    }else {
+        newStr += charStr.charAt(i);
+        }
+   }        
+   return newStr;
+}
+
+function StringBuilder() {
+    this.strings = new Array;
+};
+StringBuilder.prototype.append = function (str) {
+    this.strings.push(str);
+};
+StringBuilder.prototype.toString = function () {
+    return this.strings.join('');
+};
+
 //时间日期格式转换
 Date.prototype.Format = function(formatStr) {
     var str = formatStr;

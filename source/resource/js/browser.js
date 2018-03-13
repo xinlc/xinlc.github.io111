@@ -68,4 +68,52 @@ var Browser = {
   isIOS: (deviceTypes[currentDevice()] === 'iPad') || (deviceTypes[currentDevice()] === 'iPod') || (deviceTypes[currentDevice()] === 'iPhone')
 };
 
+// 获得当前浏览器JS的版本
+Browser.getJsVersion = function (){    
+    var n = navigator;    
+    var u = n.userAgent;    
+    var apn = n.appName;   
+    var v = n.appVersion;    
+    var ie = v.indexOf('MSIE ');    
+    if (ie > 0){
+        apv = parseInt(i = v.substring(ie + 5));        
+        if (apv > 3) {
+            apv = parseFloat(i);
+        }
+    } else {
+        apv = parseFloat(v);
+    }
+    var isie = (apn == 'Microsoft Internet Explorer');    
+    var ismac = (u.indexOf('Mac') >= 0);    
+    var javascriptVersion = "1.0";    
+    if (String && String.prototype) {
+        javascriptVersion = '1.1';        
+        if (javascriptVersion.match) {
+            javascriptVersion = '1.2';            
+            var tm = new Date;            
+            if (tm.setUTCDate) {
+                javascriptVersion = '1.3';                
+                if (isie && ismac && apv >= 5) 
+                javascriptVersion = '1.4';                
+                var pn = 0;                
+                if (pn.toPrecision) {
+                    javascriptVersion = '1.5';
+                    a = new Array;                    
+                    if (a.forEach) {
+                        javascriptVersion = '1.6';
+                        i = 0;
+                        o = new Object;
+                        tcf = new Function('o', 'var e,i=0;try{i=new Iterator(o)}catch(e){}return i');
+                        i = tcf(o);                        
+                        if (i && i.next) {
+                            javascriptVersion = '1.7';
+                        }
+                    }
+                }
+            }
+        }
+    }    
+    return javascriptVersion;
+}
+
 export default Browser;

@@ -66,6 +66,13 @@ window.getUrlParam = function (name) {
     var r = window.location.search.substr(1).match(reg);  //匹配目标参数
     if (r != null) return decodeURI(r[2]); return null; //返回参数值
 }
+
+
+const getUrlParameters = url =>
+  url.match(/([^?=&]+)(=([^&]*))/g).reduce(
+    (a, v) => (a[v.slice(0, v.indexOf('='))] = v.slice(v.indexOf('=') + 1), a), {}
+  );
+// getUrlParameters('http://url.com/page?name=Adam&surname=Smith') -> {name: 'Adam', surname: 'Smith'}
 ```
 
 ## 获得URL中GET参数值
@@ -477,7 +484,13 @@ Utils.deepCopy = (p, _c) => {
 ## 返回指定范围的随机数(m-n之间)的公式
 
 ```js
-Math.random()*(n-m)+m
+console.log(Math.random()*(n-m)+m);
+
+const randomInRange = (min, max) => Math.random() * (max - min) + min;
+// randomInRange(2,10) -> 6.0211363285087005
+
+const randomIntegerInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+// randomIntegerInRange(0, 5) -> 2
 ```
 
 ## 随机数时间戳
@@ -767,6 +780,10 @@ String.prototype.unique=function(){
     }
     return y
 };
+
+
+const unique = arr => [...new Set(arr)];
+// unique([1,2,2,3,4,4,5]) -> [1,2,3,4,5]
 ```
 
 ## 按字典顺序，对每行进行数组排序
@@ -921,6 +938,83 @@ function AddFavorite(sURL,sTitle){
 <a href=”javascript:favorite(‘李刚的学习专栏’,’http://blog.csdn.net/ligang2585116’)”>加入收藏</a> 
 ```
 
+## js 绑定事件 适用于任何浏览器的元素绑定
+```js
+function eventBind(obj, eventType, callBack) {
+    if (obj.addEventListener) {
+        obj.addEventListener(eventType, callBack, false);
+    }else if (window.attachEvent) {
+        obj.attachEvent('on' + eventType, callBack);
+    }else {
+        obj['on' + eventType] = callBack;
+    }
+};
+eventBind(document, 'click', bodyClick);
+
+
+// 移除事件
+this.moveBind = function (objId, eventType, callBack) {
+    var obj = document.getElementById(objId);
+    if (obj.removeEventListener) {
+        obj.removeEventListener(eventType, callBack, false);
+    }else if (window.detachEvent) {
+        obj.detachEvent('on' + eventType, callBack);
+    }else {
+        obj['on' + eventType] = null;
+    }
+}
+```
+
+## 获取当前点击事件的Object对象
+```js
+function getEvent() {
+    if (document.all) {
+    return window.event; //如果是ie
+    }
+    func = getEvent.caller;
+    while (func != null) {
+    var arg0 = func.arguments[0];
+    if (arg0) {
+    if ((arg0.constructor == Event || arg0.constructor == MouseEvent)
+|| (typeof (arg0) == "object" && arg0.preventDefault && arg0.stopPropagation)) {
+            return arg0;
+            }
+        }
+        func = func.caller;
+    }
+    return null;
+};
+```
+
+## 按Ctrl + Entert 直接提交表单
+```js
+document.body.onkeydown = function (evt) {
+    evt = evt ? evt : (window.event ? window.event : null);
+    if (13 == evt.keyCode && evt.ctrlKey) {
+        evt.returnValue = false;
+        evt.cancel = true;
+        PostData();
+    }
+};
+```
+
+## JS 弹出新窗口全屏
+```js
+var tmp = window.open("about:blank", "", "fullscreen=1")
+tmp.moveTo(0, 0);
+tmp.resizeTo(screen.width + 20, screen.height);
+tmp.focus();
+tmp.location.href = 'http://www.che168.com/pinggu/eva_' + msgResult.message[0] + '.html';
+var config_ = "left=0,top=0,width=" + (window.screen.Width) + ",height=" + (window.screen.Height);
+window.open('http://www.che168.com/pinggu/eva_' + msgResult.message[0] + '.html', "winHanle", config_);
+//模拟form提交打开新页面
+var f = document.createElement("form");
+f.setAttribute('action', 'http://www.che168.com/pinggu/eva_' + msgResult.message[0] + '.html');
+f.target = '_blank';
+document.body.appendChild(f);
+f.submit();
+```
+
 ## JS继承的实现方式 [参考](http://www.cnblogs.com/humin/p/4556820.html)
 
 ```js
@@ -1039,6 +1133,29 @@ export const openApp = function(openUrl, callback) {
     }, 2000);  
 
 }
+```
+
+## 获取滚动位置
+如果已定义，请使用pageXOffset和pageYOffset，否则使用scrollLeft和scrollTop，可以省略el来使用window的默认值。
+```js
+const getScrollPos = (el = window) =>
+  ({x: (el.pageXOffset !== undefined) ? el.pageXOffset : el.scrollLeft,
+    y: (el.pageYOffset !== undefined) ? el.pageYOffset : el.scrollTop});
+// getScrollPos() -> {x: 0, y: 200}
+```
+## 滚动到顶部
+使用document.documentElement.scrollTop或document.body.scrollTop获取到顶部的距离。
+从顶部滚动一小部分距离。
+使用window.requestAnimationFrame（）来滚动。
+```js
+const scrollToTop = _ => {
+  const c = document.documentElement.scrollTop || document.body.scrollTop;
+  if (c > 0) {
+    window.requestAnimationFrame(scrollToTop);
+    window.scrollTo(0, c - c / 8);
+  }
+};
+// scrollToTop()
 ```
 
 ## [柯里化函数](https://segmentfault.com/a/1190000008263193)
@@ -1295,6 +1412,165 @@ var throttle = function (fn,delay, immediate, debounce) {
 var debounce = function (fn, delay, immediate) {
    return throttle(fn, delay, immediate, true);
 };
+```
+
+## 数组平均数
+使用reduce（）将每个值添加到累加器，初始值为0，总和除以数组长度。
+```js
+const average = arr => arr.reduce((acc, val) => acc + val, 0) / arr.length;
+// average([1,2,3]) -> 2
+```
+
+## 大写每个单词的首字母
+使用replace（）匹配每个单词的第一个字符，并使用toUpperCase（）来将其大写。
+```js
+const capitalizeEveryWord = str => str.replace(/\b[a-z]/g, char => char.toUpperCase());
+// capitalizeEveryWord('hello world!') -> 'Hello World!'
+```
+
+## 首字母大写
+```js
+const capitalize = (str, lowerRest = false) =>
+  str.slice(0, 1).toUpperCase() + (lowerRest ? str.slice(1).toLowerCase() : str.slice(1));
+// capitalize('myName', true) -> 'Myname'
+```
+
+## 计数数组中值的出现次数
+每次遇到数组中的特定值时，使用reduce（）来递增计数器。
+```js
+const countOccurrences = (arr, value) => arr.reduce((a, v) => v === value ? a + 1 : a + 0, 0);
+// countOccurrences([1,1,2,1,2,3], 1) -> 3
+```
+
+## 数组之间的区别
+从b创建一个Set，然后在a上使用Array.filter（），只保留b中不包含的值。
+```js
+const difference = (a, b) => { const s = new Set(b); return a.filter(x => !s.has(x)); };
+// difference([1,2,3], [1,2]) -> [3]
+```
+## 数组之间的相似性
+```js
+const similarity = (arr, values) => arr.filter(v => values.includes(v));
+// similarity([1,2,3], [1,2,4]) -> [1,2]
+```
+
+## 转义正则表达式
+使用replace（）来转义特殊字符。
+```js
+const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// escapeRegExp('(test)') -> \\(test\\)
+```
+
+## 阶乘
+使用递归。如果n小于或等于1，则返回1。否则返回n和n - 1的阶乘的乘积。
+```js
+const factorial = n => n <= 1 ? 1 : n * factorial(n - 1);
+// factorial(6) -> 720
+```
+
+## 斐波那契数组生成器
+创建一个特定长度的空数组，初始化前两个值（0和1）。使用Array.reduce（）向数组中添加值，后面的一个数等于前面两个数相加之和（前两个除外）。
+```js
+const fibonacci = n =>
+  Array(n).fill(0).reduce((acc, val, i) => acc.concat(i > 1 ? acc[i - 1] + acc[i - 2] : i), []);
+// fibonacci(5) -> [0,1,1,2,3]
+```
+
+## 过滤数组中的非唯一值
+将Array.filter（）用于仅包含唯一值的数组。
+```js
+const filterNonUnique = arr => arr.filter(i => arr.indexOf(i) === arr.lastIndexOf(i));
+// filterNonUnique([1,2,2,3,4,4,5]) -> [1,3,5]
+```
+
+## Flatten数组
+使用reduce（）来获取数组中的所有元素，并使用concat（）来使它们flatten。
+```js
+const flatten = arr => arr.reduce((a, v) => a.concat(v), []);
+// flatten([1,[2],3,4]) -> [1,2,3,4]
+```
+
+## 从数组中获取最大值和最小值
+```js
+const arrayMax = arr => Math.max(...arr);
+// arrayMax([10, 1, 5]) -> 10
+
+const arrayMin = arr => Math.min(...arr);
+// arrayMin([10, 1, 5]) -> 1
+```
+
+## 最大公约数（GCD）
+使用递归。基本情况是当y等于0时。在这种情况下，返回x。否则，返回y的GCD和x / y的其余部分。
+```js
+const gcd = (x, y) => !y ? x : gcd(y, x % y);
+// gcd (8, 36) -> 4
+```
+## 用range初始化数组
+使用Array（end-start）创建所需长度的数组，使用map（）来填充范围中的所需值，可以省略start使用默认值0。
+```js
+const initializeArrayRange = (end, start = 0) =>
+  Array.apply(null, Array(end - start)).map((v, i) => i + start);
+// initializeArrayRange(5) -> [0,1,2,3,4]
+```
+
+## 用值初始化数组
+使用Array（n）创建所需长度的数组，fill(v)以填充所需的值，可以忽略value使用默认值0。
+```js
+const initializeArray = (n, value = 0) => Array(n).fill(value);
+// initializeArray(5, 2) -> [2,2,2,2,2]
+```
+
+## 测试功能所花费的时间
+使用performance.now（）获取函数的开始和结束时间，console.log（）所花费的时间。第一个参数是函数名，随后的参数传递给函数。
+```js
+const timeTaken = callback => {
+  console.time('timeTaken');
+  const r = callback();
+  console.timeEnd('timeTaken');
+  return r;
+};
+// timeTaken(() => Math.pow(2, 10)) -> 1024
+// (logged): timeTaken: 0.02099609375ms
+```
+
+## 按字符串排序（按字母顺序排列）
+```js
+const sortCharactersInString = str =>
+  str.split('').sort((a, b) => a.localeCompare(b)).join('');
+// sortCharactersInString('cabbage') -> 'aabbceg'
+```
+
+## 来自键值对的对象
+```js
+const objectFromPairs = arr => arr.reduce((a, v) => (a[v[0]] = v[1], a), {});
+// objectFromPairs([['a',1],['b',2]]) -> {a: 1, b: 2}
+```
+
+## 管道
+使用Array.reduce（）通过函数传递值。
+```js
+const pipe = (...funcs) => arg => funcs.reduce((acc, func) => func(acc), arg);
+// pipe(btoa, x => x.toUpperCase())("Test") -> "VGVZDA=="
+```
+
+## Powerset
+```js
+const powerset = arr =>
+  arr.reduce((a, v) => a.concat(a.map(r => [v].concat(r))), [[]]);
+// powerset([1,2]) -> [[], [1], [2], [2,1]]
+```
+
+## 随机化数组的顺序
+```js
+const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+// shuffle([1,2,3]) -> [2,3,1]
+```
+
+## RGB到十六进制
+使用按位左移运算符（<<）和toString（16），然后padStart（6，“0”）将给定的RGB参数转换为十六进制字符串以获得6位十六进制值。
+```js
+const rgbToHex = (r, g, b) => ((r << 16) + (g << 8) + b).toString(16).padStart(6, '0');
+// rgbToHex(255, 165, 1) -> 'ffa501'
 ```
 
 - [30-seconds-of-code](https://github.com/Chalarangelo/30-seconds-of-code)

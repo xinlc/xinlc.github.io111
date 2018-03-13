@@ -103,8 +103,14 @@ $ git add [file1] [file2] ...
 # 添加指定目录到暂存区，包括子目录
 $ git add [dir]
 
-# 添加当前目录的所有文件到暂存区
+# 监控工作区的状态树，使用它会把工作时的所有变化提交到暂存区，包括文件内容修改(modified)以及新文件(new)，但不包括被删除的文件。
 $ git add .
+
+# 仅监控已经被add的文件（即tracked file），它会将被修改的文件提交到暂存区。add -u 不会提交新文件（untracked file）。
+$ git add -u
+
+# add . 和 add -u 功能的集合
+$ git add -A
 
 # 添加每个变化前，都会要求确认
 # 对于同一个文件的多处变化，可以实现分次提交
@@ -142,7 +148,7 @@ $ git commit --amend -m [message]
 $ git commit --amend [file1] [file2] ...
 ```
 
-## 查看信息
+## 查看历史 log
 ```bash
 
 # 显示有变更的文件
@@ -185,6 +191,21 @@ $ git shortlog -sn
 # 显示指定文件是什么人在什么时间修改过
 $ git blame [file]
 
+# 显示某次提交的元数据和内容变化
+$ git show [commit]
+
+# 显示某次提交发生变化的文件
+$ git show --name-only [commit]
+
+# 显示某次提交时，某个文件的内容
+$ git show [commit]:[filename]
+
+# 显示当前分支的最近几次提交
+$ git reflog
+```
+
+## 比较提交 diff
+```bash
 # 显示暂存区和工作区的差异
 $ git diff
 
@@ -215,17 +236,11 @@ $ git diff --cached
 # 仅仅比较统计信息
 $ git diff --stat
 
-# 显示某次提交的元数据和内容变化
-$ git show [commit]
+# 打补丁
+$ git diff > patch
 
-# 显示某次提交发生变化的文件
-$ git show --name-only [commit]
-
-# 显示某次提交时，某个文件的内容
-$ git show [commit]:[filename]
-
-# 显示当前分支的最近几次提交
-$ git reflog
+# 应用补丁
+$ git apply patch
 ```
 
 ## 分支操作
@@ -281,6 +296,12 @@ $ git tag
 
 # 新建一个tag在当前commit
 $ git tag [tag]
+
+# 新建一个tag在当前commit 并进入添加message
+$ git tag -a [tag]
+
+# 新建一个tag在当前commit 并添加message
+$ git tag [tag] -m 'message'
 
 # 新建一个tag在指定commit
 $ git tag [tag] [commit]
