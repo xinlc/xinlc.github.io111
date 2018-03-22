@@ -443,6 +443,7 @@ q 停止录制.
   - K	打开光标所在单词的manpage
   - gf	在当前页面打开光标下的文件，Ctrl-O返回原始文件
   - gF	在另外一个页面打开光标下文件，Ctrl-O返回原始文件
+  - gd  jump to definition.
   - @@	重复使用上次的宏
   - vim -o f1 f2	水平分割窗口，同时打开f1和f2
   - vim -O f1 f2	垂直分割窗口，同时打开f1和f2

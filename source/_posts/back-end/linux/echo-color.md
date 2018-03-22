@@ -7,14 +7,14 @@ tags:
   - shell
 ---
 
-shell脚本中echo显示内容带颜色显示, echo显示带颜色，需要使用参数-e
-格式如下：
+shell脚本中echo显示内容带颜色显示, echo显示带颜色，需要使用参数-e 格式如下：
 
 ```bash
 echo -e "\033[41;36m something here \033[0m"
 # 其中41的位置代表底色， 36的位置是代表字的颜色
 ```
 
+<!--more-->
 
 ## 字颜色
 ```bash
