@@ -303,6 +303,8 @@ tags:
 | `nrformats` | `nf` | `CTRL-A 命令识别的数字格式` |
 | `number` | `nu` | `行前显示行号` |
 | `numberwidth` | `nuw` | `行号使用的列数` |
+| `nohlsearch` | `noh` | `取消搜索高亮` |
+
 
 ### O
 
