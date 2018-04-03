@@ -1,6 +1,6 @@
 ---
 title: Linux搭建SS（ShadowSocks）
-date: 2018-03-23 10:24:00
+date: 2018-04-03 18:30:00
 categories: Linux
 tags: 
   - linux
@@ -16,6 +16,8 @@ tags:
 curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
 python get-pip.py
 ```
+
+<!--more-->
 
 ### 安装SS
 ```
