@@ -13,16 +13,16 @@ tags:
 ## 在CentOS 7上安装 SS
 ### 安装pip
 ```bash
-curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-python get-pip.py
+$ curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+$ python get-pip.py
 ```
 
 <!--more-->
 
 ### 安装SS
-```
-pip install --upgrade pip
-pip install shadowsocks
+```bash
+$ pip install --upgrade pip
+$ pip install shadowsocks
 ```
 
 ### 创建SS配置文件
@@ -30,7 +30,7 @@ pip install shadowsocks
 
 ```bash
 # 创建配置文件
-vi /etc/shadowsocks.json
+$ vi /etc/shadowsocks.json
 
 # 添加下面内容
 {
@@ -59,22 +59,22 @@ vi /etc/shadowsocks.json
 
 ### 关闭防火墙
 ```bash
-systemctl stop firewalld.service
+$ systemctl stop firewalld.service
 ```
 
 ### 启动/关闭
-```
+```bash
 # 启动SS
-ssserver -c /etc/shadowsocks.json -d start
+$ ssserver -c /etc/shadowsocks.json -d start
 
 # 关闭SS
-ssserver -c /etc/shadowsocks.json -d stop 
+$ ssserver -c /etc/shadowsocks.json -d stop 
 ```
 
 ### 配置自启动
 创建配置文件
 ```bash
-vi /etc/systemd/system/shadowsocks.service
+$ vi /etc/systemd/system/shadowsocks.service
 # 加入下面内容
 [Unit]
 Description=Shadowsocks
@@ -89,11 +89,11 @@ WantedBy=multi-user.target
 
 执行以下命令启动 shadowsocks 服务
 ```bash
-systemctl enable shadowsocks
-systemctl start shadowsocks
+$ systemctl enable shadowsocks
+$ systemctl start shadowsocks
 
 # 查看状态
-systemctl status shadowsocks -l
+$ systemctl status shadowsocks -l
 ```
 
 
@@ -109,11 +109,11 @@ systemctl status shadowsocks -l
 ## 快速安装
 
 ```bash
-wget --no-check-certificate -O shadowsocks.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks.sh
+$ wget --no-check-certificate -O shadowsocks.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks.sh
 
-chmod +x shadowsocks.sh
+$ chmod +x shadowsocks.sh
 
-./shadowsocks.sh 2>&1 | tee shadowsocks.log
+$ ./shadowsocks.sh 2>&1 | tee shadowsocks.log
 ```
 
 
