@@ -70,7 +70,7 @@ ctrl + i  # 下一个光标的位置
 
 ![](/images/vi-vim-cheat-sheet-sch.gif)
 
-## Vim理解
+## vim理解
 
 这部分来源 [一起来说 Vim 语](http://www.jianshu.com/p/a361ce8c97bc)，理解此部分是需要你已经了解了 Vim 的几种常用的工作模式（正常模式、插入模式、命令模式等）
 
@@ -456,11 +456,9 @@ q 停止录制.
 - [vim 大冒险：在游戏中学习 vim](http://vim-adventures.com/)
 - [VimScript学会如何自定义Vim编辑器](http://learnvimscriptthehardway.onefloweroneworld.com/)
 - [一起来说 Vim 语](http://www.jianshu.com/p/a361ce8c97bc)
-- [css-color stopped working after updating Vim to 7.4](https://github.com/ap/vim-css-color/issues/29)
 - [我的VIM配置及说明【K-VIM】](http://www.wklken.me/posts/2013/06/11/linux-my-vim.html)
 - [简明 VIM 练级攻略](http://coolshell.cn/articles/5426.html)
 - [Vi中的正则表达式](http://tech.idv2.com/2008/07/08/vim-regexp/)
 - [vi替换字符串](http://blog.csdn.net/aldenphy/article/details/4019486)
 - [vim中寄存器使用和vim标记](http://blog.csdn.net/rainysia/article/details/7721691)
 - [how-to-boost-your-vim-productivity](https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/)
-- [Vim 配置选项说明](http://blog.csdn.net/shuimengzhilong/article/details/45340361)

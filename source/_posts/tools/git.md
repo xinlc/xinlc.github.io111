@@ -36,11 +36,11 @@ Git和SVN最大区别是`Git`是分布式版本控制，`SVN`是集中式版本�
 
 ### Mac系统使用[Homebrew](https://brew.sh)安装
 ```bash
-brew install git
+$ brew install git
 ```
 ### Linux
 ```bash
-sudo apt-get install git
+$ sudo apt-get install git
 ```
 ### Windows
 [git for windows](https://git-for-windows.github.io)

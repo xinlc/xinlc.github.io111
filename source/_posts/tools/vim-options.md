@@ -282,7 +282,7 @@ tags:
 | `maxmempattern` | `mmp` | `模式匹配使用的最大内存 (以千字节计)` |
 | `maxmemtot` | `mmt` | `所有缓冲区可用的最大内存 (以千字节计)` |
 | `menuitems` | `mis` | `菜单可用的最大项目数` |
-| `mkspellmem` | `msm` | `在 |:mkspell| 压缩树前可用的内存` |
+| `mkspellmem` | `msm` | `在 :mkspell 压缩树前可用的内存` |
 | `modeline` | `ml` | `在文件开头或结尾识别模式行` |
 | `modelines` | `mls` | `模式行的检查行数` |
 | `modifiable` | `ma` | `可否修改文本` |
@@ -312,7 +312,7 @@ tags:
 | --- | --- | --- |
 | `omnifunc` | `ofu` | `文件类型特定补全使用的函数` |
 | `opendevice` | `odev` | `MS-Windows 上允许读/写设备` |
-| `operatorfunc` | `opfunc` | `|go@| 操作符调用的函数` |
+| `operatorfunc` | `opfunc` | `go@ 操作符调用的函数` |
 | `osfiletype` | `oft` | `不再支持` |
 
 ### P
@@ -349,7 +349,7 @@ tags:
 | 选项全称 | 选项简称 | 选项说明 |
 | --- | --- | --- |
 | `readonly` | `ro` | `禁止写入缓冲区` |
-| `redrawtime` | `rdt` | `'hlsearch' 和 |:match| 高度的超时` |
+| `redrawtime` | `rdt` | `'hlsearch' 和 :match 高度的超时` |
 | `regexpengine` | `re` | `使用的缺省正规表达式引擎` |
 | `relativenumber` | `rnu` | `每行前显示相对行号` |
 | `remap` |  | `允许映射可以递归调用` |
@@ -404,7 +404,7 @@ tags:
 | `softtabstop` | `sts` | `编辑时 <Tab> 使用的空格数` |
 | `spell` |  | `打开拼写检查` |
 | `spellcapcheck` | `spc` | `定位句子尾部的模式` |
-| `spellfile` | `spf` | `|zg| 和 |zw| 保存单词的文件` |
+| `spellfile` | `spf` | `zg和zw保存单词的文件` |
 | `spelllang` | `spl` | `拼写检查使用的语言` |
 | `spellsuggest` | `sps` | `提供拼写校正建议的方法` |
 | `splitbelow` | `sb` | `分割窗口时新窗口在当前窗口之下` |
@@ -425,7 +425,7 @@ tags:
 | --- | --- | --- |
 | `tabstop` | `ts` | `<Tab> 在文件里使用的空格数` |
 | `tabline` | `tal` | `终端标签页行的定制格式` |
-| `tabpagemax` | `tpm` | `|-p| 和 "tab all" 的最大标签页数` |
+| `tabpagemax` | `tpm` | `-p 和 "tab all" 的最大标签页数` |
 | `tagbsearch` | `tbs` | `标签文件里用二分法查找` |
 | `taglength` | `tl` | `标签里的有效字符数` |
 | `tagrelative` | `tr` | `标签文件里的文件名是相对路径` |

@@ -9,7 +9,7 @@ tags:
 
 ## 简介
 Tmux 是一个工具，用于在一个终端窗口中运行多个终端会话, 一个会话（Session）可以包含多个窗口，一个窗口（Window）可以包含多个窗格（Pane)。   
-tmux使用C/S模型构建，主要包括以下单元模块：
+Tmux使用C/S模型构建，主要包括以下单元模块：
 - `server`	输入tmux命令时就开启了一个服务器。
 - `session` 一个服务器可以包含多个会话。
 - `window` 一个会话可以包含多个窗口。
@@ -19,11 +19,12 @@ tmux使用C/S模型构建，主要包括以下单元模块：
 
 ## 安装
 ``` bash
-mac
+# Mac OS 系统
 $ brew install tmux
 $ brew install reattach-to-user-namespace # 让 Tmux 将文本复制到系统的剪贴板。
 
-ubuntu
+
+# ubuntu 系统
 $ sudo apt-get install tmux
 ```
 
@@ -105,7 +106,7 @@ $ sudo apt-get install tmux
 
 Tmuxinator 是一个 Ruby 的 gem 包，可用于创建 Tmux 的会话。它的工作方式是先在配置文件中定义会话中的细节，然后用 1 条命令创建出这些会话。
 ```bash
-gem install tmuxinator # 安装
+$ gem install tmuxinator # 安装
 ```
 
 ### 基础设置
@@ -265,10 +266,10 @@ Tmate 是一个 Tmux 的管理工具，使用它不但能够轻松地创建 Tmux
 #### 安装和使用
 ```bash
 # 安装
-brew install mate
+$ brew install mate
 
 # 使用 Tmate 开启一个新的 session，从 Tmux 的会话中复制由 Tmate 产生的 SSH URL，其他人可以使用SSH访问 session
-tmate
+$ tmate
 ```
 
 ## 配置
