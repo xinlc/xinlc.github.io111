@@ -200,7 +200,7 @@ tags:
 | `helpfile` | `hf` | `主帮助文件的完整路径名` |
 | `helpheight` | `hh` | `新帮助窗口的最小高度` |
 | `helplang` | `hlg` | `首选帮助语言` |
-| `hidden` | `hid` | `当缓冲区被放弃 (|abandon|) 时不挂载之` |
+| `hidden` | `hid` | `当缓冲区被放弃 (abandon) 时不挂载之` |
 | `highlight` | `hl` | `设置若干场合下的高亮模式` |
 | `hlsearch` | `hls` | `高亮最近的匹配搜索模式` |
 | `history` | `hi` | `记住的命令行的行数` |

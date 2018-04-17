@@ -4,8 +4,8 @@ title:  "Vim之从入门到放弃!"
 date:   2017-03-12 20:00:00 +0800
 categories: 工欲善其事必先利其器
 tags:
-  - linux
-  - vim
+	- linux
+	- vim
 ---
 ## [入门](#vim理解)
 ## [放弃](http://vim-adventures.com/)
@@ -72,7 +72,7 @@ ctrl + i  # 下一个光标的位置
 
 ## vim理解
 
-这部分来源 [一起来说 Vim 语](http://www.jianshu.com/p/a361ce8c97bc)，理解此部分是需要你已经了解了 Vim 的几种常用的工作模式（正常模式、插入模式、命令模式等）
+这部分来源 [一起来说 Vim 语](http://www.jianshu.com/p/a361ce8c97bc)，理解此部分是需要你已经了解了 Vim 的几种常用的工作模式（正常模式、插入模式、命令模式等），如果你还不了解，可以在`vim`中输入 `:help` 命令打开帮助文档。[中文帮助文档配置](https://blog.csdn.net/uhippo/article/details/8374255)
 
 ### 动词
 
@@ -397,61 +397,62 @@ q 停止录制.
 
 ## 其他技巧
 ### 快速操作
-  - ci'、ci"、ci(、ci[、ci{、ci<              # 分别更改这些配对标点符号中的文本内容
-  - di'、di"、di(或dib、di[、di{或diB、di<     # 分别删除这些配对标点符号中的文本内容
-  - yi'、yi"、yi(、yi[、yi{、yi<              # 分别复制这些配对标点符号中的文本内容
-  - vi'、vi"、vi(、vi[、vi{、vi<              # 分别选中这些配对标点符号中的文本内容
+	- ci'、ci"、ci(、ci[、ci{、ci<              # 分别更改这些配对标点符号中的文本内容
+	- di'、di"、di(或dib、di[、di{或diB、di<     # 分别删除这些配对标点符号中的文本内容
+	- yi'、yi"、yi(、yi[、yi{、yi<              # 分别复制这些配对标点符号中的文本内容
+	- vi'、vi"、vi(、vi[、vi{、vi<              # 分别选中这些配对标点符号中的文本内容
 
 ### 大块复制
-  - 光标移到结束行，输入ma, 光标移到起始行，输入y'a, 光标移到需要复制的行，输入p, 行前复制输入大写P
-  - ：5,10 copy 11  或 ：5,10 co 11 (move/m 剪切; de 删除)
-  - dG 全部删除
-  - ggyG 全部复制
+	- 光标移到结束行，输入ma, 光标移到起始行，输入y'a, 光标移到需要复制的行，输入p, 行前复制输入大写P
+	- ：5,10 copy 11  或 ：5,10 co 11 (move/m 剪切; de 删除)
+	- dG 全部删除
+	- ggyG 全部复制
 
 ### 可视模式下
-  - `gv`	启动可视模式，并重新选中上一次的选择区
-  - `o`	跳到高亮文本的另一端
-  - `O`	同”o”类似，但在列模式下跳到水平方向的另一角
+	- `gv`	启动可视模式，并重新选中上一次的选择区
+	- `o`	跳到高亮文本的另一端
+	- `O`	同”o”类似，但在列模式下跳到水平方向的另一角
 
 ### 窗口横向移动
-  -  `set nowrap` 关闭自动换行
-  -  `[count] zl` 视图向右移动count个字符
-  -  `[count] zh` 视图向左移动count个字符
-  -  `zL` 视图向右移动半个屏幕
-  -  `zH` 视图向左移动半个屏幕
-  -  `zs` 视图移动到最左侧
-  -  `ze` 视图移动到最右侧
+	-  `set nowrap` 关闭自动换行
+	-  `[count] zl` 视图向右移动count个字符
+	-  `[count] zh` 视图向左移动count个字符
+	-  `zL` 视图向右移动半个屏幕
+	-  `zH` 视图向左移动半个屏幕
+	-  `zs` 视图移动到最左侧
+	-  `ze` 视图移动到最右侧
 
 ### 代码折叠
-  - zf	创建折叠
-  - zd	删除光标下的折叠
-  - zD	循环删除光标下的折叠，可视模式下删除选中区域的所有折叠
-  - zE	删除页面内所有折叠
-  - zo	打开光标下的折叠
-  - zO	循环打开光标下的折叠
-  - zc	关闭折叠
-  - zC	循环关闭光标下的折叠
-  - za	折叠开关
-  - zA	选中区域的折叠开关
+	- zf	创建折叠
+	- zd	删除光标下的折叠
+	- zD	循环删除光标下的折叠，可视模式下删除选中区域的所有折叠
+	- zE	删除页面内所有折叠
+	- zo	打开光标下的折叠
+	- zO	循环打开光标下的折叠
+	- zc	关闭折叠
+	- zC	循环关闭光标下的折叠
+	- za	折叠开关
+	- zA	选中区域的折叠开关
 
 ### 其他
-  - ~	变换大小写
-  - :%y	拷贝整个文件
-  - :w !sudo tee %	以root权限保存文件
-  - :r !date	在光标处插入日期和时间，date也可以换成其它命令
-  - q:	调出历史命令窗口
-  - Ctrl-O	暂时离开插入模式并执行一次命令
-  - K	打开光标所在单词的manpage
-  - gf	在当前页面打开光标下的文件，Ctrl-O返回原始文件
-  - gF	在另外一个页面打开光标下文件，Ctrl-O返回原始文件
-  - gd  jump to definition.
-  - @@	重复使用上次的宏
-  - vim -o f1 f2	水平分割窗口，同时打开f1和f2
-  - vim -O f1 f2	垂直分割窗口，同时打开f1和f2
-  - vim -p f1 f2	以不同的Tab页打开f1和f2
-  - :only	关闭其它分屏窗口
+	- ~	变换大小写
+	- :%y	拷贝整个文件
+	- :w !sudo tee %	以root权限保存文件
+	- :r !date	在光标处插入日期和时间，date也可以换成其它命令
+	- q:	调出历史命令窗口
+	- Ctrl-O	暂时离开插入模式并执行一次命令
+	- K	打开光标所在单词的manpage
+	- gf	在当前页面打开光标下的文件，Ctrl-O返回原始文件
+	- gF	在另外一个页面打开光标下文件，Ctrl-O返回原始文件
+	- gd  jump to definition.
+	- @@	重复使用上次的宏
+	- vim -o f1 f2	水平分割窗口，同时打开f1和f2
+	- vim -O f1 f2	垂直分割窗口，同时打开f1和f2
+	- vim -p f1 f2	以不同的Tab页打开f1和f2
+	- :only	关闭其它分屏窗口
 
 ## 参考资料
+- [vi/vim使用进阶](https://blog.easwy.com/archives/advanced-vim-skills-catalog/)
 - [Vim ide，教你安装配置自己的Vim](https://github.com/jaywcjlove/vim-web)
 - [vim 大冒险：在游戏中学习 vim](http://vim-adventures.com/)
 - [VimScript学会如何自定义Vim编辑器](http://learnvimscriptthehardway.onefloweroneworld.com/)
@@ -461,4 +462,4 @@ q 停止录制.
 - [Vi中的正则表达式](http://tech.idv2.com/2008/07/08/vim-regexp/)
 - [vi替换字符串](http://blog.csdn.net/aldenphy/article/details/4019486)
 - [vim中寄存器使用和vim标记](http://blog.csdn.net/rainysia/article/details/7721691)
-- [how-to-boost-your-vim-productivity](https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/)
+- [vim 中文手册](http://vimcdoc.sourceforge.net) <!-- https://www.vim.org -->
