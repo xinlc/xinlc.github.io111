@@ -10,6 +10,8 @@ tags:
 
 Linux系统中的一切文件都是从“根（/）”目录开始的，并按照文件系统层次化标准[FHS](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard)（Filesystem Hierarchy Standard）。采用树形结构来存放文件。另外，Linux系统中的文件和目录名称是严格区分大小写的，并且文件名称中不得包含“斜杠（/）”。
 
+<!--more-->
+
 Linux系统中常见的目录名称以及相应内容
 
 |目录名称 | 应放置文件的内容|
