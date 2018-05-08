@@ -464,7 +464,7 @@ ctrl + f  # 下一页 f 就是`forword`
 ctrl + b  # 上一页 b 就是`backward`
 ctrl + o  # 上一个光标的位置
 ctrl + i  # 下一个光标的位置
-ctrl + O    # 暂时离开插入模式并执行一次命令
+ctrl + o  # 编辑模式下，暂时离开插入模式并执行一次命令
 ```
 
 ## 参考资料
