@@ -122,6 +122,11 @@ $ git rm [file1] [file2] ...
 # 停止追踪指定文件，但该文件会保留在工作区
 $ git rm --cached [file]
 
+# 多人开发时,会出现明明在gitignore中忽略了.idea文件夹, 但是提交时仍旧会出现.idea内文件变动的情况
+# idea已经被git跟踪，之后再加入.gitignore后是没有作用的
+# 清除.idea的git缓存
+$ git rm -r --cached .idea
+
 # 改名文件，并且将这个改名放入暂存区
 $ git mv [file-original] [file-renamed]
 ```
@@ -430,6 +435,10 @@ $ git config --global core.editor "atom -w"
 
 # 设置Editor使用vim
 $ git config --global core.editor vim
+
+# 在当前项目中，早先创建并已经push到远程的文件及文件夹，将名称大小写更改后，git无法检测出更改.
+# 关闭git忽略大小写配置，即可检测到大小写名称更改
+git config core.ignorecase false
 
 # 列举所有配置
 $ git config -l  
