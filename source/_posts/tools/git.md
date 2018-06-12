@@ -291,6 +291,7 @@ $ git branch -d [branch-name]
 
 # 删除远程分支
 $ git push origin --delete [branch-name]
+$ git push origin :[branchName]
 $ git branch -dr [remote/branch]
 ```
 
@@ -316,6 +317,7 @@ $ git tag -d [tag]
 
 # 删除远程tag
 $ git push origin :refs/tags/[tagName]
+$ git push origin --delete tag [tag-name]
 
 # 查看tag信息
 $ git show [tag]
