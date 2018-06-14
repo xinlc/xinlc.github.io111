@@ -8,7 +8,7 @@ tags:
   - proxy
 ---
 
-在Linux上搭建SS代理服务，实现科学上网。首先你需要购买一台在GFW之外的服务器，[vultr](https://www.vultr.com) 或 [搬瓦工](http://banwagong.cn)。
+在Linux上搭建SS代理服务，实现科学上网。首先你需要购买一台在GFW之外的服务器，[vultr](https://www.vultr.com)，[Digital Ocean](https://www.digitalocean.com) 或 [搬瓦工](http://banwagong.cn)。
 
 ## 在CentOS 7上安装 SS
 ### 安装pip
