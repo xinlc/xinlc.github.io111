@@ -97,8 +97,6 @@ $ systemctl status shadowsocks -l
 ```
 
 
-
-
 ### 客户端下载
 - [Mac](https://github.com/shadowsocks/ShadowsocksX-NG/releases/)
 - [Windows](https://github.com/shadowsocks/shadowsocks-windows/releases)
@@ -115,7 +113,67 @@ $ chmod +x shadowsocks.sh
 
 $ ./shadowsocks.sh 2>&1 | tee shadowsocks.log
 ```
+依次执行上面的命令后，选择输入：
 
+* Shadowsocks-R
+* 输入密码
+* 输入端口号 [2000-65545]
+* chacha20
+* origin
+* plain
+
+
+## 一键安装最新内核并开启 [BBR](https://teddysun.com/489.html) 脚本
+```bash
+$ wget --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh
+$ chmod +x bbr.sh
+$ ./bbr.sh
+```
+```bash
+$ reboot # 重启
+```
+### 验证
+```bash
+$ uname -r  # 查看版本是否更新
+```
+```
+$ lsmod | grep bbr # 返回值有 tcp_bbr 即bbr已启动。
+```
+
+## 优化TCP配置
+```bash
+$ vim /etc/sysctl.conf
+```
+复制如下代码：
+```
+# TCP配置优化
+fs.file-max = 51200
+# 提高整个系统的文件限制
+net.core.rmem_max = 67108864
+net.core.wmem_max = 67108864
+net.core.netdev_max_backlog = 250000
+net.core.somaxconn = 4096
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_tw_recycle = 0
+net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_keepalive_time = 1200
+net.ipv4.ip_local_port_range = 10000 65000
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_max_tw_buckets = 5000
+net.ipv4.tcp_fastopen = 3
+net.ipv4.tcp_mem = 25600 51200 102400
+net.ipv4.tcp_rmem = 4096 87380 67108864
+net.ipv4.tcp_wmem = 4096 65536 67108864
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_congestion_control = bbr
+```
+应用 & 重启SS
+```
+$ sysctl -p
+$ /etc/init.d/shadowsocks-r restart
+$ ssserver -c /etc/shadowsocks.json -d start
+```
 
 ## 参考
 - [在 CentOS 7 下安装配置 shadowsocks](http://morning.work/page/2015-12/install-shadowsocks-on-centos-7.html)
