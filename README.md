@@ -3,7 +3,7 @@
 ## [Hexo Commands](https://hexo.io/zh-cn/docs/commands.html)
 ```bash
 npm config set registry "https://registry.npm.taobao.org" #设置为淘宝镜像站
-npm install hexo-cli g    #安装
+npm install -g hexo-cli   #安装
 hexo help                 #查看帮助
 hexo init                 #初始化一个目录
 hexo new "postName"       #新建文章
@@ -18,7 +18,7 @@ hexo server               #本地预览，’Ctrl+
   --debug                 #调试错误
 hexo deploy               #部署.deploy目录
 hexo clean                #清除缓存，**强烈建议每次执行命令前先清理缓存，每次部署前先删除 .deploy
-hexo algolia              # 在站点根目录下执行 hexo algolia 来更新 Algolia Index
+hexo algolia              #在站点根目录下执行 hexo algolia 来更新 Algolia Index
 
 简写：
 hexo n == hexo new
