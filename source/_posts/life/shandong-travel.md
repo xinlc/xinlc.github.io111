@@ -82,6 +82,41 @@ DAY5
 ![曲水亭街][qj4]
 ![曲水亭街][qj2]
 
+### 泰安--泰山
+> 
+《望岳》杜甫
+岱宗夫如何？齐鲁青未了。
+造化钟神秀，阴阳割昏晓。
+荡胸生曾云，决眦入归鸟。
+会当凌绝顶，一览众山小。
+
+20：08
+![泰山][ts1]
+![泰山][ts2]
+![泰山][ts3]
+01：16
+哈哈~十八盘终于到了！一路上前面的大哥总说还有半小时就到十八盘了，兄弟们加油！半小时有又半小时……
+![泰山][ts15]
+南天门 04：10
+像不像逃荒的难民，此时又饿又累又困
+![泰山][ts4]
+![泰山][ts5]
+日观峰 05:17
+![泰山][ts6]
+![泰山][ts7]
+06：05
+万民欢呼
+![泰山][ts8]
+![泰山][ts9]
+![泰山][ts11]
+![泰山][ts12]
+溜了溜了，腿已经不是我的腿
+![泰山][ts13]
+原计划去青岛-烟台坐船回大连，但十一人真是太多了，看的全是头头头╮(╯_╰)╭，回去改bug了……
+![泰山][f1]
+![泰山][f2]
+
+
 
 
 [1]:/images/life/jinan/1.jpeg
@@ -115,3 +150,20 @@ DAY5
 [qj2]:/images/life/jinan/qj2.jpeg
 [qj3]:/images/life/jinan/qj3.jpeg
 [qj4]:/images/life/jinan/qj4.jpeg
+
+[ts1]:/images/life/taishan/ts1.jpeg
+[ts2]:/images/life/taishan/ts2.jpeg
+[ts3]:/images/life/taishan/ts3.jpeg
+[ts4]:/images/life/taishan/ts4.jpeg
+[ts5]:/images/life/taishan/ts5.jpeg
+[ts6]:/images/life/taishan/ts6.jpeg
+[ts7]:/images/life/taishan/ts7.jpeg
+[ts8]:/images/life/taishan/ts8.jpeg
+[ts9]:/images/life/taishan/ts9.jpeg
+[ts11]:/images/life/taishan/ts11.jpeg
+[ts12]:/images/life/taishan/ts12.jpeg
+[ts13]:/images/life/taishan/ts13.jpeg
+[ts15]:/images/life/taishan/ts15.jpeg
+
+[f1]:/images/life/taishan/f1.jpeg
+[f2]:/images/life/taishan/f2.jpeg
