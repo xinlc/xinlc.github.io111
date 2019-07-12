@@ -207,6 +207,10 @@ $ git show [commit]:[filename]
 
 # 显示当前分支的最近几次提交
 $ git reflog
+
+# 查看远程分支log
+$ git log <remote-branch>
+$ git log remotes/origin/master
 ```
 
 ## 比较提交 diff
@@ -461,6 +465,12 @@ ssh-keygen -t rsa -C "youremail@example.com"
 `git log --graph --pretty=oneline --abbrev-commit`
 
 或者用`git mergetool`
+
+```bash
+git checkout --ours xxx/A.java # 抛弃甲的版本，保留乙的
+git checkout --theirs xxx/A.java # 抛弃乙的版本，完全采用甲的
+git checkout --theirs . # 抛弃乙版本所有修改
+```
 
 ## 参考和学习资料
 - [廖雪峰-Git教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000)
