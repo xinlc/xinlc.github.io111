@@ -427,15 +427,28 @@ u           # 取消上一步操作
 ctrl + r    # 返回上一步
 .           # (小数点) 可以重复上一次的命令
 
-gv          # 启动可视模式，并重新选中上一次的选择区, o跳到高亮文本的另一端
 ~           # 选中模式下，变换大小写
 q:          # 调出历史命令窗口
 K           # 打开光标所在单词的manpage
+
+gv          # 启动可视模式，并重新选中上一次的选择区, o跳到高亮文本的另一端
 gf          # 在当前页面打开光标下的文件，Ctrl-O返回原始文件
 gF          # 在另外一个页面打开光标下文件，Ctrl-O返回原始文件
 gd          # jump to definition.
 dG          # 全部删除
 ggyG        # 全部复制
+gd          # 跳转到定义
+guu         # 行小写 gUU 行大写
+g~~         # 行大小写反转
+gUw         # 词大写
+gq          # 选中，多行合并
+gb          # 匹配当前光标下的单词
+gh          # 显示鼠标悬浮窗口
+gcc         # 注释
+af          # 选中，按一次扩大选中范围，再按一次，再次扩大。
+
+>           # 选中，右移, < 左移
+=           # 选中, 格式化
 
 :%y         # 拷贝整个文件
 :r !date    # 在光标处插入日期和时间，date也可以换成其它命令
@@ -466,6 +479,15 @@ ctrl + o  # 上一个光标的位置
 ctrl + i  # 下一个光标的位置
 ctrl + o  # 编辑模式下，暂时离开插入模式并执行一次命令
 ```
+
+## Vim 提高效率插件
+- `sasymotion`
+- `sneak`
+- `surround`
+- `commentary`
+- `indent-object`
+- `CamelCaseMotion`
+
 
 ## 参考资料
 - [Vim 从入门到精通](https://github.com/wsdjeg/vim-galore-zh_cn)
