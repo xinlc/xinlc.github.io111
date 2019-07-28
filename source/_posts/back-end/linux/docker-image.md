@@ -1,7 +1,7 @@
 
 ---
 title: Docker 常用镜像
-date: 2019-07-26 13:40:00
+date: 2019-07-28 13:40:00
 categories: Linux
 tags: 
   - linux
@@ -169,7 +169,7 @@ http://localhost:8500
 
 ```
 
-### [rabbitmq] (https://hub.docker.com/_/rabbitmq)
+### [rabbitmq](https://hub.docker.com/_/rabbitmq)
 ```bash
 
 docker pull rabbitmq
