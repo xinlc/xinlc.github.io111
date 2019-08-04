@@ -197,8 +197,7 @@ syntax-checking
 - `SPC-SPC configuration-layer/create-layer` 创建layer
 
 
-## 参考资料
-
+## 参考
 - [Spacemacs](https://github.com/syl20bnr/spacemacs)
 - [Spacemacs rocks](https://github.com/emacs-china/Spacemacs-rocks)
 - [Emacs China论坛](https://emacs-china.org/)

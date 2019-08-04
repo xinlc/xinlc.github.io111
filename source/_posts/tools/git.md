@@ -472,7 +472,7 @@ git checkout --theirs xxx/A.java # 抛弃乙的版本，完全采用甲的
 git checkout --theirs . # 抛弃乙版本所有修改
 ```
 
-## 参考和学习资料
+## 参考
 - [廖雪峰-Git教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000)
 - [常用 Git 命令清单](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)
 - [Git 工作流程](http://www.ruanyifeng.com/blog/2015/12/git-workflow.html)

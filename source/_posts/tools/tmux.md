@@ -277,7 +277,7 @@ $ tmate
 - [我的TMUX配置及说明](http://www.wklken.me/posts/2015/08/06/linux-tmux.html)
 
 
-## 参考资料
+## 参考
 - [Tmux 速成教程：技巧和调整](http://blog.jobbole.com/87584/)
 - [使用tmux](https://wiki.freebsdchina.org/software/t/tmux)
 - [tmux进阶之tmuxinator](http://blog.csdn.net/u014717036/article/details/60139776)

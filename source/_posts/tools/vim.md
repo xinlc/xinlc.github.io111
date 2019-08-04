@@ -489,7 +489,7 @@ ctrl + o  # 编辑模式下，暂时离开插入模式并执行一次命令
 - `CamelCaseMotion`
 
 
-## 参考资料
+## 参考
 - [Vim 从入门到精通](https://github.com/wsdjeg/vim-galore-zh_cn)
 - [一起来说 Vim 语](http://www.jianshu.com/p/a361ce8c97bc)
 - [vi/vim使用进阶](https://blog.easwy.com/archives/advanced-vim-skills-catalog/)

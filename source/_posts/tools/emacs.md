@@ -142,8 +142,7 @@ Dired Mode 是一个强大的模式它能让我们完成和文件管理相关的
 - `x` 执行所有的标记
 - `Shift + 6` 跳转到上级目录
 
-## 参考资料
-
+## 参考
 - [Emacs wiki](http://emacswiki.org/)
 - [21 天学会 Emacs](https://zilongshanren.com/LearnEmacs/)
 - [视频](http://list.youku.com/albumlist/show?id=26962151&ascending=1&page=1.html&spm=0.0.list1_1.5-3_5_A-3.I1iDe0)

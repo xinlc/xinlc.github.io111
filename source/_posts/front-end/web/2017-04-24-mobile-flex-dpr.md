@@ -118,7 +118,7 @@ window.rem = rem;
 
 
 
-## 参考资料
+## 参考
 - [移动端高清、多屏适配方案](http://div.io/topic/1092)
 - [可伸缩布局方案](https://github.com/amfe/lib-flexible)
 - [antd mobile 0.8 以上版本「高清」方案设置](https://github.com/ant-design/ant-design-mobile/wiki/antd-mobile-0.8-以上版本「高清」方案设置)
