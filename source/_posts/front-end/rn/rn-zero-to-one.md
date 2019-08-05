@@ -290,8 +290,65 @@ public class MainActivity extends ReactActivity {
 ## 打包发布
 ### IOS
 待完善……
+
 ### Android
-待完善……
+#### 为 App 签名
+1. 生成私有签名密钥 `keytool`。
+- 在Windows上keytool运行在 `C:\Program Files\Java\jdkx.x.x_x\bin`
+- 在Mac上，如果不确定`jdk bin`文件夹的位置，可以运行下面命令
+```bash
+# 输入下面命，会返回jdk文件夹
+/usr/libexec/java_home # 返回/Library/Java/JavaVirtualMachines/jdkX.X.X_XXX.jdk/Contents/Home
+```
+```bash
+# 此命令会提示输入密钥库和密钥，然后它将密钥库生成为一个名为my-release-key.keystore文件。
+# 密钥库包含一个密钥，有效期为10000天。别名是稍后在签署应用时使用的名称。
+keytool -genkeypair -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+```
+
+3. 配置`gradle`变量
+- 将`my-release-key.keystore`文件放在`android/app`项目文件夹中的目录下。
+- 编辑文件`~/.gradle/gradle.properties`或`android/gradle.properties`，并添加以下内容（替换*****为正确的密钥库密码, 别名和密钥密码）
+```properties
+MYAPP_RELEASE_STORE_FILE=my-release-key.keystore
+MYAPP_RELEASE_KEY_ALIAS=my-key-alias
+MYAPP_RELEASE_STORE_PASSWORD=*****
+MYAPP_RELEASE_KEY_PASSWORD=*****
+```
+
+4. 将签名配置添加到应用程序的gradle配置中, 编辑`android/app/build.gradle`项目文件夹中的文件，然后添加签名配置
+```gradle
+...
+android {
+  ...
+  defaultConfig { ... }
+  signingConfigs {
+    release {
+      if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+        storeFile file(MYAPP_RELEASE_STORE_FILE)
+        storePassword MYAPP_RELEASE_STORE_PASSWORD
+        keyAlias MYAPP_RELEASE_KEY_ALIAS
+        keyPassword MYAPP_RELEASE_KEY_PASSWORD
+      }
+    }
+  }
+  buildTypes {
+    release {
+      ...
+      signingConfig signingConfigs.release
+    }
+  }
+}
+...
+
+```
+5. 生成发布APK
+```bash
+cd android
+
+./gradlew assembleRelease
+#./gradlew bundleRelease
+```
 
 ## 常见问题
 持续更新中……
@@ -313,6 +370,8 @@ android {
   ...
 }
 ```
+
+#### 生成Release包之前最好先运行 react-native run-android，别问为什么……
 
 
 ## 参考
