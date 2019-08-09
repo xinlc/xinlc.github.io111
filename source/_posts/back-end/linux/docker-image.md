@@ -38,6 +38,7 @@ docker rm           # 删除容器
 docker rmi          # 删除镜像
 docker logs <容器名> # 查看容器日志
 docker images       # 显示镜像列表
+docker inspect <容器名> # 查看容器信息
 
 docker exec -it <容器名> bash # 登录到容器中
 docker help          # 终极命令
@@ -86,7 +87,23 @@ docker search redis
 docker pull redis
 docker run --name redis -d -p 6339:6339 redis
 docker run -p 6379:6379 -v $PWD/data:/data -d redis redis-server --appendonly yes
+docker run --name redis-6379 -p 6379:6379 -v $PWD/data:/data -d redis redis-server --appendonly yes --restart=always --requirepass "123456"
+
+# -p 6379:6379 : 将容器内端口映射到宿主机端口(右边映射到左边) 
+# -v /data/docker/redis/data:/data : 将主机中当前目录下的data挂载到容器的/data 
+# redis-server –appendonly yes : 在容器执行redis-server启动命令，并打开redis持久化配置 
+# requirepass “your passwd” : 设置认证密码 
+# –restart=always : 随docker启动而启动
+
 docker exec -it e55caa redis-cli
+docker exec -it e55caa redis-cli -a <密码>
+
+keys *
+keys auth.*
+get auth.userid.203
+set key "value"
+
+auth "yourpassword"
 ```
 
 ### MongoDB

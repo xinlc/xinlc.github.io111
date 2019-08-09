@@ -352,6 +352,13 @@ cd android
 
 ## 常见问题
 持续更新中……
+
+### RN Issues
+#### FlatList 中 使用 TextInput, 会自动失去焦点。
+- [issues/23916](https://github.com/facebook/react-native/issues/23916)
+解决：
+> 加入 FlatList.removeClippedSubviews={false}
+
 ### IOS
 
 #### 添加简体字语言包
@@ -384,7 +391,7 @@ android {
 - [react-native-splash-screen](https://github.com/crazycodeboy/react-native-splash-screen)
 - [redux](https://github.com/reactjs/redux)
 - [redux-cn](https://www.redux.org.cn)
-- [react-redux](http://cn.redux.js.org/docs/react-redux/)
+- [react-redux](https://react-redux.js.org/)
 - [redux-sage](https://redux-saga-in-chinese.js.org)
 - [TypeScript](https://github.com/microsoft/TypeScript)
 - [TypeSearch](https://github.com/Microsoft/TypeSearch)

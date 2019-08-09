@@ -5,6 +5,7 @@ categories: Linux
 tags: 
   - linux
   - docker
+  - cmd
 ---
 
 > 原文：http://www.dockerinfo.net/341.html
