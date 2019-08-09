@@ -87,7 +87,7 @@ docker search redis
 docker pull redis
 docker run --name redis -d -p 6339:6339 redis
 docker run -p 6379:6379 -v $PWD/data:/data -d redis redis-server --appendonly yes
-docker run --name redis-6379 -p 6379:6379 -v $PWD/data:/data -d redis redis-server --appendonly yes --restart=always --requirepass "123456"
+docker run --name redis-6379 -p 6379:6379 -v $PWD/data:/data -d --restart=always redis redis-server --appendonly yes --requirepass "123456"
 
 # -p 6379:6379 : 将容器内端口映射到宿主机端口(右边映射到左边) 
 # -v /data/docker/redis/data:/data : 将主机中当前目录下的data挂载到容器的/data 
