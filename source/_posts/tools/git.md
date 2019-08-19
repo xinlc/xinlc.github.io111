@@ -73,6 +73,7 @@ $ git checkout -b [branch] # 创建分支并切换
 $ git branch -D [branch]   # 删除branch分支
 $ git rebase -i HEAD~3     # 压缩历史/重写历 https://git-scm.com/book/zh/v2/Git-工具-重写历史
 $ git archive              # 生成一个可供发布的压缩包
+$ git rm -r --cached .     # 删除缓存
 ```
 
 ## 基本使用
@@ -400,6 +401,12 @@ $ git push [remote] --force
 
 # 推送所有分支到远程仓库
 $ git push [remote] --all
+
+# 推送所以标签
+$ git push [remote] --tags
+
+# 设置 origin 默认远程
+$ git push -u origin master
 ```
 
 ## 配置
@@ -444,7 +451,26 @@ $ git config --global core.editor vim
 
 # 在当前项目中，早先创建并已经push到远程的文件及文件夹，将名称大小写更改后，git无法检测出更改.
 # 关闭git忽略大小写配置，即可检测到大小写名称更改
-git config core.ignorecase false
+$ git config core.ignorecase false
+
+# 记住密码
+$ git config credential.helper store
+
+# 这里设置账号信息被记住7200秒，两个小时。
+$ git config --global credential.helper 'cache --timeout 7200'
+
+$ git config –-global http.emptyAuth true
+
+# 删除凭证
+$ vim ~/.git-credentials
+$ git config --system --unset credential.helper
+
+# 删除本地保存密码
+# windows
+# 控制面板 -> 用户帐户-> 管理你的凭据-> [Windows 凭据]-> 编辑->完成
+
+# mac
+# 钥匙串访问 -> 密码 -> 删除对应url的凭证，只能删除对应url的凭证
 
 # 列举所有配置
 $ git config -l  
