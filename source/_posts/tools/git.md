@@ -54,6 +54,7 @@ $ git checkout –- .        # 取消对工作区所有文件的修改
 $ git diff                 # 比较当前文件和暂存区文件差异 
 $ git commit -m “注释内容”  # 提交代码到本地库
 $ git commit --amend       # 修改最后一次提交的注释内容
+$ git commit --amend --reset-author # 修改最后一次提交用户
 $ git push origin [branch][: branch]  # 提交修改到远程库 
 $ git pull origin [branch][: branch]  # 更新远程仓库代码到本地库
 $ git merge [branch]      # 将brasnch分支合并到当前分支 加上 --no-ff 不使用Fast-Foward合并，这样可以生成merge提交
