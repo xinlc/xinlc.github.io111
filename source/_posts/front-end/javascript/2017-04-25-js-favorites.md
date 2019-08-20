@@ -1269,6 +1269,42 @@ Utils.option2map = (options, prefix) => {
 };
 ```
 
+## 解决事件快速点击
+```js
+/**
+ * 指定时间内只能调用一次
+ * @param functionTobeCalled 被包装的方法
+ * @param interval 时间间隔，可省略，默认600毫秒
+ * @example onClick={(params: any) => callOnceInInterval(() => click(params))}
+ */
+let isCalled = false;
+let timer: any;
+const callOnceInInterval = (functionTobeCalled: () => void, interval = 600) => {
+  if (!isCalled) {
+    isCalled = true;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      isCalled = false;
+    }, interval);
+    return functionTobeCalled();
+  }
+  return null;
+};
+```
+
+## canvas 动态获取字体大小
+```js
+// 1920/19.2/100*16 = 16   随视图缩小而缩小
+// 16/1920*100*19.2 = 16   相反
+const base = 1920 / 100;
+const w = document.documentElement.clientWidth || 1920;
+const dpr = window.devicePixelRatio || 1;
+const getFontSize = (size) => {
+  return Math.round(w / base / 100 * size * dpr);
+  // xxx.toFixed(fixedDigits);
+}
+```
+
 ## `px` `pt`互转
 
 ```js
@@ -1293,6 +1329,18 @@ px to pd
 1pd * (320ppi / 160ppi) = 2px
 2px / (320ppi / 16oppi) = 1pd
 
+```
+
+## px vw 互转
+```js
+// px to vw
+宽度(vw) =  100 / 1920px * 60px;
+宽度(vw) =  1 / 1920px * 100 * 60px;
+高度(vh) = 100 / 1080px * 40px;
+
+// vw to px
+宽度(px) =  1920px / 100 * 3.125vw;
+高度(px) = 1080px / 100 * 3.703vh;
 ```
 
 ## 进制转换
@@ -1571,6 +1619,95 @@ const shuffle = arr => arr.sort(() => Math.random() - 0.5);
 ```js
 const rgbToHex = (r, g, b) => ((r << 16) + (g << 8) + b).toString(16).padStart(6, '0');
 // rgbToHex(255, 165, 1) -> 'ffa501'
+```
+
+## 打开新窗口
+```js
+/**
+ * @param {Sting} url
+ * @param {Sting} title
+ * @param {Number} w
+ * @param {Number} h
+ */
+export default function openWindow(url, title, w, h) {
+  // Fixes dual-screen position                            Most browsers       Firefox
+  const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
+  const dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top
+
+  const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
+  const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
+
+  const left = ((width / 2) - (w / 2)) + dualScreenLeft
+  const top = ((height / 2) - (h / 2)) + dualScreenTop
+  const newWindow = window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=yes, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left)
+
+  // Puts focus on the newWindow
+  if (window.focus) {
+    newWindow.focus()
+  }
+}
+```
+
+## scroll to 
+```js
+Math.easeInOutQuad = function(t, b, c, d) {
+  t /= d / 2
+  if (t < 1) {
+    return c / 2 * t * t + b
+  }
+  t--
+  return -c / 2 * (t * (t - 2) - 1) + b
+}
+
+// requestAnimationFrame for Smart Animating http://goo.gl/sx5sts
+var requestAnimFrame = (function() {
+  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function(callback) { window.setTimeout(callback, 1000 / 60) }
+})()
+
+/**
+ * Because it's so fucking difficult to detect the scrolling element, just move them all
+ * @param {number} amount
+ */
+function move(amount) {
+  document.documentElement.scrollTop = amount
+  document.body.parentNode.scrollTop = amount
+  document.body.scrollTop = amount
+}
+
+function position() {
+  return document.documentElement.scrollTop || document.body.parentNode.scrollTop || document.body.scrollTop
+}
+
+/**
+ * @param {number} to
+ * @param {number} duration
+ * @param {Function} callback
+ */
+export function scrollTo(to, duration, callback) {
+  const start = position()
+  const change = to - start
+  const increment = 20
+  let currentTime = 0
+  duration = (typeof (duration) === 'undefined') ? 500 : duration
+  var animateScroll = function() {
+    // increment the time
+    currentTime += increment
+    // find the value with the quadratic in-out easing function
+    var val = Math.easeInOutQuad(currentTime, start, change, duration)
+    // move the document.body
+    move(val)
+    // do the animation unless its over
+    if (currentTime < duration) {
+      requestAnimFrame(animateScroll)
+    } else {
+      if (callback && typeof (callback) === 'function') {
+        // the animation is done so lets callback
+        callback()
+      }
+    }
+  }
+  animateScroll()
+}
 ```
 
 - [30-seconds-of-code](https://github.com/Chalarangelo/30-seconds-of-code)
