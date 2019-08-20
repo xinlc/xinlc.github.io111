@@ -93,8 +93,11 @@ $ git init
 # 新建一个目录，将其初始化为Git代码库
 $ git init [project-name]
 
-# 下载一个项目和它的整个代码历史
+# 克隆一个项目和它的整个代码历史
 $ git clone [url]
+
+# 克隆指定分支
+$ git clone -b <branch name> [url]
 ```
 
 ## 增加/删除文件
