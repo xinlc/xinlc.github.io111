@@ -174,6 +174,7 @@ export default Event;
 ```
 
 ## js 高精度计算
+建议使用[decimal.js](https://github.com/MikeMcl/decimal.js)
 
 ```js
 //除法函数，用来得到精确的除法结果 
