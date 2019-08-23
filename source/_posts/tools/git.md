@@ -181,13 +181,23 @@ $ git log [tag] HEAD --grep feature
 
 # 显示某个文件的版本历史，包括文件改名
 $ git log --follow [file]
+
+# 显示某个版本的修改详情
 $ git whatchanged [file]
+
+# 显示某个版本的修改的细节diff
+$ git whatchanged -p [file]
+
 
 # 显示指定文件相关的每一次diff
 $ git log -p [file]
 
 # 显示过去5次提交
 $ git log -5 --pretty --oneline
+
+# 显示与某个文件有关的所有提交记录
+git log --pretty=oneline [file]
+git log -p --pretty=oneline [file]
 
 # 显示分支merge关系图
 $ git log --graph
