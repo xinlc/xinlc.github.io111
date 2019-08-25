@@ -46,6 +46,29 @@ docker-compose up -d # 通过 compose 启动
 
 ```
 
+## 镜像加速
+```bash
+# 官方国内加速地址 https://www.docker-cn.com/registry-mirror
+# DaoCloud 加速 https://www.daocloud.io/mirror#accelerator-doc
+# http://f1361db2.m.daocloud.io
+
+# 自动 设置 Linux 镜像加速地址
+curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io
+
+# 手动设置
+# 创建或修改 /etc/docker/daemon.json 文件
+{
+	"registry-mirrors": [
+			"加速地址"
+	],
+	"insecure-registries": []
+}
+# 重启, 不重启好像也行……
+service docker restart
+```
+
+### 
+
 ## 常用的 Docker Image
 
 ### nginx
@@ -226,7 +249,7 @@ docker run --name rabbit-zipkin -d -p 9411:9411 --link rabbitmq -e RABBIT_ADDRES
 
 ```
 
-### jenkins
+### [jenkins](https://hub.docker.com/_/jenkins)
 ```bash
 docker pull jenkins/jenkins
 
@@ -241,6 +264,51 @@ docker run -d -p 8090:8080 -p 50000:50000 -v /Users/leo/docker-data/jenkins:/var
 # 获取密码
 docker exec jenkins tail /var/jenkins_home/secrets/initialAdminPassword
 
+```
+
+### [禅道](https://hub.docker.com/r/idoop/zentao)
+```bash
+docker pull idoop/zentao
+
+# open soure edition:
+# Zentao管理员帐户为admin，默认初始化密码为123456。并且MySQL root帐户密码为123456，请在首次登录时更改密码。
+mkdir -p ~/docker-data/zbox && \
+docker run -d -p 28080:80 -p 23306:3306 \
+        -e ADMINER_USER="root" -e ADMINER_PASSWD="123456" \
+        -e BIND_ADDRESS="false" \
+        -v ~/docker-data/zbox/:/opt/zbox/ \
+        --add-host smtp.exmail.qq.com:163.177.90.125 \
+        --name zentao-server \
+        idoop/zentao:latest
+
+# 环境配置
+# ADMINER_USER ：设置Web登录数据库Adminer帐户。
+# ADMINER_USER ：设置Web登录数据库Adminer帐户。
+# ADMINER_PASSWD ：设置Web登录数据库Adminer密码。
+# BIND_ADDRESS：如果设置值为false，则MySQL服务器不会绑定地址。
+# SMTP_HOST：设置smtp服务器IP和主机。（如果无法发送邮件，则会有所帮助。）也可以extra_host在docker-compose.yaml中使用，或者--add-host在使用dokcer run命令时使用param 。
+# 注意：Zentao管理员帐户为admin，默认初始化密码为123456。并且MySQL root帐户密码为123456，请在首次登录时更改密码。
+
+# 如果要升级zentao版本，只需运行具有最新docker镜像的容器并安装相同的zbox路径$volume/zbox/。
+# stop and backup old container
+docker stop zentao-server
+docker rename zentao-server zentao-server-bak
+# backup zbox
+cp -r /data/zbox /data/zbox-bak
+# pull the latest image
+docker pull idoop/zentao:latest
+# run new container with the latest image and mount the same path
+docker run -d -p 80:80 -p 3306:3306 \
+        -e ADMINER_USER="root" -e ADMINER_PASSWD="password" \
+        -e BIND_ADDRESS="false" \
+        -v /data/zbox/:/opt/zbox/ \
+        --add-host smtp.exmail.qq.com:163.177.90.125 \
+        --name zentao-server \
+        idoop/zentao:latest
+docker logs -f zentao-server
+
+# docker rm -f zentao-server-bak && rm -rf /data/zbox-bak
+# 更多可以访问 http://www.zentao.net/goto.php?item=zbox.
 ```
 
 ## 参考
