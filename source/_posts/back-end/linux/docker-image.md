@@ -252,11 +252,11 @@ docker run --name rabbit-zipkin -d -p 9411:9411 --link rabbitmq -e RABBIT_ADDRES
 
 ```
 
-### [jenkins](https://hub.docker.com/_/jenkins)
+### [jenkins](https://hub.docker.com/r/jenkins/jenkins)
 ```bash
 docker pull jenkins/jenkins
 
-docker run -d -p 8090:8080 -p 50000:50000 -v /Users/leo/docker-data/jenkins:/var/jenkins_home --name jenkins jenkins/jenkins
+docker run -d -p 8090:8080 -p 50000:50000 -v ~/docker-data/jenkins:/var/jenkins_home --name jenkins jenkins/jenkins
 
 # -p 8090:8080将镜像的8080端口映射到服务器的8090端口
 # -p 50000:50000将镜像的50000端口映射到服务器的50000端口
@@ -267,6 +267,12 @@ docker run -d -p 8090:8080 -p 50000:50000 -v /Users/leo/docker-data/jenkins:/var
 # 获取密码
 docker exec jenkins tail /var/jenkins_home/secrets/initialAdminPassword
 
+# 可能遇到的问题
+# touch: cannot touch '/var/jenkins_home/copy_reference_file.log': Permission denied
+# Can not write to /var/jenkins_home/copy_reference_file.log. Wrong volume permissions?
+# 需要修改下目录权限, 因为当映射本地数据卷时，~/docker-data/jenkins目录的拥有者为root用户，而容器中jenkins user的uid为1000
+# 执行如下命令即可：
+chown -R 1000:1000 ~/docker-data/jenkins
 ```
 
 ### [禅道](https://hub.docker.com/r/idoop/zentao)
