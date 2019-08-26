@@ -65,6 +65,9 @@ curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2
 }
 # 重启, 不重启好像也行……
 service docker restart
+
+# sudo systemctl daemon-reload
+# sudo systemctl restart docker
 ```
 
 ### 
@@ -309,6 +312,47 @@ docker logs -f zentao-server
 
 # docker rm -f zentao-server-bak && rm -rf /data/zbox-bak
 # 更多可以访问 http://www.zentao.net/goto.php?item=zbox.
+```
+
+### (registry)(https://hub.docker.com/_/registry)
+[docker image 私有仓库](https://docs.docker.com/registry/)
+
+建议使用 [harbor](https://github.com/goharbor/harbor) 或 [Nexus3](https://www.sonatype.com/download-oss-sonatype) 搭建私有仓库
+
+```bash
+docker pull registry
+
+# docker run -d -p 5000:5000 --restart always --name registry registry:2
+# docker run -d -p 5000:5000 --restart=always --name registry registry
+
+docker run -d \
+    -p 5000:5000 \
+    -v /opt/data/registry:/var/lib/registry \
+    registry
+
+# 推送本地仓库
+# docker tag IMAGE[:TAG] [REGISTRY_HOST[:REGISTRY_PORT]/]REPOSITORY[:TAG]。
+# 使用 docker tag 将 ubuntu:latest 这个镜像标记为 127.0.0.1:5000/ubuntu:latest
+docker tag ubuntu:latest 127.0.0.1:5000/ubuntu:latest
+docker push 127.0.0.1:5000/ubuntu:latest
+
+# 用 curl 查看仓库中的镜像。
+curl 127.0.0.1:5000/v2/_catalog
+
+
+# 注意
+# 如果你不想使用 127.0.0.1:5000 作为仓库地址，比如想让本网段的其他主机也能把镜像推送到私有仓库。
+# 你就得把例如 192.168.199.100:5000 这样的内网地址作为私有仓库地址，这时你会发现无法成功推送镜像。
+# 这是因为 Docker 默认不允许非 HTTPS 方式推送镜像。我们可以通过 Docker 的配置选项来取消这个限制，或者查看下一节配置能够通过 HTTPS 访问的私有仓库。
+# 对于使用 systemd 的系统，请在 /etc/docker/daemon.json 中写入如下内容（如果文件不存在请新建该文件）
+{
+  "registry-mirror": [
+    "https://registry.docker-cn.com"
+  ],
+  "insecure-registries": [
+    "192.168.199.100:5000"
+  ]
+}
 ```
 
 ## 参考
