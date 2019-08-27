@@ -306,7 +306,11 @@ public class MainActivity extends ReactActivity {
 # 2. 此命令会提示输入密钥库和密钥，然后它将密钥库生成为一个名为my-release-key.keystore文件。
 # 密钥库包含一个密钥，有效期为10000天。别名是稍后在签署应用时使用的名称。
 keytool -genkeypair -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+
+# 或用下面这条命令
+# sudo keytool -genkey -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
 ```
+> 注意：请记住将密钥库文件保密, 最好不要上传到版本控制里。
 
 3. 配置`gradle`变量
 - 将`my-release-key.keystore`文件放在`android/app`项目文件夹中的目录下。
@@ -564,6 +568,37 @@ android {
   }
   ...
 }
+```
+
+#### android 9 release 打包不能联网(http)
+[android-9.0-changes-28](https://developer.android.google.cn/about/versions/pie/android-9.0-changes-28)
+
+
+默认情况下启用网络传输层安全协议 (TLS)   
+如果你的应用以 Android 9 或更高版本为目标平台，则默认情况下 isCleartextTrafficPermitted() 函数返回 false。 如果你的应用需要为特定域名启用明文，您必须在应用的网络安全性配置中针对这些域名将 cleartextTrafficPermitted 显式设置为 true。
+
+在`src/main/res`中创建`xml`文件夹，并创建`network_security_config.xml`文件:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <base-config cleartextTrafficPermitted="true">
+    <trust-anchors>
+      <certificates src="system" />
+    </trust-anchors>
+  </base-config>
+</network-security-config>
+```
+在`src/main/androidManifest.xml` 添加:
+```xml
+...
+<application
+  ...
+  android:networkSecurityConfig="@xml/network_security_config"
+  ...
+  >
+    ...
+</application>
+...
 ```
 
 #### 生成Release包之前最好先运行 react-native run-android，别问为什么……
