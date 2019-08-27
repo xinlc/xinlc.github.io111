@@ -268,11 +268,17 @@ docker run -d -p 8090:8080 -p 50000:50000 -v ~/docker-data/jenkins:/var/jenkins_
 docker exec jenkins tail /var/jenkins_home/secrets/initialAdminPassword
 
 # 可能遇到的问题
-# touch: cannot touch '/var/jenkins_home/copy_reference_file.log': Permission denied
+#1. touch: cannot touch '/var/jenkins_home/copy_reference_file.log': Permission denied
 # Can not write to /var/jenkins_home/copy_reference_file.log. Wrong volume permissions?
 # 需要修改下目录权限, 因为当映射本地数据卷时，~/docker-data/jenkins目录的拥有者为root用户，而容器中jenkins user的uid为1000
 # 执行如下命令即可：
 chown -R 1000:1000 ~/docker-data/jenkins
+
+# 2. 如果一直在 Please wait while Jenkins is getting ready to work ..., 是网络问题，需要添加国内镜像
+# 需要你进入jenkins的工作目录，打开
+vi ~/docker-data/jenkins/hudson.model.UpdateCenter.xml
+# 把 https://updates.jenkins.io/update-center.json 改成 http://mirror.xmission.com/jenkins/updates/update-center.json
+
 ```
 
 ### [禅道](https://hub.docker.com/r/idoop/zentao)
@@ -326,6 +332,8 @@ docker logs -f zentao-server
 建议使用 [harbor](https://github.com/goharbor/harbor) 或 [Nexus3](https://www.sonatype.com/download-oss-sonatype) 搭建私有仓库
 
 ```bash
+# docker-register-web
+# docker pull joxit/docker-registry-ui
 docker pull registry
 
 # docker run -d -p 5000:5000 --restart always --name registry registry:2
