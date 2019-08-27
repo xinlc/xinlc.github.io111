@@ -47,8 +47,12 @@ react-native run-ios
 
 ### Android
 - 下载安装 [Android Studio](https://developer.android.com/studio/index.html)
-- `Android Studio` 默认安装最新的 `Android SDK`。可以通过 `Android Studio` 中的 `SDK Manager` 安装其他 Android SDK。
-- 配置环境变量, `$HOME/.bashrc` (推荐使用 `zsh`) 加入如下内容：
+- `Android Studio` 默认安装最新的 `Android SDK`。可以通过 `Android Studio` 中的 `SDK Manager` 安装其他 Android SDK。`Preferences → Appearance & Behavior → System Settings → Android SDK.`
+- 从SDK Manager中选择`SDK Platforms`选项卡，然后选中右下角`Show Package Details`。查找并展开`Android 9 (Pie)`，然后确保选中以下项目：
+- `Android SDK Platform 28`
+- `Intel x86 Atom_64 System Image` 或 `Google APIs Intel x86 Atom System Image`
+- 选择`SDK Tools`选项卡，然后选中右下角`Show Package Details`。查找并展开`Android SDK Build-Tools`，然后选中`28.0.3`。最后，点击`Apply`下载并安装`Android SDK`和相关的构建工具。
+- 配置环境变量, `$HOME/.bashrc` (推荐使用 `zsh`, `$HOME/.zshrc`) 加入如下内容：
 ```bashrc
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
