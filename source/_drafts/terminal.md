@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Terminal"
+title:  terminal
 date:   2017-07-03 15:30:00 +0800
 categories: 工欲善其事必先利其器
 tags:
@@ -8,8 +8,9 @@ tags:
 ---
 
 ## 通用快捷键
-```
-Tab 自动补全 
+
+```bash
+Tab 自动补全
 Ctrl+p shell中上一个命令,或者 文本中移动到上一行
 Ctrl+n shell中下一个命令,或者 文本中移动到下一行
 Ctrl+r 往后搜索历史命令
