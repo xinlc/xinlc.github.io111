@@ -9,6 +9,7 @@ tags:
 ---
 
 Linux 知识地图
+
 <!--more-->
 
 ## 基础知识
@@ -158,7 +159,7 @@ Linux 知识地图
 
 #### 正则表达式
 
-- 政策表达式是什么？
+- 正则表达式是什么？
   - 对字符串的一组公式
   - 用户对符合规则的字符进行查找和替换
 - 初始元字符
@@ -322,7 +323,6 @@ Linux 知识地图
   - 查看状态： systemctl status firewalld
   - 停止： systemctl disable firewalld
   - 禁用： systemctl stop firewalld
-
 - firewalld-cmd
   - 查看版本： firewall-cmd --version
   - 查看帮助： firewall-cmd --help
@@ -554,3 +554,199 @@ Linux 知识地图
   - 算数函数
   - 随机函数
   - 字符串函数
+
+## 性能优化
+
+### 常见性能指标及 USE 法分类
+
+#### CPU 性能指标
+
+- CPU 使用率
+  - 用户 CPU
+  - 系统 CPU
+  - IOWAIT
+  - 软中断
+  - 硬中断
+  - 窃取 CPU
+  - 客户 CPU
+- 上下文切换
+  - 自愿上下文切换
+  - 非自愿上下文切换
+- 平均负载
+- CPU 缓存命中率
+
+#### 内存性能指标
+
+- 系统内存指标
+  - 已用内存
+  - 剩余内存
+  - 可用内存
+  - 缺页异常
+  - 缓存/缓冲区
+  - Slabs
+- 进程内存指标
+  - 虚拟内存(VSS)
+  - 常驻内存(RSS)
+  - 按比例分配共享内存后的物理内容(PSS)
+  - 独占内存(USS)
+  - 共享内存
+  - SWAP 内存
+  - 缺页异常
+- SWAP
+  - 已用空间
+  - 剩余空间
+  - 换入速度
+  - 换出速度
+
+#### I/O 性能指标
+
+- 文件系统
+  - 存储空间容量、使用量以及剩余空间
+  - 索引节点容量、使用量以及剩余量
+  - 缓存
+    - 页缓存
+    - 目录项缓存
+    - 索引节点缓存
+    - 具体文件系统缓存（如 ext4 的缓存）
+  - IOPS(文件I/O)
+  - 响应时间（延迟）
+  - 吞吐量（B/s)
+- 磁盘
+  - 使用率
+  - IOPS
+  - 吞吐量(B/s)
+  - 响应时间（延迟）
+  - 缓冲区
+  - 相关因素
+    - 读写类型（如循序还是随机）
+    - 读写比例
+    - 读写大小
+    - 存储类型（如 `RAID` 级别、本地还是网络）
+
+#### 网络性能指标
+
+- 应用层
+  - QPS(每秒请求数)
+  - 套接字缓冲区大小
+  - DNS 解析延迟
+  - 响应时间
+  - 错误数
+- 传输层
+  - TCP 链接数
+    - 全连接
+    - 半链接
+    - TIMEWAIT
+  - 链接跟踪数
+  - 重传数
+  - 丢包数
+  - 延迟
+- 网络层
+  - 丢包数
+  - TTL
+  - 拆包
+- 链路层
+  - PPS(每秒网络帧数)
+  - BPS(每秒字节数)
+  - 丢包数
+  - 错误数
+
+#### 常见指标分类（USE 法）
+
+USE 法（Utilization Saturation and Errors），专门用于系统资源性能监控的分类方法。
+
+|资源 | 类型| 性能指标|
+|:-------- |:----------|:---------|
+| CPU | 使用率 | CPU使用率 |
+| CPU | 饱和度 | 运行队列长度或平均负载 |
+| CPU | 错误数 | 硬件CPU错误数 |
+| 内存 | 使用率 | 已用内存百分比或SWAP用量百分比 |
+| 内存 | 饱和度 | 内存换页量 |
+| 内存 | 错误数 | 内存分配失败或00M |
+| 存储设备 I/O | 使用率 | 设备I/O时间百分比 |
+| 存储设备 I/O | 饱和度 | 等待队列长度或延迟 |
+| 存储设备 I/O | 错误数 | I/O 错误数 |
+| 文件系统 | 使用率 | 已用容量百分比 |
+| 文件系统 | 饱和度 | 已用容量百分比 |
+| 文件系统 | 错误数 | 文件读写错误数 |
+| 网络 | 使用率 | 带宽使用率 |
+| 网络 | 饱和度 | 重传报文数 |
+| 网络 | 错误数 | 网卡收发错误数，丢包数 |
+| 文件描述符 | 使用率 | 已用文件描述符数百分比 |
+| 连接跟踪 | 使用率 | 已用链接跟踪数百分比 |
+| 连接数 | 饱和度 | TIMEWAIT 状态连接数 |
+
+### 常见性能工具
+
+#### CPU 性能工具
+
+|性能指标 | 性能工具| 说明|
+|:-------- |:----------|:---------|
+| 平均负载 | `uptime`、`top`、`/proc/loadavg` | uptime最简单；top提供了更全的指标; /proc/loadavg 常用于监控系统 |
+| 系统 CPU 使用率 | `vmstat`、`mpstat`、`top`、`sar`、`/proc/stat` | top、vmstat、mpstat 只可以动态查看，而sar还可以记录历史数据；/proc/stat是其他性能工具的数据来源，也常用于监控|
+| 进程 CPU 使用率| `top`、`ps`、`pidstat`、`htop`、`atop`| top和ps可以按CPU使用率给进程排序，而pidstat只显示实际用了CPU的进程；htop和atop以不同颜色显示更加直观|
+| 系统上下切换 | `vmstat` | 除了上下切换次数，还提供运行状态和不可中断状态进程的数量 |
+| 进程上下切换 | `pidstat` | 加上 -w 选项|
+| 软中断 | `top`、`mpstat`、`/proc/softirqs` | top 提供软中断CPU使用率，而`/proc/softirqs` 和 mpstat 提供各种软中断在每个CPU上的运行次数|
+|硬中断| `vmstat`、`/proc/interrupts`| vmstat提供总的中断次数，而`/proc/interrupts`提供各种中断在每个CPU上运行的累计次数
+|网络|`dstat`、`sar`、`tcpdump`|dstat、sar提供总的网络接收和发生情况，而tcpdump则是动态抓取正在进行的网络通讯|
+|I/O| `dstat`、`sar` | dstat和sar都提供I/O的整体情况|
+|CPU缓存| `perf` | 使用perf stat 子命令|
+|CPU数|`lscpu`、`/proc/cpuinfo`| lscpu 更直观|
+|事件剖析|`perf`、`火焰图`、`execsnoop`| perf和火焰图用来分析热点函数以及调用栈，execsnoop用来监测短时进程|
+|动态追踪| `ftrace`、`bcc`、`systemtap` | ftrace 用于跟踪内核函数调用栈，而bcc和systemtap则用于跟踪内核或应用程序的执行过程（bcc要求内核版本`>=4.1`)|
+
+#### 内存性能工具
+
+|性能指标 | 性能工具| 说明|
+|:-------- |:----------|:---------|
+|系统已用、可用、剩余内存|`free`、`vmstat`、`sar`、`/proc/meminfo`|free最为简单，而vmstat、sar更为全面；/proc/meminfo是其他工具的数据来源，也常用于监控系统中|
+|进程虚拟、常驻、共享内存|`ps`、`top`、`pidstat`、`/proc/pid/stat`、`/proc/pid/status`|ps和top最为简单，而pidstat则要加上-r选项；/proc/pid/stat和/proc/pid/status是其他工具的数据来源|
+|进程内存分布|`pmap`、`/proc/pid/maps`|/proc/pid/maps是pmap的数据来源|
+|进程Swap换出内存|`top`、`/proc/pid/status`|/proc/pid/status是top的数据来源|
+|进程缺页异常|`ps`、`top`、`pidstat`|给pidstat加上-r选项|
+|系统换页情况|`sar`|加上-B选项|
+|缓存/缓冲区用量|`free`、`vmstat`、`sar`、`cachestat`|vmstat最常用，而cachestat需要安装bcc|
+|缓存/缓冲区命中率|`cachetop`|需要安装bcc|
+|SWAP已用空间和剩余空间|`free`、`sar`|free最为简单，而sar还可以记录历史|
+|Swap换入换出|`vmstat`、`sar`|vmstat最为简单，而sar还可以记录历史|
+|内存泄漏检测|`memleak`、`valgrind`|memleak 需要安装bcc, valgrind可以在旧版本（如3.x）内核中使用|
+|指定文件的缓存|`pcstat`|需要从源码下载安装|
+
+#### 文件系统和磁盘I/O性能工具
+
+|性能指标 | 性能工具| 说明|
+|:-------- |:----------|:---------|
+|文件系统空间容量、使用量以及剩余空间|df|详细文档可以执行info coreutils 'df invocation'命令查询|
+|索引节点容量、使用以及剩余量|df|注意加上-i选项|
+|缓存页和可回收Slab缓存|`/proc/meminfo`、`sar`、`vmstat`|注意sar需要加上-r选项，而/proc/meminfo是其他工具的数据来源|
+|缓冲区|/proc/meminfo、sar、vmstat|注意sar需要加上-r选项，而/proc/meminfo是其他工具的数据来源|
+|目录项、索引节点以及文件系统的缓存|`/proc/slabinfo`、slabtop|slabtop更直观|
+|磁盘I/O使用率、IOPS、吞吐量、响应时间、I/O平均大小以及等待队列长度|iostat、sar、dstat、`/proc/diskstats`|iostat最为常用、注意使用iostat -d -x或sar -d 选项；`/proc/diskstats`则是其他工具的数据来源|
+|进程I/O大小以及I/O延迟|pidstat、iotop|注意使用pidstat -d选项|
+|块设备I/O事件跟踪|`blktrace`|需要跟blkparse配合使用，比如blktrace -d /dev/sda -o | blkparse -i|
+|进程I/O系统调用跟踪|`strace`、`perf` `trace`|strace只可以跟踪单个进程，而perf trace还可以跟踪所有进程的系统调用|
+|进程块设备I/O大小跟踪|`biosnoop`、`biotop`|需要安装bcc|
+|动态追踪|`ftrace`、`bcc`、`systemtap`|ftrace用于跟踪内核函数调用栈，而bcc和systemap则用于跟踪内核或应用程序的执行过程|
+
+#### 网络性能工具
+
+|性能指标 | 性能工具| 说明|
+|:-------- |:----------|:---------|
+|吞吐量(BPS) | `ifconfig`、`ip`、`sar`、`nethogs`、`iftop`、`/proc/net/dev`|分别可以查看网络接口、进程以及IP地址的网络吞吐量;`/proc/net/dev`常用于监控|
+|吞吐量(PPS)|`sar`、`/proc/net/dev`|注意使用|sar -n DEV选项|
+|网络连接数|`netstat`、`ss`|ss速度更快|
+|网络错误数|`netstat`、`ss`|注意使用netstat -s 或者sar -n EDEV/EIP选项|
+|网络延迟|`ping`、`hping3`|ping基于ICMP而hping3则基于TCP协议|
+|连接跟踪数|`connetrack`、`/proc/sys/net/netfilter/nf_conntrack_count`、`/proc/sys/net/netfilter/nf_conntrack_mac`|conntr可以用来查看所有连接跟踪的信息，nf_conntrack_count只是连接跟踪的数量，而nf_conntrack_max则限制了总的连接跟总数|
+|路由|`mtr`、`traceroute`、`route`|route用于查询路由表，而mtr和traceroute则用来排查和定位网络链路中的路由问题|
+|DNS|`dig`、`nslookup`|用于排查DNS解析问题|
+|防火墙和NAT|`iptables`|用于排查防火墙及NAT的问题|
+|网卡选项|`ethtool`|用于查看和配置网络接口的功能选项|
+|网络抓包|`tcpdump`、`Wireshark`|通常在服务器中使用tcpdump抓包再复制出来用Wireshark的图形界面分析|
+|动态追踪|`ftrace`、`bcc`、`systemtap`|ftrace用于跟踪内核函数调用栈，而bcc和systemap则用于跟踪内核或应用程序的执行过程|
+
+## 参考
+
+- 《极客时间 Linux 操作系统知识地图》
+- [Linux命令大全](https://man.linuxde.net/)
+- [Linux命令大全(手册)](https://www.linuxcool.com/)
