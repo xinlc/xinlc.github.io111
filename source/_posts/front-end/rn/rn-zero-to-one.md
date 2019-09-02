@@ -601,6 +601,17 @@ android {
 ...
 ```
 
+#### Chrome调试时 setTimeout 和 setInterval 失效
+[issues/9436](https://github.com/facebook/react-native/issues/9436)
+
+解决：
+- 关闭调试
+- 需要将调试计算机与设备同步。在您的计算机上执行：
+
+```bash
+adb shell su root "date `date +%m%d%H%M%Y.%S`"
+```
+
 #### 生成Release包之前最好先运行 react-native run-android，别问为什么……
 
 ## RN 常用组件库

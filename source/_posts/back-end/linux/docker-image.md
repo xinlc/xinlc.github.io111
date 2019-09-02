@@ -44,6 +44,11 @@ docker exec -it <容器名> bash # 登录到容器中
 docker help          # 终极命令
 docker-compose up -d # 通过 compose 启动
 
+
+docker stop $(docker ps -a | grep "Exited" | awk '{print $1 }') # 停止容器
+docker rm $(docker ps -a | grep "Exited" | awk '{print $1 }') # 删除容器
+docker rmi $(docker images | grep "none" | awk '{print $3}')  # 删除<none>镜像
+
 ```
 
 ## 镜像加速

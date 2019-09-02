@@ -488,6 +488,9 @@ $ git config --system --unset credential.helper
 
 # 列举所有配置
 $ git config -l  
+
+# 修改远程仓库地址
+$ git remote set-url origin <url>
 ```
 
 ## 生成SSH key
