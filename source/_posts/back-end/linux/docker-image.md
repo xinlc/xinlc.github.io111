@@ -44,11 +44,25 @@ docker exec -it <容器名> bash # 登录到容器中
 docker help          # 终极命令
 docker-compose up -d # 通过 compose 启动
 
-
+# 批量操作
 docker stop $(docker ps -a | grep "Exited" | awk '{print $1 }') # 停止容器
 docker rm $(docker ps -a | grep "Exited" | awk '{print $1 }') # 删除容器
 docker rmi $(docker images | grep "none" | awk '{print $3}')  # 删除<none>镜像
 
+# 解决 docker命令不需要敲sudo的方法
+# 由于docker daemon需要绑定到主机的Unix socket而不是普通的TCP端口，而Unix socket的属主为root用户，所以其他用户只有在命令前添加sudo选项才能执行相关操作。
+# 查看是否有docker用户组
+cat /etc/group
+
+# 没有就创建一个docker组
+sudo groupadd docker
+# 添加当前用户到docker组
+sudo usermod -aG docker $USER
+# 如果有用户组就直接添加
+sudo gpasswd -a <你的用户名> docker
+# 重启
+sudo service docker restart 或 sudo systemctl restart docker
+# 重新登录shelL
 ```
 
 ## 镜像加速
