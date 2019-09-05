@@ -44,6 +44,12 @@ docker exec -it <容器名> bash # 登录到容器中
 docker help          # 终极命令
 docker-compose up -d # 通过 compose 启动
 
+# 登录aliyun镜像仓库
+sudo docker login --username=xxx registry.cn-hangzhou.aliyuncs.com
+sudo docker login -u=xxx -p xxx registry.cn-hangzhou.aliyuncs.com
+# 如果失败就不带用户名参数
+docker login registry.cn-hangzhou.aliyuncs.com
+
 # 批量操作
 docker stop $(docker ps -a | grep "Exited" | awk '{print $1 }') # 停止容器
 docker rm $(docker ps -a | grep "Exited" | awk '{print $1 }') # 删除容器
@@ -63,6 +69,8 @@ sudo gpasswd -a <你的用户名> docker
 # 重启
 sudo service docker restart 或 sudo systemctl restart docker
 # 重新登录shelL
+# linux 系统 可以直接激活对组的更改
+newgrp docker 
 ```
 
 ## 镜像加速
@@ -88,8 +96,6 @@ service docker restart
 # sudo systemctl daemon-reload
 # sudo systemctl restart docker
 ```
-
-### 
 
 ## 常用的 Docker Image
 
@@ -189,13 +195,65 @@ docker run --name mysql -d -p 3306:3306 -v ~/docker-data/mysql:/var/lib/mysql -e
 docker run --name mysql -d -p 3306:3306 -v ~/docker-data/mysql:/var/lib/mysql -e MYSQL_DATABASE=ssms -e MYSQL_USER=root -e MYSQL_PASSWORD=root -e MYSQL_ROOT_PASSWORD=root mysql
 
 docker exec -it mysql bash
-mysql -h localhost -u springbucks -p
+mysql -h localhost -P 3306 -u springbucks -p
 
-show database;
+show databases;
 use springbucks;
 show tables;
 
+# 修改密码
 ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root账户密码';
+
+# 常用命令
+# 导出整个数据库  
+mysqldump -u 用户名 -p –default-character-set=latin1 数据库名 > 导出的文件名(数据库默认编码是latin1)  
+mysqldump -u root -p test > test.sql  
+
+# 导出一个表  
+mysqldump -u 用户名 -p 数据库名 表名> 导出的文件名  
+mysqldump -u root -p test users> test_users.sql  
+
+# 导出一个数据库结构  
+mysqldump -u root -p -d –add-drop-table test >d:test.sql  
+# -d 没有数据 –add-drop-table 在每个create语句之前增加一个drop table  
+
+# 导入数据库
+# 1. source 导入数据
+source test.sql  
+# 2. 使用mysqldump命令  
+mysqldump -u username -p dbname < filename.sql  
+# 3. 使用mysql命令
+mysql -u username -p -D dbname < filename.sql  
+
+# 库操作  
+# 创建数据库  
+# 命令：create database <数据库名>  
+create database test;
+# 显示所有的数据库
+# 命令：show databases （注意：最后有个s）  
+# 删除数据库  
+# 命令：drop database <数据库名>  
+# 连接数据库  
+# 命令：use <数据库名>  
+# 查看当前使用的数据库  
+select database();  
+# 当前数据库包含的表信息：  
+# show tables; （注意：最后有个s）  
+
+# 表操作  
+# 命令：create table <表名> ( <字段名> <类型> [,..<字段名n> <类型n>]);  
+mysql> create table MyClass(  
+> id int(4) not null primary key auto_increment,  
+> name char(20) not null,  
+> sex int(4) not null default ’′,  
+> degree double(16,2));  
+# 获取表结构  
+# 命令：desc 表名，或者show columns from 表名  
+DESCRIBE MyClass  
+desc MyClass;  
+show columns from MyClass;  
+# 删除表  
+# 命令：drop table <表名>  
 ```
 
 ### [Zookeeper](https://hub.docker.com/_/zookeeper)
