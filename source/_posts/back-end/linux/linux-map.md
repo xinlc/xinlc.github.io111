@@ -219,19 +219,19 @@ Linux 知识地图
 #### 服务与日志
 
 - 服务状态的查看命令
-  - `service` 用法：service 服务名 start|stop|restart|status
+  - `service` 用法：`service 服务名 start|stop|restart|status`
   - systemctl是CentOS7的服务管理工具中主要的工具，它融合之前service和chkconfig的功能于一体。 Systemctl接受服务（.service），挂载点（.mount），套接口（.socket）和设备（.device）作为单元。
-  - `systemctl` 用法：systemctl start|stop|restart|status 服务名.service
-    - 在开机时启用一个服务：systemctl enable firewalld.service
-    - 在开机时禁用一个服务：systemctl disable firewalld.service
-    - 查看服务是否开机启动：systemctl is-enabled firewalld.service
-    - 查看已启动的服务列表：systemctl list-unit-files|grep enabled
-    - 查看启动失败的服务列表：systemctl --failed
-    - 列出当前系统服务的状态：systemctl list-units
-    - 列出所有可用单元：systemctl list-unit-files
-    - 查找某个服务：systemctl list-units --type=service | grep network
-    - 使用systemctl命令杀死服务： systemctl kill network.service
-    - 列出所有系统挂载点： systemctl list-unit-files --type=moun
+  - `systemctl` 用法：`systemctl start|stop|restart|status 服务名.service`
+    - 在开机时启用一个服务：`systemctl enable firewalld.service`
+    - 在开机时禁用一个服务：`systemctl disable firewalld.service`
+    - 查看服务是否开机启动：`systemctl is-enabled firewalld.service`
+    - 查看已启动的服务列表：`systemctl list-unit-files|grep enabled`
+    - 查看启动失败的服务列表：`systemctl --failed`
+    - 列出当前系统服务的状态：`systemctl list-units`
+    - 列出所有可用单元：`systemctl list-unit-files`
+    - 查找某个服务：`systemctl list-units --type=service | grep network`
+    - 使用systemctl命令杀死服务：`systemctl kill network.service`
+    - 列出所有系统挂载点：`systemctl list-unit-files --type=moun`
 - 常用系统日志
   - `/var/log` 系统日志默认目录
   - `message` 系统日志
@@ -303,42 +303,42 @@ Linux 知识地图
   - `PREROUTING` 路由前转换
   - `POSTROUTING` 路由后转换
 - 选项
-  - -i -o 接口
-  - -s -d IP 地址 / 子网掩码
-  - -p tcp/udp 指定协议
-    - --sport 源端口
-    - --dport 目的端口
-  - -j 动作
-    - ACCEPT 允许此规则匹配的数据包通过
-    - DROP 丢弃此规则匹配的数据包
-    - REJECT 拒绝此规则匹配的数据包并返回rst包
-    - SNAT 源地址转换
-    - DNAT 目的地址转换
-    - MASQUERADE 动态源地址转换
+  - `-i -o 接口`
+  - `-s -d IP 地址 / 子网掩码`
+  - `-p tcp/udp 指定协议`
+    - `--sport 源端口`
+    - `--dport 目的端口`
+  - `-j` 动作
+    - `ACCEPT` 允许此规则匹配的数据包通过
+    - `DROP` 丢弃此规则匹配的数据包
+    - `REJECT` 拒绝此规则匹配的数据包并返回rst包
+    - `SNAT` 源地址转换
+    - `DNAT` 目的地址转换
+    - `MASQUERADE` 动态源地址转换
 
 ##### firewalld
 
 - 基本使用
-  - 启动： systemctl start firewalld
-  - 查看状态： systemctl status firewalld
-  - 停止： systemctl disable firewalld
-  - 禁用： systemctl stop firewalld
+  - 启动：`systemctl start firewalld`
+  - 查看状态：`systemctl status firewalld`
+  - 停止：`systemctl disable firewalld`
+  - 禁用：`systemctl stop firewalld`
 - firewalld-cmd
-  - 查看版本： firewall-cmd --version
-  - 查看帮助： firewall-cmd --help
-  - 显示状态： firewall-cmd --state
-  - 查看所有打开的端口： firewall-cmd --zone=public --list-ports
-  - 更新防火墙规则： firewall-cmd --reload
-  - 查看区域信息:  firewall-cmd --get-active-zones
-  - 查看指定接口所属区域： firewall-cmd --get-zone-of-interface=eth0
-  - 拒绝所有包：firewall-cmd --panic-on
-  - 取消拒绝状态： firewall-cmd --panic-off
-  - 查看是否拒绝： firewall-cmd --query-panic
+  - 查看版本：`firewall-cmd --version`
+  - 查看帮助：`firewall-cmd --help`
+  - 显示状态：`firewall-cmd --state`
+  - 查看所有打开的端口：`firewall-cmd --zone=public --list-ports`
+  - 更新防火墙规则：`firewall-cmd --reload`
+  - 查看区域信息: `firewall-cmd --get-active-zones`
+  - 查看指定接口所属区域：`firewall-cmd --get-zone-of-interface=eth0`
+  - 拒绝所有包：`firewall-cmd --panic-on`
+  - 取消拒绝状态：`firewall-cmd --panic-off`
+  - 查看是否拒绝：`firewall-cmd --query-panic`
 - 开启一个端口
-  - 添加： firewall-cmd --zone=public --add-port=80/tcp --permanent    （--permanent永久生效，没有此参数重启后失效）
-  - 重新载入： firewall-cmd --reload
-  - 查看： firewall-cmd --zone= public --query-port=80/tcp
-  - 删除： firewall-cmd --zone= public --remove-port=80/tcp --permanent
+  - 添加：`firewall-cmd --zone=public --add-port=80/tcp --permanent    （--permanent永久生效，没有此参数重启后失效）`
+  - 重新载入：`firewall-cmd --reload`
+  - 查看：`firewall-cmd --zone= public --query-port=80/tcp`
+  - 删除：`firewall-cmd --zone= public --remove-port=80/tcp --permanent`
 
 ##### tcpdump
 
