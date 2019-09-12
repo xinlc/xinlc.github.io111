@@ -14,7 +14,7 @@ tags:
 
 ## 什么是vSphere?
 
-> vSphere是VNware公司在2001年基于云计算推出的一套企业级虚拟化解决方案、核心组件为ESXi。如今，经历了5个版本的改进，已经实现了虚拟化基础架构、高可用性、集中管理、性能监控等一体化解决方案。
+> vSphere是VMware公司在2001年基于云计算推出的一套企业级虚拟化解决方案、核心组件为ESXi。如今，经历了5个版本的改进，已经实现了虚拟化基础架构、高可用性、集中管理、性能监控等一体化解决方案。
 
 - [虚拟化VMware ESXi 6.7服务器安装配置详细步骤图文](https://idc.wanyunshuju.com/li/580.html)
 - [VMware ESXi 6.7.0](https://www.vmware.com/cn.html)
