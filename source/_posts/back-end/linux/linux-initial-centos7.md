@@ -200,6 +200,29 @@ ssh-keygen -t rsa -b 2048
 scp -P 22 leo@SERVER_IP_ADDRESS:~/.ssh/id_rsa ~/.ssh/
 ```
 
+多机器秘钥配置（MacOS）：
+
+```bash
+# 生成多个秘钥
+ssh-keygen -t rsa -b 4096 -C xinlichao2016@gamil.com -f .ssh/201_id_rsa
+ssh-keygen -t rsa -b 4096 -C xinlichao2016@gamil.com -f .ssh/202_id_rsa
+
+# 上传
+sh-copy-id -i .ssh/201_id_rsa.pub root@192.168.2.201
+sh-copy-id -i .ssh/202_id_rsa.pub root@192.168.2.202
+
+# 添加 ssh-key 到 ssh-agent：
+ssh-add ~/.ssh/201_id_rsa
+ssh-add ~/.ssh/202_id_rsa
+
+# 其他命令
+ssh-add -l # 查看
+ssh-add -A # 默认添加：id_rsa
+ssh-add -K ~/.ssh/201_id_rsa  # 指定添加
+ssh-add -D  # 全部删除
+ssh-add -d  ~/.ssh/201_id_rsa  # 指定删除
+```
+
 > 现在就可以使用秘钥+秘钥密码登录了，不设置秘钥密码会直接登录。
 
 ## 配置只能使用密钥文件登录
