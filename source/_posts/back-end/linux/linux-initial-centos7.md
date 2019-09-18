@@ -200,7 +200,7 @@ ssh-keygen -t rsa -b 2048
 scp -P 22 leo@SERVER_IP_ADDRESS:~/.ssh/id_rsa ~/.ssh/
 ```
 
-多机器秘钥配置（MacOS）：
+多个`SSH`秘钥配置：
 
 ```bash
 # 生成多个秘钥
@@ -211,7 +211,7 @@ ssh-keygen -t rsa -b 4096 -C xinlichao2016@gamil.com -f .ssh/202_id_rsa
 sh-copy-id -i .ssh/201_id_rsa.pub root@192.168.2.201
 sh-copy-id -i .ssh/202_id_rsa.pub root@192.168.2.202
 
-# 添加 ssh-key 到 ssh-agent：
+# 第一种 添加 ssh-key 到 ssh-agent：
 ssh-add ~/.ssh/201_id_rsa
 ssh-add ~/.ssh/202_id_rsa
 
@@ -221,6 +221,18 @@ ssh-add -A # 默认添加：id_rsa
 ssh-add -K ~/.ssh/201_id_rsa  # 指定添加
 ssh-add -D  # 全部删除
 ssh-add -d  ~/.ssh/201_id_rsa  # 指定删除
+
+# p.s. ssh-agent 这种方式每次开机都需要添加一次，可以写进 .bashrc 或 .bash_profile
+
+# 第二种方式配置 ssh config
+
+# 创建 config 并 添加以下内容
+vim ~/.ssh/config
+
+Host 192.168.2.201
+  IdentityFile ~/.ssh/201_id_rsa
+Host 192.168.2.201
+  IdentityFile ~/.ssh/202_id_rsa
 ```
 
 > 现在就可以使用秘钥+秘钥密码登录了，不设置秘钥密码会直接登录。
