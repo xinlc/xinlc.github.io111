@@ -10,6 +10,8 @@ tags:
 
 `JIRA` 是一个缺陷跟踪管理系统，为针对缺陷管理、任务追踪和项目管理的商业性应用软件，开发者是澳大利亚的 `Atlassian`。`JIRA` 这个名字并不是一个缩写，而是截取自 `Gojira` ，日文的哥斯拉发音。[官网](https://www.atlassian.com/software/jira)
 
+`Atlassian Confluence`（简称`Confluence`）是一个专业的`wiki`程序。它是一个知识管理的工具，通过它可以实现团队成员之间的协作和知识共享。[官网](https://www.atlassian.com/software/confluence)
+
 <!--more-->
 
 ## 安装 JIRA（8.1.0) 和 Confluence (7.0.1)
