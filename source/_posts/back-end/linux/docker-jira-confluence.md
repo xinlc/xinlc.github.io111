@@ -282,4 +282,21 @@ java -jar atlassian-agent.jar -d -m test@test.com -n BAT -p conf -o http://127.0
 5. 数据库: MySQL
 6. 主机：mysql, 端口：3306, 数据库：confluence, 用户名：root, 密码：123456
 
-> 完活, 剩下的自行设置吧！
+## 后台日志报错 Establishing SSL connection without 解决
+
+> WARN：Establishing SSL connection without server's identity verification is not recommended. According to MySQL 5.5.45+, 5.6.26+ and 5.7.6+ requirements SSL connection must be established by default if explicit option isn't set. For compliance with existing applications not using SSL the verifyServerCertificate property is set to 'false'. You need either to explicitly disable SSL by setting useSSL=false, or set useSSL=true and provide truststore for server certificate verification.
+
+- 原因：`MySQL5.7.6` 以上版本要默认要求使用`SSL`连接，如果不使用需要通过设置 `useSSL=false` 来声明。
+- 解决方案：在`mysql`连接字符串`url`中加入`useSSL=true`或者`false`即可，如下：
+
+```bash
+# Jira找到配置文件/var/lib/docker/volumes/atlassian_data_jira_var/_data/dbconfig.xml修改mysql连接字符串如下：
+jdbc:mysql://address=(protocol=tcp)(host=mysql)(port=3306)/jira?sessionVariables=default_storage_engine=InnoDB&amp;useSSL=false
+
+# Confluence找到配置文件/var/lib/docker/volumes/atlassian_data_confluence_var/_data/confluence.cfg.xml修改mysql连接字符串如下：
+jdbc:mysql://mysql:3306/confluence?useSSL=false
+
+# 修改后重启服务
+docker-compose restart jira
+docker-compose restart confluence
+```
