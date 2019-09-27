@@ -78,6 +78,28 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
+## 问题
+
+### docker 访问宿主机ip时
+
+1. 报错：No route to host
+2. Host is unreachable (Host unreachable)
+
+`原因`：默认情况下，`firewalld`将阻止同一个`docker`主机上的`intercontainer`网络。要允许`docker`容器之间的通信，需要防火墙允许`docker0 ip` 或 自定义创建的`network ip`通过  
+
+```bash
+# 查看 docker ip
+ifconfig
+
+# 或
+docker network ls
+docker inspect <network id>
+
+firewall-cmd --zone=trusted --add-source=172.17.0.1/16 --permanent
+firewall-cmd --zone=trusted --add-source=192.168.48.1/20 --permanent
+firewall-cmd --reload
+```
+
 ## 参考
 
 - [docker](https://docs.docker.com/install/linux/docker-ce/centos/)

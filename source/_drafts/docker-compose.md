@@ -20,6 +20,18 @@ systemctl restart docker
 或者 docker run 加上 --net host
 docker-compse 加上 network_mode: host
 # p.s. host 模式 就不能绑定端口了，所有容器端口都对应属主机端口
+
+# docker 集群 zookeeper 碰到 java.net.NoRouteToHostException: Host is unreachable (Host unreachable)
+# 原因是 firewalld 的没有信任 docker 的 ip 地址，stackoverflower 中也有类似的问题。
+# 将所有 docker 的 ip 添加都白名单即可。
+# docker network ls
+# docker inspect <network id>
+
+ifconfig
+
+firewall-cmd --zone=trusted --add-source=172.17.0.1/16 --permanent
+firewall-cmd --zone=trusted --add-source=192.168.48.1/20 --permanent
+firewall-cmd --reload
 ```
 
 ```bash
