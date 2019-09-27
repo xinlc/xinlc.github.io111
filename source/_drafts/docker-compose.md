@@ -32,6 +32,11 @@ ifconfig
 firewall-cmd --zone=trusted --add-source=172.17.0.1/16 --permanent
 firewall-cmd --zone=trusted --add-source=192.168.48.1/20 --permanent
 firewall-cmd --reload
+
+
+# 删除
+firewall-cmd --zone=trusted --remove-source=192.168.48.1/20 --permanent
+firewall-cmd --reload
 ```
 
 ```bash
