@@ -7,7 +7,7 @@ tags:
   - confluence
 ---
 
-继上一篇 [使用 Docker 安装 Jira Software 和 Confluence](https://xinlc.github.io/2019/09/26/back-end/linux/docker-jira-confluence/#more)，配置 `Jira` 集成 `Confluence`
+继上一篇 [使用 Docker 安装 Jira Software 和 Confluence](https://xinlc.github.io/2019/09/26/back-end/linux/docker-jira-confluence/)，配置 `Jira` 集成 `Confluence`
 
 <!--more-->
 

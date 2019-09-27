@@ -301,6 +301,8 @@ docker-compose restart jira
 docker-compose restart confluence
 ```
 
+## 安装好后可以集成参考： [Jira Software 和 Confluence 集成](https://xinlc.github.io/2019/09/27/back-end/linux/jira-integration-confluence/)
+
 ## 参考
 
 - [Atlassian](https://www.atlassian.com/)
