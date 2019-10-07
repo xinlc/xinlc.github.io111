@@ -708,7 +708,7 @@ git remote set-url origin <url>
 
 ## [rebase 变基操作](https://git-scm.com/book/zh/v2/Git-工具-重写历史)
 
-变基注意：小心使用，在自己分支操作没有问题，如果在共享分支操作会影响其他人，可能会丢失代码，团队中对于公共的分支应禁止使用变基操作。特别是主干分支应只做先进，不应有变基或 `push -f` 操作。
+变基注意：小心使用，在自己分支操作没有问题，如果在共享分支操作会影响其他人，可能会丢失代码，团队中对于公共的分支应禁止使用变基操作。特别是主干分支应只做先进，不应有变基或 `push -f` 操作。（当然也有为了让主干log变的清晰，做rebase）。
 
 - [Git 分支 - 变基](https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA)
 
@@ -757,6 +757,22 @@ git rebase -i <base-commit-id>
 
 # 修改最近三次提交信息，在 HEAD~3..HEAD 范围内的每一个提交都会被重写，无论你是否修改信息。
 git rebase -i HEAD~3
+
+# 使用 rebase 合并分支
+# 这些命令会把 master 分支里的每个提交(commit)取消掉，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，然后把 mywork 分支更新到最新的 dev 分支，最后把保存的这些补丁应用到 master 分支上。
+git checkout master
+git rebase dev
+
+# 分支开发完成后，很可能有一堆commit，但是合并到主干的时候，往往希望只有一个（或最多两三个）commit，这样不仅清晰，也容易管理。
+git rebase <other-branch>   # 合并其他分支
+git rebase -i origin/master # 压缩主干历史
+
+# 另外一种合并commit的简便方法，就是先撤销过去5个commit，然后再建一个新的。
+git reset HEAD~5
+git add .
+git commit -am "Here's the bug fix that closes #28"
+git push --force
+
 ```
 
 核武器级选项：filter-branch  
