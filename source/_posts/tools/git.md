@@ -918,6 +918,8 @@ git gui
 - [Git 工作流程](http://www.ruanyifeng.com/blog/2015/12/git-workflow.html)
 - [Git 使用规范流程](http://www.ruanyifeng.com/blog/2015/08/git-use-process.html)
 - [Git远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)
+- [Commit message 和 Change log 编写指南](http://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html)
+- [社区规范](https://github.com/conventional-changelog/conventional-changelog/)
 - [Pro Git](http://git-scm.com/book/zh/v2)
 - [Git 在线练习](http://learngitbranching.js.org)
 - [Git 在线练习（英）](http://try.github.io/)
