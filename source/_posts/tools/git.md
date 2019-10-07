@@ -759,7 +759,7 @@ git rebase -i <base-commit-id>
 git rebase -i HEAD~3
 
 # 使用 rebase 合并分支
-# 这些命令会把 master 分支里的每个提交(commit)取消掉，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，然后把 mywork 分支更新到最新的 dev 分支，最后把保存的这些补丁应用到 master 分支上。
+# 这些命令会把 master 分支里的每个提交(commit)取消掉，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，然后把 master 分支更新到最新的 dev 分支，最后把保存的这些补丁应用到 master 分支上。
 git checkout master
 git rebase dev
 
