@@ -568,13 +568,17 @@ git revert <commit>
 
 # 暂时将未提交的变化移除，稍后再移入（场景：临时有改紧急的任务，当前的状态先放一边）
 git stash       # 隐藏暂存区
-git stash pop   # 恢复最后一次暂存内容
+git stash save "save message" # 执行存储时，添加备注，方便查找。
 git stash list  # 查看列表
-git stash apply # 恢复暂存的内容
-git stash drop  # 删除暂存区
+git stash show  # 显示做了哪些改动，默认show第一个存储,如果要显示其他存贮，后面加stash@{$num}，比如第二个 git stash show stash@{1}
+git stash show -p # 显示第一个存储的改动
+git stash pop   # 恢复最后一次暂存内容, 将缓存堆栈中的对应stash删除，并将对应修改应用到当前的工作目录下
+git stash apply # 应用某个存储，但不会把存储从存储列表中删除，默认使用第一个存储,即stash@{0}
+git stash drop  # 删除暂存区, stash@{$num}存储，从列表中删除这个存储
+git stash clear # 删除所有缓存的stash
 git stash branch <branch-name> # 从储藏创建一个分支
 git stash --patch # 交互式地提示哪些改动想要储藏、哪些改动需要保存在工作目录中
-git stash --help # 查看更多命令
+git stash --help  # 查看更多命令
 ```
 
 ## 远程同步
