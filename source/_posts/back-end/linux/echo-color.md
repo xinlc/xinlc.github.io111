@@ -2,12 +2,12 @@
 title: echo 输出内容带颜色
 date: 2018-03-14 12:02:00
 categories: Linux
-tags: 
+tags:
   - linux
   - shell
 ---
 
-shell脚本中echo显示内容带颜色显示, echo显示带颜色，需要使用参数-e 格式如下：
+shell 脚本中 echo 显示内容带颜色显示, echo 显示带颜色，需要使用参数-e 格式如下：
 
 ```bash
 echo -e "\033[41;36m something here \033[0m"
@@ -17,6 +17,7 @@ echo -e "\033[41;36m something here \033[0m"
 <!--more-->
 
 ## 字颜色
+
 ```bash
 echo -e "\033[30m 黑色字 \033[0m"
 echo -e "\033[31m 红色字 \033[0m"
@@ -29,6 +30,7 @@ echo -e "\033[37m 白色字 \033[0m"
 ```
 
 ## 字背景颜色
+
 ```bash
 echo -e "\033[40;37m 黑底白字 \033[0m"
 echo -e "\033[41;37m 红底白字 \033[0m"
@@ -40,7 +42,8 @@ echo -e "\033[46;37m 天蓝底白字 \033[0m"
 echo -e "\033[47;30m 白底黑字 \033[0m"
 ```
 
-## 控制选项 
+## 控制选项
+
 ```bash
 \33[0m 关闭所有属性
 \33[1m 设置高亮度

@@ -2,12 +2,12 @@
 title: CentOS 7 安装后的相关配置
 date: 2019-09-12 19:00:00
 categories: Linux
-tags: 
+tags:
   - linux
   - centos7
 ---
 
-`CentOS7` 安装参考[在 VMware ESXi 中安装 CentOS7](https://xinlc.github.io/2019/09/07/back-end/linux/vmware-esxi-centos7/#more)  
+`CentOS7` 安装参考[在 VMware ESXi 中安装 CentOS7](https://xinlc.github.io/2019/09/07/back-end/linux/vmware-esxi-centos7/#more)
 
 安装完 `CentOS7（Minimal Install）`操作系统后，需要对其进行初始化的配置，以增强服务器的安全性和可用性，本文记录 `CentOS7` 系统安装后需要做的初始化配置。
 
@@ -45,17 +45,17 @@ ping -c 4 www.baidu.com
 网卡参数说：
 
 - TYPE=Ethernet（设备连接类型，此处为以太网）
-- IPADDR=IP地址（192.168.2.201）
+- IPADDR=IP 地址（192.168.2.201）
 - NETMASK=子掩码（255.255.255.0）
 - GATEWAY=网关（192.168.2.1）
-- DNS1=DNS地址 （114.114.114.114 或 8.8.8.8）
-- ONBOOT=yes（网卡随系统启动， 默认为no）
-- BOOTPROTO=static (使用动态IP 还是静态IP，默认为dhcp)
+- DNS1=DNS 地址 （114.114.114.114 或 8.8.8.8）
+- ONBOOT=yes（网卡随系统启动， 默认为 no）
+- BOOTPROTO=static (使用动态 IP 还是静态 IP，默认为 dhcp)
 - HWADDR=MAC 地址
 
 ## 安装常用工具
 
-由于是最小化安装系统，很多常用工具没有安装，调通网络后就可使用yum安装了
+由于是最小化安装系统，很多常用工具没有安装，调通网络后就可使用 yum 安装了
 
 ```bash
 # 安装常用网络工具，如：ifconfig、netstat等
@@ -77,7 +77,7 @@ adduser leo
 passwd 123456
 ```
 
-> p.s. 添加新用户或更改root密码，不要关闭当前窗口，新打开一个窗口进行登录测试是否好用，如果失败还可以在当前窗口继续操作，（都是泪啊……）
+> p.s. 添加新用户或更改 root 密码，不要关闭当前窗口，新打开一个窗口进行登录测试是否好用，如果失败还可以在当前窗口继续操作，（都是泪啊……）
 
 ## 给普通用户 root 权限
 
@@ -100,7 +100,7 @@ vim /etc/sudoers
 leo    ALL=(ALL)       ALL
 ```
 
-## 只允许wheel用户组的用户su切换
+## 只允许 wheel 用户组的用户 su 切换
 
 ```bash
 vi /etc/pam.d/su
@@ -108,11 +108,11 @@ vi /etc/pam.d/su
 auth            required        pam_wheel.so use_uid
 ```
 
-> 其他用户切换root，即使输对密码也会提示 su: incorrect password
+> 其他用户切换 root，即使输对密码也会提示 su: incorrect password
 
 ## tty 登录超时设置
 
-用户在线5分钟无操作则超时断开连接，在`/etc/profile`中添加：
+用户在线 5 分钟无操作则超时断开连接，在`/etc/profile`中添加：
 
 ```bash
 export TMOUT=300
@@ -121,7 +121,7 @@ readonly TMOUT
 
 ## 限制登录失败次数并锁定
 
-登录失败5次锁定180秒，根据需要设置是否包括 root
+登录失败 5 次锁定 180 秒，根据需要设置是否包括 root
 
 ```bash
 vim /etc/pam.d/login
@@ -146,7 +146,7 @@ systemctl restart sshd.service
 
 > 想要获取 root 权限，就要必须破解 root 和普通用户密码，提升了系统安全性。
 
-## 登录IP限制
+## 登录 IP 限制
 
 允许 ssh 的用户和来源 ip
 
@@ -164,7 +164,7 @@ systemctl restart sshd.service
 
 如果客户端想访问服务端，可以使用 ssh 命令，SSH 支持用户名和密码方式，也支持公钥授权。使用密钥文件代替普通的简单密码认证也会极大的提高安全性。
 
-在客户端生成公钥和私钥（由于我是MacOS 有 `ssh-keygen` 工具，如果没有也可以在 `CentOS` 生成秘钥，然后把私钥下载到客户端）：
+在客户端生成公钥和私钥（由于我是 MacOS 有 `ssh-keygen` 工具，如果没有也可以在 `CentOS` 生成秘钥，然后把私钥下载到客户端）：
 
 ```bash
 # 执行命令之后，会在 $HOME 下的 .ssh 目录下生成 2 个文件，id_rsa 为私钥，id_rsa.pub 为公钥
@@ -328,13 +328,13 @@ firewall-cmd --reload
 ssh -p 1234 leo@SERVER_IP_ADDRESS
 ```
 
-> 或者直接使命令开放sshd端口：firewall-cmd --zone=public --add-port=1234/tcp --permanent
+> 或者直接使命令开放 sshd 端口：firewall-cmd --zone=public --add-port=1234/tcp --permanent
 
 ## 每天自动更新软件
 
 （可选）
 
-每一天都有成千上万的黑客在世界各地寻找 `Linux` 系统和常见软件的安全漏洞，保证软件是最新版本，可以及时修复最新漏洞，但最新的软件可能不稳定（程序员就是在制造bug和修复bug的路上……）。
+每一天都有成千上万的黑客在世界各地寻找 `Linux` 系统和常见软件的安全漏洞，保证软件是最新版本，可以及时修复最新漏洞，但最新的软件可能不稳定（程序员就是在制造 bug 和修复 bug 的路上……）。
 
 ```bash
 # 手动更新所有软件

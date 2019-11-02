@@ -10,35 +10,35 @@ tags:
 
 ## Git vs SVN
 
-Git和SVN最大区别是`Git`是分布式版本控制，`SVN`是集中式版本控制。
+Git 和 SVN 最大区别是`Git`是分布式版本控制，`SVN`是集中式版本控制。
 
-### SVN优缺点
+### SVN 优缺点
 
 1. 优点:
-  1. 易于管理，集中式服务器更能保证安全性。
-  2. 代码一致性非常高。
-  3. 适合开发人数不多的项目开发。
-2. 缺点:
-  1. 服务器压力太大，数据库容量暴增。
-  2. 如果不能连接到服务器上，基本上不可以工作，如果服务器不能连接上，就不能提交，还原，对比等等。
-  3. 不适合开源开发（开发人数非常非常多)。
+1. 易于管理，集中式服务器更能保证安全性。
+1. 代码一致性非常高。
+1. 适合开发人数不多的项目开发。
+1. 缺点:
+1. 服务器压力太大，数据库容量暴增。
+1. 如果不能连接到服务器上，基本上不可以工作，如果服务器不能连接上，就不能提交，还原，对比等等。
+1. 不适合开源开发（开发人数非常非常多)。
 
 <!--more-->
 
-### Git优缺点
+### Git 优缺点
 
 1. 优点:
-  1. 适合分布式开发，强调个体。
-  2. 公共服务器压力和数据量都不会太大。
-  3. 速度快、灵活。
-  4. 任意两个开发者之间可以很容易的解决冲突。
-  5. 离线工作。
-2. 缺点:
-  1. 代码保密性差，一旦开发者把整个库克隆下来就可以完全公开所有代码和版本信息。
+1. 适合分布式开发，强调个体。
+1. 公共服务器压力和数据量都不会太大。
+1. 速度快、灵活。
+1. 任意两个开发者之间可以很容易的解决冲突。
+1. 离线工作。
+1. 缺点:
+1. 代码保密性差，一旦开发者把整个库克隆下来就可以完全公开所有代码和版本信息。
 
 ## 安装
 
-### Mac系统使用[Homebrew](https://brew.sh)安装
+### Mac 系统使用[Homebrew](https://brew.sh)安装
 
 ```bash
 brew install git
@@ -705,7 +705,7 @@ git config --system --unset credential.helper
 # 钥匙串访问 -> 密码 -> 删除对应url的凭证，只能删除对应url的凭证
 
 # 列举所有配置
-git config -l  
+git config -l
 
 # 修改远程仓库地址
 git remote set-url origin <url>
@@ -713,15 +713,15 @@ git remote set-url origin <url>
 
 ## [rebase 变基操作](https://git-scm.com/book/zh/v2/Git-工具-重写历史)
 
-变基注意：小心使用，在自己分支操作没有问题，如果在共享分支操作会影响其他人，可能会丢失代码，团队中对于公共的分支应禁止使用变基操作。特别是主干分支应只做先进，不应有变基或 `push -f` 操作。（当然也有为了让主干log变的清晰，做rebase）。
+变基注意：小心使用，在自己分支操作没有问题，如果在共享分支操作会影响其他人，可能会丢失代码，团队中对于公共的分支应禁止使用变基操作。特别是主干分支应只做先进，不应有变基或 `push -f` 操作。（当然也有为了让主干 log 变的清晰，做 rebase）。
 
 - [Git 分支 - 变基](https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA)
 
 > 变基的风险  
-呃，奇妙的变基也并非完美无缺，要用它得遵守一条准则：  
-不要对在你的仓库外有副本的分支执行变基。  
-如果你遵循这条金科玉律，就不会出差错。 否则，人民群众会仇恨你，你的朋友和家人也会嘲笑你，唾弃你。  
-变基操作的实质是丢弃一些现有的提交，然后相应地新建一些内容一样但实际上不同的提交。 如果你已经将提交推送至某个仓库，而其他人也已经从该仓库拉取提交并进行了后续工作，此时，如果你用 git rebase 命令重新整理了提交并再次推送，你的同伴因此将不得不再次将他们手头的工作与你的提交进行整合，如果接下来你还要拉取并整合他们修改过的提交，事情就会变得一团糟。
+> 呃，奇妙的变基也并非完美无缺，要用它得遵守一条准则：  
+> 不要对在你的仓库外有副本的分支执行变基。  
+> 如果你遵循这条金科玉律，就不会出差错。 否则，人民群众会仇恨你，你的朋友和家人也会嘲笑你，唾弃你。  
+> 变基操作的实质是丢弃一些现有的提交，然后相应地新建一些内容一样但实际上不同的提交。 如果你已经将提交推送至某个仓库，而其他人也已经从该仓库拉取提交并进行了后续工作，此时，如果你用 git rebase 命令重新整理了提交并再次推送，你的同伴因此将不得不再次将他们手头的工作与你的提交进行整合，如果接下来你还要拉取并整合他们修改过的提交，事情就会变得一团糟。
 
 举个例子，如果遇到前面提到的 有人推送了经过变基的提交，并丢弃了你的本地开发所基于的一些提交 那种情境，如果我们不是执行合并，而是执行 `git fetch`，再 `git rebase teamone/master`。或者使用另一种简短方法 `git pull --rebase`（一定要通知每个人执行 `git pull --rebase` 命令）。
 
@@ -780,7 +780,8 @@ git push --force
 
 ```
 
-核武器级选项：filter-branch  
+核武器级选项：filter-branch
+
 > 有另一个历史改写的选项，如果想要通过脚本的方式改写大量提交的话可以使用它——例如，全局修改你的邮箱地址或从每一个提交中移除一个文件。 这个命令是 filter-branch，它可以改写历史中大量的提交，除非你的项目还没有公开并且其他人没有基于要改写的工作的提交做的工作，你不应当使用它。
 
 ```bash
@@ -831,7 +832,7 @@ git log -p --submodule
 文件在 `.git/objects/`，`hash` 值前两位是文件夹名  
 比如：想找一个 `commit id` 为 `f9a279f39e872a7e86048b50ec7ae43a32a57c96` 的存储位置，文件夹名 `f9` + `a279f39e872a7e86048b50ec7ae43a32a57c96`
 
-`pack` 文件夹, git向磁盘中存储对象使用“松散（loose）”对象格式。比如文件a.txt第一个版本大小是10k，第二个版本向其中添加了一行代码，假如此时文件为10.1k，那么第二个版本会重新产生一个10.1k的文件，这样会很浪费磁盘空间，所以git会时不时地将多个这些对象打包成一个称为“包文件（packfile）”的二进制文件，以节省空间和提高效率。在手动执行git gc的时候，或者向远程推送的时候，都会进行打包的操作。
+`pack` 文件夹, git 向磁盘中存储对象使用“松散（loose）”对象格式。比如文件 a.txt 第一个版本大小是 10k，第二个版本向其中添加了一行代码，假如此时文件为 10.1k，那么第二个版本会重新产生一个 10.1k 的文件，这样会很浪费磁盘空间，所以 git 会时不时地将多个这些对象打包成一个称为“包文件（packfile）”的二进制文件，以节省空间和提高效率。在手动执行 git gc 的时候，或者向远程推送的时候，都会进行打包的操作。
 
 git 对象存储机制：
 
@@ -859,23 +860,23 @@ git count-objects -v
 git rev-parse <branch-name>
 ```
 
-## 生成SSH key
+## 生成 SSH key
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 ```
 
-生成的key保存在`~/.ssh`目录id_rsa（私钥）和id_rsa.pub（公钥）两个文件
+生成的 key 保存在`~/.ssh`目录 id_rsa（私钥）和 id_rsa.pub（公钥）两个文件
 
 ## 解决冲突
 
 `git status` 可以告诉我们冲突的文件。
-打开冲突文件我们会看到Git用<<<<<<<，=======，>>>>>>>标记出不同分支的内容，我们修改后提交：  
+打开冲突文件我们会看到 Git 用<<<<<<<，=======，>>>>>>>标记出不同分支的内容，我们修改后提交：
 
-- `git add [file]`  
+- `git add [file]`
 - `git commit -m "conflict fixed"`
-- 用带参数的git log也可以看到分支的合并情况：
-`git log --graph --pretty=oneline --abbrev-commit`
+- 用带参数的 git log 也可以看到分支的合并情况：
+  `git log --graph --pretty=oneline --abbrev-commit`
 
 或者用 `git mergetool`
 
@@ -912,7 +913,7 @@ git checkout --conflict=diff3 hello.rb
 
 ### rebase 变基冲突
 
-Rebase可能会反复解决冲突，可以借助[Rerere](https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-Rerere)，正如它的名字 “reuse recorded resolution” 所指，它允许你让 Git 记住解决一个块冲突的方法，这样在下一次看到相同冲突时，Git 可以为你自动地解决它。
+Rebase 可能会反复解决冲突，可以借助[Rerere](https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-Rerere)，正如它的名字 “reuse recorded resolution” 所指，它允许你让 Git 记住解决一个块冲突的方法，这样在下一次看到相同冲突时，Git 可以为你自动地解决它。
 
 ## 图形化
 
@@ -934,16 +935,16 @@ git gui
 
 ## 参考
 
-- [廖雪峰-Git教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000)
+- [廖雪峰-Git 教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000)
 - [常用 Git 命令清单](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)
 - [Git 工作流程](http://www.ruanyifeng.com/blog/2015/12/git-workflow.html)
 - [Git 使用规范流程](http://www.ruanyifeng.com/blog/2015/08/git-use-process.html)
-- [Git远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)
+- [Git 远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)
 - [Commit message 和 Change log 编写指南](http://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html)
 - [社区规范](https://github.com/conventional-changelog/conventional-changelog/)
 - [Pro Git](http://git-scm.com/book/zh/v2)
 - [Git 在线练习](http://learngitbranching.js.org)
 - [Git 在线练习（英）](http://try.github.io/)
 - [Git Community Book 中文版](http://gitbook.liuhui998.com/index.html)
-- [git的飞行规则](https://github.com/k88hudson/git-flight-rules)
+- [git 的飞行规则](https://github.com/k88hudson/git-flight-rules)
 - [gitignore 模板](https://github.com/github/gitignore)

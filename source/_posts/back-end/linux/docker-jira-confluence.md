@@ -2,7 +2,7 @@
 title: 使用 Docker 安装 Jira Software 和 Confluence
 date: 2019-09-26 04:31:00
 categories: Linux
-tags: 
+tags:
   - docker
   - jira
   - confluence
@@ -123,7 +123,6 @@ volumes:
   data_confluence_vol:
   data_confluence_opt:
   data_confluence_var:
-
 ```
 
 `atlassian/jira/Dockerfile`：
@@ -207,7 +206,7 @@ binlog_format=row
 docker-compose restart mysql
 ```
 
-执行以下sql：
+执行以下 sql：
 
 ```sql
 -- 创建jira数据库及用户
@@ -279,8 +278,8 @@ java -jar atlassian-agent.jar -d -m test@test.com -n BAT -p conf -o http://127.0
 
 4. 输入集群名：confluence
 5. 共享的主目录：/home/confluence_data
-5. 数据库: MySQL
-6. 主机：mysql, 端口：3306, 数据库：confluence, 用户名：root, 密码：123456
+6. 数据库: MySQL
+7. 主机：mysql, 端口：3306, 数据库：confluence, 用户名：root, 密码：123456
 
 ## 后台日志报错 Establishing SSL connection without 解决
 

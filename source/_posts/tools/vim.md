@@ -7,13 +7,14 @@ tags:
 	- linux
 	- vim
 ---
+
 ## [入门](#vim理解)
 
 ## [放弃](http://vim-adventures.com/)
 
 ## 什么是 Vim？
 
-Vim 是一个历史悠久的文本编辑器，可以追溯到 [qed](https://en.wikipedia.org/wiki/QED_(text_editor))。[Bram Moolenaar](https://en.wikipedia.org/wiki/Bram_Moolenaar) 于 1991 年发布初始版本。
+Vim 是一个历史悠久的文本编辑器，可以追溯到 [qed](<https://en.wikipedia.org/wiki/QED_(text_editor)>)。[Bram Moolenaar](https://en.wikipedia.org/wiki/Bram_Moolenaar) 于 1991 年发布初始版本。
 该项目托管在 [vim.org](https://www.vim.org/index.php)。
 获取 Vim：用包管理器安装或者直接到 `vim.org` [下载](https://www.vim.org/download.php)。
 
@@ -33,9 +34,9 @@ Vim 自带一个交互式的教程，内含你需要了解的最基础的信息�
 $ vimtutor
 ```
 
-Vim帮助文档非常棒，在Vim用运行`:help`打开帮助文档，[中文帮助文档配置](https://blog.csdn.net/uhippo/article/details/8374255)
+Vim 帮助文档非常棒，在 Vim 用运行`:help`打开帮助文档，[中文帮助文档配置](https://blog.csdn.net/uhippo/article/details/8374255)
 
-## vim理解
+## vim 理解
 
 这部分来源 [一起来说 Vim 语](http://www.jianshu.com/p/a361ce8c97bc)，理解此部分是需要你已经了解了 Vim 的几种常用的工作模式（正常模式、插入模式、命令模式等）。
 
@@ -123,7 +124,8 @@ dfx # 删除文本直到字符“x”（包括字符“x”）: delete forward x
 
 ![](/images/vi-vim-cheat-sheet-sch.gif)
 
-熟练掌握Vim各种命令, 在`Normal`模式下运行。
+熟练掌握 Vim 各种命令, 在`Normal`模式下运行。
+
 ## 进入编辑模式
 
 ```bash
@@ -188,7 +190,7 @@ zk # 向上移动到上一个折叠的结束处
 `yy` 和 p 的组合键，或者 `dd` 和 p 的组合键
 
 ```bash
-yy    # 复制当前行  
+yy    # 复制当前行
 y     # 复制选中字符
 nyy   # n表示大于1的数字，复制n行
 yw    # 从光标处复制至一个单子/单词的末尾，包括空格
@@ -265,7 +267,7 @@ ctrl + wj  # 移动到下方的窗口
 ctrl + wk  # 移动到上方的窗口
 ```
 
-## Tab操作
+## Tab 操作
 
 ```bash
 :tabnew file # 建立对指定文件新的tab
@@ -309,7 +311,7 @@ ctrl + r # 返回上一步
 
 ### 精确替换
 
-vim 有强大的内容替换命令s(substitute)，进行内容替换操作时，注意：如何指定替换文件范围、是否整词匹配、是否逐一确认后再替换。
+vim 有强大的内容替换命令 s(substitute)，进行内容替换操作时，注意：如何指定替换文件范围、是否整词匹配、是否逐一确认后再替换。
 
 ```
 :[range]s/{pattern}/{string}/[flags]
@@ -320,19 +322,19 @@ vim 有强大的内容替换命令s(substitute)，进行内容替换操作时，
 - 你也可以指定行范围，如，第三行到第五行：`:3,5s/{pattern}/{string}/[flags]`
 - 如果对打开文件进行替换，你需要先通过 `:bufdo` 命令显式告知 vim 范围，再执行替换；
 - 如果对工程内所有文件进行替换，先 `:args **/.cpp */*.h` 告知 vim 范围，再执行替换；
-- 替换当前行第一个 `vivian/` 为 `sky/`，`#` 作为分隔符 `:s #vivian/#sky/# `
+- 替换当前行第一个 `vivian/` 为 `sky/`，`#` 作为分隔符 `:s #vivian/#sky/#`
 - `:%s/vivian/sky/g`（等同于 `:g/vivian/s//sky/g`） 替换每一行中所有 vivian 为 sky
 - `:n,$s/vivian/sky/g` 替换第 n 行开始到最后一行中每一行所有 vivian 为 sky
 
 `:21,27s/^/#/g` 行首替换`#`替换（增加）掉  
-`:ab mymail asdf@qq.com` 输入`mymail` 摁下空格自动替换成`asdf@qq.com`  
+`:ab mymail asdf@qq.com` 输入`mymail` 摁下空格自动替换成`asdf@qq.com`
 
 ## 标记 mark
 
 - Vim 允许你在文本中放置自定义的标记。
-- 命令 "ma" 用 a 标记当前的光标位置。你可以在文本中使用 26 个标记（a到z）
-- 移到标记a的命令是：`a
-- 移到标记a的行首命令是：'a
+- 命令 "ma" 用 a 标记当前的光标位置。你可以在文本中使用 26 个标记（a 到 z）
+- 移到标记 a 的命令是：`a
+- 移到标记 a 的行首命令是：'a
 - 列出所有标记列表 :marks
 
 > 你会注意到有一些特殊的标记，包括：
@@ -343,40 +345,42 @@ vim 有强大的内容替换命令s(substitute)，进行内容替换操作时，
 [       最后修改的位置的开头
 ]       最后修改的位置的结尾
 ```
-> 如果想要删除marks，可用命令delmarks + markname 。
+
+> 如果想要删除 marks，可用命令 delmarks + markname 。
 
 ## 寄存器
 
 - 无名（unnamed）寄存器：""，缓存最后一次操作内容；
-- 数字（numbered）寄存器："0 ～ "9，缓存最近操作内容，复制与删除有别, "0寄存器缓存最近一次复制的内容，"1-"9缓存最近9次删除内容
+- 数字（numbered）寄存器："0 ～ "9，缓存最近操作内容，复制与删除有别, "0 寄存器缓存最近一次复制的内容，"1-"9 缓存最近 9 次删除内容
 - 行内删除（small delete）寄存器："-，缓存行内删除内容；
-- 具名（named）寄存器："a ～ "z或"A - "0Z，指定时可用；
+- 具名（named）寄存器："a ～ "z 或"A - "0Z，指定时可用；
 - 只读（read-only）寄存器：":, "., "%, "#，分别缓存最近命令、最近插入文本、当前文件名、当前交替文件名；
 - 表达式（expression）寄存器："=，只读，用于执行表达式命令；
-- 选择及拖拽（selection and drop）寄存器："*, "+, "~，存取GUI选择文本，可用于与外部应用交互，使用前提为系统剪切板（clipboard）可用；
-- 黑洞（black hole）寄存器："_，不缓存操作内容（干净删除）；
+- 选择及拖拽（selection and drop）寄存器："\*, "+, "~，存取 GUI 选择文本，可用于与外部应用交互，使用前提为系统剪切板（clipboard）可用；
+- 黑洞（black hole）寄存器："\_，不缓存操作内容（干净删除）；
 - 模式寄存器（last search pattern）："/，缓存最近的搜索模式。
 
 ```
 "ayy      就是复制当前行到 "a 字母寄存器中
 "b3yy     3 复制当前行和下面2行 到 “b 字母寄存器
 “ap       粘贴 “a 字母寄存器的内容
-“cd2l     向右删除2个字符 并且把内容存到 字母寄存器 “c 中           
+“cd2l     向右删除2个字符 并且把内容存到 字母寄存器 “c 中
 “cp       粘贴 ”c 字母寄存器里面的内容
-”d3dd     删除当前行和下面2行 并且把内容存到 字母寄存器 “d 中  
+”d3dd     删除当前行和下面2行 并且把内容存到 字母寄存器 “d 中
 “fdf.     删除当前位置到句号  并且把内容存到 字母寄存器 “f 中
 “gd'c     删除当前位置到标记c位置 并且把内容存到 字母寄存器 “g 中
 :reg      查看所有寄存器内容
 :reg      查看单个寄存器内容比如 :reg 1  :reg _
- ```
+```
 
- > 数字寄存器，也是最常用的 从0-9。 如果不指定寄存器的名字，那么删除的内容，vim默认是存到 1 ，复制内容是存到 0 号寄存器。 如果继续删除，那么原来 1 的内容就转到 2，类推，当删除超过9的时候， 原先的 8号数字寄存器就转到9， 原先9的数字寄存器内容就会丢失。
+> 数字寄存器，也是最常用的 从 0-9。 如果不指定寄存器的名字，那么删除的内容，vim 默认是存到 1 ，复制内容是存到 0 号寄存器。 如果继续删除，那么原来 1 的内容就转到 2，类推，当删除超过 9 的时候， 原先的 8 号数字寄存器就转到 9， 原先 9 的数字寄存器内容就会丢失。
 
 ## 宏录制： qa 操作序列 q, @a, @@
 
 qa 把的操作记录在寄存器 a。
-于是 @a 会replay被录制的宏。
-@@ 是一个快捷键用来replay最新录制的宏。
+于是 @a 会 replay 被录制的宏。
+@@ 是一个快捷键用来 replay 最新录制的宏。
+
 ```
 在一个只有一行且这一行只有“1”的文本中，键入如下命令：
 
@@ -390,7 +394,7 @@ q 停止录制.
 现在做 100@@ 会创建新的100行，并把数据增加到 103.
 ```
 
-## Vim常用命令
+## Vim 常用命令
 
 ```bash
 dw, d2w, dtx # 删除一个单词，2个单词，删除文本到“x” 字符不包括“x”字符
@@ -487,20 +491,21 @@ ctrl + x  # Normal模式下，数字-1
 ### 第一种
 
 1. 批量插入字符快捷键：
-`ctrl + v` 进入VISUAL BLOCK（可视块）模式，按 j 或者 k (选取列），再按 `Shift + i` 进入编辑模式然后输入你想要插入的字符（任意字符），再按两次Esc就可以实现批量插入字符，不仅仅实现批量注释而已。
+   `ctrl + v` 进入 VISUAL BLOCK（可视块）模式，按 j 或者 k (选取列），再按 `Shift + i` 进入编辑模式然后输入你想要插入的字符（任意字符），再按两次 Esc 就可以实现批量插入字符，不仅仅实现批量注释而已。
 
 2. 批量删除字符快捷键：
-`ctrl + v` 进入VISUAL BLOCK（可视块）模式，按 j 或者 k （选取列），直接（不用进入编辑模式）按 x 或者 d 就可以直接删去，再按Esc退出。
+   `ctrl + v` 进入 VISUAL BLOCK（可视块）模式，按 j 或者 k （选取列），直接（不用进入编辑模式）按 x 或者 d 就可以直接删去，再按 Esc 退出。
 
 ### 第二种方法
 
 1. 批量插入字符快捷键：
-命令行模式下，输入 `: 首行号，尾行号 s /^/字符/g` 实现批量插入字符。如 输入`:2,5s/^/#/g`，在2到5行首插入#
+   命令行模式下，输入 `: 首行号，尾行号 s /^/字符/g` 实现批量插入字符。如 输入`:2,5s/^/#/g`，在 2 到 5 行首插入#
 
 2. 批量删除字符快捷键：
-命令行模式下，输入 `: 首行号，尾行号 s /^字符/g`实现批量删除字符。如 输入`:2,5s/^/#/g`，在2到5行首删除#
+   命令行模式下，输入 `: 首行号，尾行号 s /^字符/g`实现批量删除字符。如 输入`:2,5s/^/#/g`，在 2 到 5 行首删除#
 
 ## Vim 提高效率插件
+
 - `sasymotion`
 - `sneak`
 - `surround`
@@ -508,12 +513,12 @@ ctrl + x  # Normal模式下，数字-1
 - `indent-object`
 - `CamelCaseMotion`
 
-
 ## 参考
+
 - [Vim 从入门到精通](https://github.com/wsdjeg/vim-galore-zh_cn)
 - [一起来说 Vim 语](http://www.jianshu.com/p/a361ce8c97bc)
-- [vi/vim使用进阶](https://blog.easwy.com/archives/advanced-vim-skills-catalog/)
-- [Vim ide，教你安装配置自己的Vim](https://github.com/jaywcjlove/vim-web)
-- [VimScript学会如何自定义Vim编辑器](http://learnvimscriptthehardway.onefloweroneworld.com/)
-- [Vi中的正则表达式](http://tech.idv2.com/2008/07/08/vim-regexp/)
+- [vi/vim 使用进阶](https://blog.easwy.com/archives/advanced-vim-skills-catalog/)
+- [Vim ide，教你安装配置自己的 Vim](https://github.com/jaywcjlove/vim-web)
+- [VimScript 学会如何自定义 Vim 编辑器](http://learnvimscriptthehardway.onefloweroneworld.com/)
+- [Vi 中的正则表达式](http://tech.idv2.com/2008/07/08/vim-regexp/)
 - [vim 中文手册](http://vimcdoc.sourceforge.net) <!-- https://www.vim.org -->

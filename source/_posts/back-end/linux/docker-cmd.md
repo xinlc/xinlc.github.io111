@@ -2,7 +2,7 @@
 title: Docker命令指令详情
 date: 2017-06-20 17:05:00
 categories: Linux
-tags: 
+tags:
   - linux
   - docker
   - cmd
@@ -10,26 +10,26 @@ tags:
 
 > 原文：http://www.dockerinfo.net/341.html
 
-
 ## Docker 命令指令详情
+
 <!--more-->
 
 ```Apache
 attach    attach到一个运行中的容器
 build     从Dockefile中建立一个镜像
 commit    从一个修改后的容器创建一个新的镜像
-create    创建一下新容器 
-diff      检查容器中文件的改变 
-exec      在一个运行中的容器执行一个命令 
+create    创建一下新容器
+diff      检查容器中文件的改变
+exec      在一个运行中的容器执行一个命令
 images    镜像列表   （ Docker获取与列出Images镜像详情 ）
 info      显示系统信息
 kill      kill 一个运行中的容器
-login     登录到docker 注册服务器 
+login     登录到docker 注册服务器
 logout    从docker注册服务器退出
 pause     暂停某一容器的所有进程
-push      上传镜像或资源库到Docker注册服务器 
+push      上传镜像或资源库到Docker注册服务器
 rename    重命名一个存在的容器
-search    在Docker Hub上搜索一个镜像 
+search    在Docker Hub上搜索一个镜像
 stats     显示容器使用资源的一系列的统计信息
 cp        从一个容器文件系统中拷贝文件/目录到主机
 unpause   取消暂停的容器
@@ -68,7 +68,7 @@ ps        容器列表
     -q 仅列出容器ID
     -s 显示容器大小
 pull      从Docker注册服务器下载镜像或资源库
-          将镜像推送至远程仓库，默认为 Docker Hub 
+          将镜像推送至远程仓库，默认为 Docker Hub
 rm        删除一个或多个容器
     docker rm [options "o">] <container>  "o">[container...]
     docker rm nginx-01 nginx-02 db-01 db-02
@@ -130,50 +130,48 @@ tag
     -f 覆盖已有标记。
 ```
 
-
-
-|参数	| 说明|
-|:------------- |:----- |
-| –api-cors-header=	| 开放远程API调用的CORS头信息。这个接口开关对想进行二次开发的上层应用提供了支持 |
-| -b, –bridge=	| 挂载以存在的网桥设备到Docker容器里。注意，使用none可以停用容器里的网络|
-| –bip=	| 使用CIDR地址来设定网桥的IP。注意，此参数和-b不能一起使用|
-| -D, –debug=false | 开启Debug模式。如docker -d -D|
-| -d, –daemon=false |	 开启Daemon模式|
-| –default-gateway= |	 容器默认网关IPv4地址|
-| –default-gateway-v6= |	 容器默认网关IPv6地址|
-| –default-ulimit=[]	| 容器设置默认ulimits|
-| –dns=[]	 |强制容器使用DNS服务器。例如：docker -d –dns 8.8.8.8|
-| –dns-search=[]	| 强制容器使用指定的DNS搜索域名。例如：docker -d –dns-search example.com|
-| -e, –exec-driver=native	| 强制容器使用指定的运行时驱动。例如：docker -d -e lxc|
-| –exec-opt=[]|	 设置执行驱动选项|
-| –exec-root=/var/run/docker|	 配置docker执行驱动的根目录|
-| –fixed-cidr=	| IPv4 子网设置掩码（ex:10.20.0.0.0/16）,这个子网必须嵌套于网桥子网内（由-b或者–bip定义）|
-| –fixed-cidr-v6=	| IPv6子网设置掩码|
-| -G, –group=docker	| 在后台运行模式下，赋予指定的Group到相应的unix socket上。当参数–group赋予空字符串时，将去除组信息|
-| -g, –graph=/var/lib/docker|	 配置Docker 运行时根目录|
-| -H, –host=[]	| 在后台模式下指定socket绑定，可以绑定一个或多个tcp://host:port，unix:///path/to/socket,fd://*或fd://socketfd.例如：docker -H tcp://0.0.0.0:2375 ps|
-| -h, –help=false|	 帮助|
-| –icc=true	| 启用内联容器的通信|
-| –insecure-registry=[]	| 对于特定注册启用非安全通信（对于HTTPS没有证书校验，启用HTTP启用fallback）|
-| –ip=0.0.0.0	| 容器绑定IP时使用的默认IP地址|
-| –ip-forward=true	| 启用容器的net.ipv4.ip_forward|
-| –ip-masq=true	| 对于网桥的IP段启用ip伪装|
-| –iptables=true	| 启用Docker容器自定义的iptable规则|
-| –ipv6=false|	 启用IPv6网络|
-| -l, –log-level=info	| 设置日志级别|
-| –label=[]| 为守护进程设置标签|
-| –log-driver=json-file	| 默认容器驱动日志|
-| –log-opt=map[]|	 设置日志驱动选项|
-| –mtu=0	| 设置容器网络的MTU值，如果没有这个参数，选用默认route MTU，如果没有默认route，就设置常量值1500|
-| -p, –pidfile=/var/run/docker.pid|	 后台进程PID文件路径|
-| –registry-mirror=[]	| 指定优先使用的Docker registry镜像|
-| -s, –storage-driver=|	 强制容器运行时使用指定的存储驱动。例如：指定使用devicemapper， docker -d -s devicemapper|
-| –selinux-enabled=false|	 启用selinux支持|
-| –storage-opt=[]	| 配置存储驱动的参数|
-| –tls=false	| 启用TLS默认开关|
-| –tlscacert=~/.docker/ca.pem	| 通过CA认证过的certificate文件路径|
-| –tlscert=~/.docker/cert.pem	| TLS的certificate文件路径|
-| –tlskey=~/.docker/key.pem	| TLS的key文件路径|
-| –tlsverify=false	| 使用TLS并做后台进程与客户端通讯的验证|
-| –userland-proxy=true |	 回路使用用户代理|
-| -v, –version=false	| 显示版本信息|
+| 参数                             | 说明                                                                                                                                                   |
+| :------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| –api-cors-header=                | 开放远程 API 调用的 CORS 头信息。这个接口开关对想进行二次开发的上层应用提供了支持                                                                      |
+| -b, –bridge=                     | 挂载以存在的网桥设备到 Docker 容器里。注意，使用 none 可以停用容器里的网络                                                                             |
+| –bip=                            | 使用 CIDR 地址来设定网桥的 IP。注意，此参数和-b 不能一起使用                                                                                           |
+| -D, –debug=false                 | 开启 Debug 模式。如 docker -d -D                                                                                                                       |
+| -d, –daemon=false                | 开启 Daemon 模式                                                                                                                                       |
+| –default-gateway=                | 容器默认网关 IPv4 地址                                                                                                                                 |
+| –default-gateway-v6=             | 容器默认网关 IPv6 地址                                                                                                                                 |
+| –default-ulimit=[]               | 容器设置默认 ulimits                                                                                                                                   |
+| –dns=[]                          | 强制容器使用 DNS 服务器。例如：docker -d –dns 8.8.8.8                                                                                                  |
+| –dns-search=[]                   | 强制容器使用指定的 DNS 搜索域名。例如：docker -d –dns-search example.com                                                                               |
+| -e, –exec-driver=native          | 强制容器使用指定的运行时驱动。例如：docker -d -e lxc                                                                                                   |
+| –exec-opt=[]                     | 设置执行驱动选项                                                                                                                                       |
+| –exec-root=/var/run/docker       | 配置 docker 执行驱动的根目录                                                                                                                           |
+| –fixed-cidr=                     | IPv4 子网设置掩码（ex:10.20.0.0.0/16）,这个子网必须嵌套于网桥子网内（由-b 或者–bip 定义）                                                              |
+| –fixed-cidr-v6=                  | IPv6 子网设置掩码                                                                                                                                      |
+| -G, –group=docker                | 在后台运行模式下，赋予指定的 Group 到相应的 unix socket 上。当参数–group 赋予空字符串时，将去除组信息                                                  |
+| -g, –graph=/var/lib/docker       | 配置 Docker 运行时根目录                                                                                                                               |
+| -H, –host=[]                     | 在后台模式下指定 socket 绑定，可以绑定一个或多个 tcp://host:port，unix:///path/to/socket,fd://\*或 fd://socketfd.例如：docker -H tcp://0.0.0.0:2375 ps |
+| -h, –help=false                  | 帮助                                                                                                                                                   |
+| –icc=true                        | 启用内联容器的通信                                                                                                                                     |
+| –insecure-registry=[]            | 对于特定注册启用非安全通信（对于 HTTPS 没有证书校验，启用 HTTP 启用 fallback）                                                                         |
+| –ip=0.0.0.0                      | 容器绑定 IP 时使用的默认 IP 地址                                                                                                                       |
+| –ip-forward=true                 | 启用容器的 net.ipv4.ip_forward                                                                                                                         |
+| –ip-masq=true                    | 对于网桥的 IP 段启用 ip 伪装                                                                                                                           |
+| –iptables=true                   | 启用 Docker 容器自定义的 iptable 规则                                                                                                                  |
+| –ipv6=false                      | 启用 IPv6 网络                                                                                                                                         |
+| -l, –log-level=info              | 设置日志级别                                                                                                                                           |
+| –label=[]                        | 为守护进程设置标签                                                                                                                                     |
+| –log-driver=json-file            | 默认容器驱动日志                                                                                                                                       |
+| –log-opt=map[]                   | 设置日志驱动选项                                                                                                                                       |
+| –mtu=0                           | 设置容器网络的 MTU 值，如果没有这个参数，选用默认 route MTU，如果没有默认 route，就设置常量值 1500                                                     |
+| -p, –pidfile=/var/run/docker.pid | 后台进程 PID 文件路径                                                                                                                                  |
+| –registry-mirror=[]              | 指定优先使用的 Docker registry 镜像                                                                                                                    |
+| -s, –storage-driver=             | 强制容器运行时使用指定的存储驱动。例如：指定使用 devicemapper， docker -d -s devicemapper                                                              |
+| –selinux-enabled=false           | 启用 selinux 支持                                                                                                                                      |
+| –storage-opt=[]                  | 配置存储驱动的参数                                                                                                                                     |
+| –tls=false                       | 启用 TLS 默认开关                                                                                                                                      |
+| –tlscacert=~/.docker/ca.pem      | 通过 CA 认证过的 certificate 文件路径                                                                                                                  |
+| –tlscert=~/.docker/cert.pem      | TLS 的 certificate 文件路径                                                                                                                            |
+| –tlskey=~/.docker/key.pem        | TLS 的 key 文件路径                                                                                                                                    |
+| –tlsverify=false                 | 使用 TLS 并做后台进程与客户端通讯的验证                                                                                                                |
+| –userland-proxy=true             | 回路使用用户代理                                                                                                                                       |
+| -v, –version=false               | 显示版本信息                                                                                                                                           |

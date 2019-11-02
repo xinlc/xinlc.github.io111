@@ -8,6 +8,7 @@ tags:
 ---
 
 ## 安装 Spacemacs
+
 ```bash
 $ cd ~
 $ mv .emacs.d .emacs.d.bak
@@ -27,6 +28,7 @@ $ git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
 ## 配置
 
 - 将`~/.spacemacs` 移动到 `~/.spacemacs.d` 目录，修改为`init.el` (此操作方便管理自己的配置)
+
 ```
 在 Spacemacs 中的操作方式如下:
 按下 SPC f j 打开 dired 目录
@@ -36,14 +38,17 @@ $ git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
 按下 qq 退出 dired
 ```
 
-- 修改[ELPA镜像](https://github.com/emacs-china/elpa), 添加下面的代码到 `~/.spacemacs.d/init.el` 的 dotspacemacs/user-init()函数中
+- 修改[ELPA 镜像](https://github.com/emacs-china/elpa), 添加下面的代码到 `~/.spacemacs.d/init.el` 的 dotspacemacs/user-init()函数中
+
 ```lisp
 (setq configuration-layer--elpa-archives
     '(("melpa-cn" . "http://elpa.emacs-china.org/melpa/")
       ("org-cn"   . "http://elpa.emacs-china.org/org/")
       ("gnu-cn"   . "http://elpa.emacs-china.org/gnu/")))
 ```
-- 在dotspacemacs-configuration-layers中启用常用的layer
+
+- 在 dotspacemacs-configuration-layers 中启用常用的 layer
+
 ```
 helm -> ivy      # 用ivy
 auto-completion
@@ -56,36 +61,37 @@ spell-checking
 syntax-checking
 ```
 
-- `dotspacemacs-maximized-at-startup t`  启动全屏
-- `dotspacemacs-line-numbers 'relative `  启用相对行号
+- `dotspacemacs-maximized-at-startup t` 启动全屏
+- `dotspacemacs-line-numbers 'relative` 启用相对行号
 - `dotspacemacs-additional-packages '(youdao-dictionary)` 安装有道
 - 配置 customize-group, 在`dotspacemacs/user-config`中
-如果使用 customize-group 对配置进行了修改, 你可以以下代码将生成的 custom.el 配置文件纳入 ~/.spacemacs.d 目录中进行统一管理:
+  如果使用 customize-group 对配置进行了修改, 你可以以下代码将生成的 custom.el 配置文件纳入 ~/.spacemacs.d 目录中进行统一管理:
+
 ```lisp
 (setq custom-file (expand-file-name "custom.el" dotspacemacs-directory))
 (load custom-file 'no-error 'no-message)
 ```
 
-
 ## 快捷键
 
-### 一些emacs名词概念解释
-|名词 |	解释 |
-|----|-----|
-|project|	在某目录里建立一个空文件.projectile。就成功创建了一个project目录。可以在这个目录进行grep操作|
-|window|	窗口，可以分栏。|
-|frame	|是一个emacs框架。可以包含多个window|
-|buffer|	文件加载到emacs里，就称之为一个buffer。一个emacs可以存在很多很多buffer。可以在打开的多个buffer里搜索关键词或者文件名|
-|layout|	emacs的窗口界面，以及emacs打开的buffer文件。作为一个session，保存下来。|
+### 一些 emacs 名词概念解释
+
+| 名词    | 解释                                                                                                                         |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| project | 在某目录里建立一个空文件.projectile。就成功创建了一个 project 目录。可以在这个目录进行 grep 操作                             |
+| window  | 窗口，可以分栏。                                                                                                             |
+| frame   | 是一个 emacs 框架。可以包含多个 window                                                                                       |
+| buffer  | 文件加载到 emacs 里，就称之为一个 buffer。一个 emacs 可以存在很多很多 buffer。可以在打开的多个 buffer 里搜索关键词或者文件名 |
+| layout  | emacs 的窗口界面，以及 emacs 打开的 buffer 文件。作为一个 session，保存下来。                                                |
 
 ### 常用快捷键
 
-- `ctrl-g` 命令退出。emacs自带的。
-- `,` （注意：不需要SPC启动）当前模式下的lead-key快捷键，可以显示当前模式的常用命令
+- `ctrl-g` 命令退出。emacs 自带的。
+- `,` （注意：不需要 SPC 启动）当前模式下的 lead-key 快捷键，可以显示当前模式的常用命令
 - `;` 用来注释代码的，这个可以查看一下帮助手册。各种注释操作
-- `?` 显示所有快捷键。可以grep关键词查找快捷键。
-- `SPC !` 执行shell命令
-- `SPC *或者/` 在project里搜索关键词
+- `?` 显示所有快捷键。可以 grep 关键词查找快捷键。
+- `SPC !` 执行 shell 命令
+- `SPC *或者/` 在 project 里搜索关键词
 - `SPC f f` 打开文件
 - `SPC p f` 搜索文件名
 - `SPC s a p` 搜索内容
@@ -96,13 +102,13 @@ syntax-checking
 - `SPC w v | SPC w /` 垂直分割窗口
 - `SPC w c` 关闭当前窗口
 - `SPC j =` 自动对齐，相当于 beautify
-- `SPC b b` 查找并切换到buffer/recent-file
-- `SPC b d` 删除当前buffer
-- `SPC a u` undo作用。可以上下操作，是undo的history列表
-- `SPC p p`	打开或切换某个project。
-- `SPC s a p` 在project的所有文件里，使用ag（因为ag>ack>grep的搜索速度)搜索
-- `SPC s s` 在当前buffer里搜索关键词。
-- `SPC v` 外扩命令。就是代码不断增加选中的范围。v是继续外扩；V是缩小外扩。
+- `SPC b b` 查找并切换到 buffer/recent-file
+- `SPC b d` 删除当前 buffer
+- `SPC a u` undo 作用。可以上下操作，是 undo 的 history 列表
+- `SPC p p` 打开或切换某个 project。
+- `SPC s a p` 在 project 的所有文件里，使用 ag（因为 ag>ack>grep 的搜索速度)搜索
+- `SPC s s` 在当前 buffer 里搜索关键词。
+- `SPC v` 外扩命令。就是代码不断增加选中的范围。v 是继续外扩；V 是缩小外扩。
 
 ### 文件操作
 
@@ -110,7 +116,7 @@ syntax-checking
 - `SPC p f` 在当前的项目中查找文件
 - `SPC f f` 从当前目录开始查找文件
 - `SPC f L` 使用 helm-locate 来在当前系统中查找文件.
-- `SPC f l` 查找文件并使用 literal 的方式来打开文件, 使用 literal 方式打开的文件不会附加编码信息, 例如 utf-8 编码中可能存在的 BOM 头信息, 使用 literal 模式即可以看到 BOM头.
+- `SPC f l` 查找文件并使用 literal 的方式来打开文件, 使用 literal 方式打开的文件不会附加编码信息, 例如 utf-8 编码中可能存在的 BOM 头信息, 使用 literal 模式即可以看到 BOM 头.
 - `SPC f h` 查找文件并使用二进制的方式来打开文件, 可以使用 C-c C-c 回到之前的模式.
 - `SPC f o` 使用外部程序打开文件.
 - `SPC f E` 使用 sudo 来编辑文件, 当某些文件是只读的时候可以采用这种方式来编辑文件.
@@ -118,12 +124,14 @@ syntax-checking
 - `SPC f j` 以当前文件的目录打开 dired buffer.
 - `SPC f r` 使用 ivy 打开最近文件列表.
 - `SPC f R` 重命名当前文件.
-- `SPC f v` 添加 local variables, 可以通过这个功能给项目做一些特殊的设置. 例如按下 SPC f v, 然后选择 add-dir-local-variable, 选择 org-mode, 再选择org-highlight-links 变量, 此时 emacs 会在当前文件的目录下生成一个 .dir-locals.el 文件, 内容如下:
+- `SPC f v` 添加 local variables, 可以通过这个功能给项目做一些特殊的设置. 例如按下 SPC f v, 然后选择 add-dir-local-variable, 选择 org-mode, 再选择 org-highlight-links 变量, 此时 emacs 会在当前文件的目录下生成一个 .dir-locals.el 文件, 内容如下:
+
 ```
 ((org-mode
   (org-highlight-links)))
 这个文件中的代码会在当前目录下的所有文件 buffer 中生效.
 ```
+
 - `SPC f y` 拷贝当前文件的全路径.
 - `SPC f a d` 列出最近访问的目录, 使用命令行工具 fasd 实现.
 - `SPC f C d/u` 将当前文件的编码转换为 DOS/UNIX 编码.
@@ -139,7 +147,7 @@ syntax-checking
 - `SPC b .` 打开 Buffer Selection Transient State, 在该模式下可以进行更多的操作, 由 hydra 提供.
 - `SPC b b` 切换到已经打开的 buffer.
 - `SPC b d` 关闭一个 buffer.
-- `SPC b f` 在 finder 中打开当前文件, 只在 Mac系统下生效.
+- `SPC b f` 在 finder 中打开当前文件, 只在 Mac 系统下生效.
 - `SPC b B/i` 以类似 Dired Mode 的形式打开 buffer 列表, 在这个列表中可以执行和 Dired Mode 类似的操作.
 - `SPC b h` 进入 \*spacemacs\* buffer.
 - `SPC b k` 使用正则表达式来删除 buffer.
@@ -185,22 +193,22 @@ syntax-checking
 
 - `SPC l L` 加载 layout 文件
 - `SPC l l` 在 layout 之间切换
-- `SPC l s` 将 layout 保存到文件, 输入layout的名称
+- `SPC l s` 将 layout 保存到文件, 输入 layout 的名称
 - `SPC l <tab>` 在当前 layout 和上一个 layout 之间切换
 - `SPC l o` 配置 layout
 - `SPC l R` 重命名 layout
 - `SPC l ?` 显示更多的与 layout 相关的命令
 
 ### 其他
+
 - `SPC f e d` 快速打开配置文件 .spacemacs
 - `SPC-f-e-R` 同步配置
-- `SPC-SPC configuration-layer/create-layer` 创建layer
-
+- `SPC-SPC configuration-layer/create-layer` 创建 layer
 
 ## 参考
+
 - [Spacemacs](https://github.com/syl20bnr/spacemacs)
 - [Spacemacs rocks](https://github.com/emacs-china/Spacemacs-rocks)
-- [Emacs China论坛](https://emacs-china.org/)
-- [Emacs China社区](https://github.com/emacs-china)
+- [Emacs China 论坛](https://emacs-china.org/)
+- [Emacs China 社区](https://github.com/emacs-china)
 - [Emacs China ELPA 镜像](https://github.com/emacs-china/elpa)
-

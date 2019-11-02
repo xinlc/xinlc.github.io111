@@ -147,7 +147,7 @@ crontab -e
 gzip < db1.sql.gz | mysql -uroot -p123456
 ```
 
-`binlog` 数据恢复需要用到 `mysqlbinlog` 工具，由于binlog记录的是sql的所有操作，请按 `mysql-bin.index` 顺序恢复
+`binlog` 数据恢复需要用到 `mysqlbinlog` 工具，由于 binlog 记录的是 sql 的所有操作，请按 `mysql-bin.index` 顺序恢复
 
 ```bash
 # 恢复增量备份

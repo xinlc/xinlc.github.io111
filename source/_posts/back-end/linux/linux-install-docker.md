@@ -45,7 +45,7 @@ sudo yum-config-manager \
   https://download.docker.com/linux/centos/docker-ce.repo
 ```
 
-安装最新版本的Docker Engine - 社区和容器，或者转到下一步安装特定版本：
+安装最新版本的 Docker Engine - 社区和容器，或者转到下一步安装特定版本：
 
 ```bash
 # 安装
@@ -60,7 +60,7 @@ sudo systemctl enable docker
 
 ## docker-compose
 
-运行此命令以下载Docker Compose的当前稳定版本：
+运行此命令以下载 Docker Compose 的当前稳定版本：
 
 ```bash
 # 下载
@@ -70,7 +70,7 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 ```
 
-避免 docker 每次都输入sudo：
+避免 docker 每次都输入 sudo：
 
 ```bash
 sudo groupadd docker
@@ -80,12 +80,12 @@ newgrp docker
 
 ## 问题
 
-### docker 访问宿主机ip时
+### docker 访问宿主机 ip 时
 
 1. 报错：No route to host
 2. Host is unreachable (Host unreachable)
 
-`原因`：默认情况下，`firewalld`将阻止同一个`docker`主机上的`intercontainer`网络。要允许`docker`容器之间的通信，需要防火墙允许`docker0 ip` 或 自定义创建的`network ip`通过  
+`原因`：默认情况下，`firewalld`将阻止同一个`docker`主机上的`intercontainer`网络。要允许`docker`容器之间的通信，需要防火墙允许`docker0 ip` 或 自定义创建的`network ip`通过
 
 ```bash
 # 查看 docker ip
