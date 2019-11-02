@@ -365,6 +365,13 @@ chown -R 1000:1000 ~/docker-data/jenkins
 vi ~/docker-data/jenkins/hudson.model.UpdateCenter.xml
 # 把 https://updates.jenkins.io/update-center.json 改成 http://mirror.xmission.com/jenkins/updates/update-center.json
 
+# 其他镜像源
+# 1. 清华大学 https://mirrors.tuna.tsinghua.edu.cn/jenkins/
+# 2. 华为 https://mirrors.huaweicloud.com/jenkins/
+# 3. 腾讯云 https://mirrors.cloud.tencent.com/jenkins/
+# 4. 北京理工大 http://mirror.bit.edu.cn/jenkins/
+# 5. USTC http://mirrors.ustc.edu.cn/jenkins/
+
 ```
 
 ### [禅道](https://hub.docker.com/r/idoop/zentao)
@@ -413,7 +420,7 @@ docker logs -f zentao-server
 # 更多可以访问 http://www.zentao.net/goto.php?item=zbox.
 ```
 
-### (registry)(https://hub.docker.com/_/registry)
+### [registry](https://hub.docker.com/_/registry)
 
 [docker image 私有仓库](https://docs.docker.com/registry/)
 

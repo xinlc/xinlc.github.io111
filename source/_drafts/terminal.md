@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  terminal
-date:   2017-07-03 15:30:00 +0800
+title: terminal
+date: 2017-07-03 15:30:00 +0800
 categories: 工欲善其事必先利其器
 tags:
   - linux
@@ -26,7 +26,7 @@ Ctrl+w 删除此处到左边的单词
 Ctrl+u 删除到行首
 Ctrl+k 删除到行尾
 Ctrl+l 类似 clear 命令效果
-Ctrl+y 粘贴由 Ctrl+u ， Ctrl+d ， Ctrl+w 删除的单词 
-Ctrl+& 恢复 ctrl+h 或者 ctrl+d 或者 ctrl+w 删除的内容 
+Ctrl+y 粘贴由 Ctrl+u ， Ctrl+d ， Ctrl+w 删除的单词
+Ctrl+& 恢复 ctrl+h 或者 ctrl+d 或者 ctrl+w 删除的内容
 Ctrl+c 终止进程/命令
 ```

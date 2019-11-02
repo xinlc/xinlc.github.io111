@@ -1,4 +1,3 @@
-
 ```bash
 # Docker 如何访问宿主机
 ifconfig
@@ -91,4 +90,40 @@ docker容器时间不对及java程序时间不对解决
 ```bash
 # 格式化
 docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}"
+```
+
+## 其他
+
+### jenkins
+
+```yaml
+#： docker run -d -p 8080:8080
+-v /var/run/docker.sock:/var/run/docker.sock
+-v $(which docker):/usr/bin/docker
+-v /lib64/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02
+-v /lib64/libsystemd.so.0:/usr/lib/libsystemd.so.0
+-v /lib64/libgcrypt.so.20:/usr/lib/libgcrypt.so.20
+-v /lib64/libudev.so.0:/usr/lib/libudev.so.0
+-v /home/jenkins_home:/var/jenkins_home  myjenkins
+
+
+jenkins:
+  image: jenkins/jenkins:lts
+  volumes:
+    - /data/jenkins/:/var/jenkins_home
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /usr/bin/docker:/usr/bin/docker
+    - /usr/lib/x86_64-linux-gnu/libltdl.so.7:/usr/lib/x86_64-linux-gnu/libltdl.so.7
+  ports:
+    - "8029:8080"
+  expose:
+    - "8080"
+    - "50000"
+  privileged: true
+  user: root
+  restart: always
+  container_name: jenkins
+  environment:
+    JAVA_OPTS: '-Djava.util.logging.config.file=/var/jenkins_home/log.properties'
+
 ```

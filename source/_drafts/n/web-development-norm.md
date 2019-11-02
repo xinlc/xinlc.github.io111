@@ -9,106 +9,114 @@ tags: 规范
 
 ### 通用规范：
 
-- TAB键用两个空格代替（WINDOWS下TAB键占四个空格，LINUX下TAB键占八个空格）。
-- CSS样式属性或者JAVASCRIPT代码后加“;”方便压缩工具“断句”。
-文件内容编码均统一为UTF-8。
-- CSS、JAVASCRIPT中的非注释类中文字符须转换成unicode编码使用，以避免编码错误时乱码显示。
+- TAB 键用两个空格代替（WINDOWS 下 TAB 键占四个空格，LINUX 下 TAB 键占八个空格）。
+- CSS 样式属性或者 JAVASCRIPT 代码后加“;”方便压缩工具“断句”。
+  文件内容编码均统一为 UTF-8。
+- CSS、JAVASCRIPT 中的非注释类中文字符须转换成 unicode 编码使用，以避免编码错误时乱码显示。
 
-<!--more-->
----
-
+## <!--more-->
 
 ### 文件规范：
 
 - 文件名用英文单词，多个单词用驼峰命名法。
-- 一些浏览器会将含有这些词的作为广告拦截，文件命名、ID、CLASS等所有命名避免以上词汇。
-
+- 一些浏览器会将含有这些词的作为广告拦截，文件命名、ID、CLASS 等所有命名避免以上词汇。
 
 ---
 
-### HTML书写规范：
+### HTML 书写规范：
 
-- 为每个HTML页面的第一行添加标准模式（standard mode）的声明，确保在每个浏览器中拥有一致的展现
+- 为每个 HTML 页面的第一行添加标准模式（standard mode）的声明，确保在每个浏览器中拥有一致的展现
 
 `<!DOCTYPE html>`
 
-文档类型声明统一为HTML5声明类型，编码统一为UTF-8
+文档类型声明统一为 HTML5 声明类型，编码统一为 UTF-8
 
 `<meta charset="UTF-8">`
 
 **`<HEAD>`中添加信息**
 
 ```html
- <meta name="author" content="smile@kang.cool">//作者
- <meta name="description" content="hello">//网页描述
- <meta name="keywords" content="a,b,c">//关键字,“，”分隔
- <meta http-equiv="expires" content="Wed, 26 Feb 1997 08：21：57 GMT">//设定网页的到期时间。一旦网页过期，必须到服务器上重新调阅
- <meta http-equiv="Pragma" content="no-cache">//禁止浏览器从本地机的缓存中调阅页面内容
- <meta http-equiv="Window-target" content="_top">//用来防止别人在框架里调用你的页面
- <meta http-equiv="Refresh" content="5;URL=http://kahn1990.com/">//跳转页面，5指时间停留5秒 网页搜索机器人向导。用来告诉搜索机器人哪些页面需要索引，哪些页面不需要索引
- <meta name="robots" content="none">//content的参数有all,none,index,noindex,follow,nofollow，默认是all
- <link rel="Shortcut Icon" href="favicon.ico">//收藏图标
- <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">//网页不会被缓存
- 
+<meta name="author" content="smile@kang.cool" />//作者
+<meta name="description" content="hello" />//网页描述
+<meta name="keywords" content="a,b,c" />//关键字,“，”分隔
+<meta
+  http-equiv="expires"
+  content="Wed, 26 Feb 1997 08：21：57 GMT"
+/>//设定网页的到期时间。一旦网页过期，必须到服务器上重新调阅
+<meta
+  http-equiv="Pragma"
+  content="no-cache"
+/>//禁止浏览器从本地机的缓存中调阅页面内容
+<meta
+  http-equiv="Window-target"
+  content="_top"
+/>//用来防止别人在框架里调用你的页面
+<meta
+  http-equiv="Refresh"
+  content="5;URL=http://kahn1990.com/"
+/>//跳转页面，5指时间停留5秒
+网页搜索机器人向导。用来告诉搜索机器人哪些页面需要索引，哪些页面不需要索引
+<meta
+  name="robots"
+  content="none"
+/>//content的参数有all,none,index,noindex,follow,nofollow，默认是all
+<link rel="Shortcut Icon" href="favicon.ico" />//收藏图标
+<meta
+  http-equiv="Cache-Control"
+  content="no-cache, must-revalidate"
+/>//网页不会被缓存
 ```
-IE支持通过特定<meta>标签来确定绘制当前页面所应该采用的IE版本。除非有强烈的特殊需求，否则最好是设置为edge mode ，从而通知IE采用其所支持的最新的模式。
 
-` <meta http-equiv="X-UA-Compatible" content="IE=Edge">`
+IE 支持通过特定<meta>标签来确定绘制当前页面所应该采用的 IE 版本。除非有强烈的特殊需求，否则最好是设置为 edge mode ，从而通知 IE 采用其所支持的最新的模式。
 
-非特殊情况下CSS样式文件外链至HEAD之间，JAVASCRIPT文件外链至页面底部
+`<meta http-equiv="X-UA-Compatible" content="IE=Edge">`
+
+非特殊情况下 CSS 样式文件外链至 HEAD 之间，JAVASCRIPT 文件外链至页面底部
 
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-    <link rel="stylesheet" href="css/main.css">
-</head>
-<body>
+  <head>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
     <!-- 逻辑代码 -->
     <!-- 逻辑代码底部 -->
     <script src="lib/jquery/jquery-2.1.1.min.js"></script>
-</body>
+  </body>
 </html>
-
 ```
-引入JAVASCRIPT库文件，文件名须包含库名称及版本号及是否为压缩版
+
+引入 JAVASCRIPT 库文件，文件名须包含库名称及版本号及是否为压缩版
 
 `jQuery-1.8.3.min.js`
 
-引入JAVASCRIPT插件, 文件名格式为库名称+.+插件名称
+引入 JAVASCRIPT 插件, 文件名格式为库名称+.+插件名称
 
 `jQuery.cookie.js`
 
-HTML属性应当按照以下给出的顺序依次排列，来确保代码的易读性
+HTML 属性应当按照以下给出的顺序依次排列，来确保代码的易读性
 
 ```html
-class
-id 、 name
-data-*
-src、for、 type、 href
-title、alt
-aria-*、 role
-
+class id 、 name data-* src、for、 type、 href title、alt aria-*、 role
 ```
 
-编码均遵循XHTML标准,标签、属性、属性命名由小写英文、数字和_组成，且所有标签必须闭合，属性值必须用双引号””,避免使用中文拼音尽量简易并要求语义化
+编码均遵循 XHTML 标准,标签、属性、属性命名由小写英文、数字和\_组成，且所有标签必须闭合，属性值必须用双引号””,避免使用中文拼音尽量简易并要求语义化
 
 ```html
-CLASS --> nHeadTitle --> CLASS遵循小驼峰命名法（little camel-case）
-ID --> n_head_title --> ID遵循名称+_
-NAME --> N_Head_Title --> NAME属性命名遵循首个字母大写+_
+CLASS --> nHeadTitle --> CLASS遵循小驼峰命名法（little camel-case） ID -->
+n_head_title --> ID遵循名称+_ NAME --> N_Head_Title -->
+NAME属性命名遵循首个字母大写+_
 <div class="nHeadTitle" id="n_head_title" name="N_Head_Title"></div>
-
 ```
 
-当JAVASCRIPT获取单个元素时，通常使用document.getElementById来获取dom元素，document.getElementById兼容所有浏览器，但IE浏览器会混淆元素的ID和NAME属性，所以要区分ID和NAME命名
+当 JAVASCRIPT 获取单个元素时，通常使用 document.getElementById 来获取 dom 元素，document.getElementById 兼容所有浏览器，但 IE 浏览器会混淆元素的 ID 和 NAME 属性，所以要区分 ID 和 NAME 命名
 
 ```html
-<input type="text" name="test">
+<input type="text" name="test" />
 <div id="test"></div>
 <button onclick="alert(document.getElementById('test').tagName)"></button>
 <!-- ie6下为INPUT -->
-
 ```
 
 特殊符号应使用转意符
@@ -116,57 +124,56 @@ NAME --> N_Head_Title --> NAME属性命名遵循首个字母大写+_
 ```
 <    -->    &lt;
 >    -->    &gt;
-空格  -->  
+空格  -->
 ```
 
-含有描述性表单元素（INPUT，TEXTAREA）添加LABEL。
+含有描述性表单元素（INPUT，TEXTAREA）添加 LABEL。
 
 ```html
 <p>
-    <label for="test">测试</label>
-    <input type="text" id="test" />
+  <label for="test">测试</label>
+  <input type="text" id="test" />
 </p>
 ```
 
-> 多用无兼容性问题的HTML内置标签,
-> 比如SPAN、EM、STRONG、OPTGROUP、LABEL等,需要自定义HTML标签属性时，首先考虑是否存在已有的合适标签可替换，如果没有,
-> 可使用须以“data-”为前缀来添加自定义属性，避免使用其他命名方式。 语义化HTML。 尽可能减少<DIV>嵌套。
+> 多用无兼容性问题的 HTML 内置标签,
+> 比如 SPAN、EM、STRONG、OPTGROUP、LABEL 等,需要自定义 HTML 标签属性时，首先考虑是否存在已有的合适标签可替换，如果没有,
+> 可使用须以“data-”为前缀来添加自定义属性，避免使用其他命名方式。 语义化 HTML。 尽可能减少<DIV>嵌套。
 > 书写链接地址时避免重定向
-
 
 `href="http://www.kahn1990.com/" //即在URL地址后面加“/”`
 
-HTML中对于属性的定义，确保全部使用双引号，绝不要使用单引号
+HTML 中对于属性的定义，确保全部使用双引号，绝不要使用单引号
 
 ---
 
-### css书写规范：
+### css 书写规范：
 
-> 为了欺骗W3C的验证工具,可将代码分为两个文件，一个是针对所有浏览器,一个只针对IE。即将所有符合W3C的代码写到一个文件中,而一些IE中必须而又不能通过W3C验证的代码（如:cursor:hand;）放到另一个文件中，再用下面的方法导入
+> 为了欺骗 W3C 的验证工具,可将代码分为两个文件，一个是针对所有浏览器,一个只针对 IE。即将所有符合 W3C 的代码写到一个文件中,而一些 IE 中必须而又不能通过 W3C 验证的代码（如:cursor:hand;）放到另一个文件中，再用下面的方法导入
 
 ```html
 <!-- 放置所有浏览器样式-->
-<link rel="stylesheet" type="text/css" href="">
+<link rel="stylesheet" type="text/css" href="" />
 <!-- 只放置IE必须，而不能通过w3c的-->
 <!--[if IE]
     <link rel="stylesheet" href="">
 <![endif]-->
 ```
 
-CSS样式新建或修改尽量遵循以下原则
+CSS 样式新建或修改尽量遵循以下原则
 
 根据新建样式的适用范围分为三级：全站级、产品级、页面级。
 尽量通过继承和层叠重用已有样式。
-不要轻易改动全站级CSS。改动后，要经过全面测试。
+不要轻易改动全站级 CSS。改动后，要经过全面测试。
 
-**CSS属性显示顺序**
+**CSS 属性显示顺序**
 
 - 显示属性
 - 元素位置
 - 元素属性
 - 元素内容属性
 
-**CSS书写顺序**
+**CSS 书写顺序**
 
 ```css
 .header {
@@ -198,11 +205,11 @@ CSS样式新建或修改尽量遵循以下原则
     cursor
     content
     };
- ```
+```
 
 兼容多个浏览器时，将标准属性写在底部
-    
- ```css
+
+```css
 -moz-border-radius: 15px; /* Firefox */
 -webkit-border-radius: 15px; /* Safari和Chrome */
 border-radius: 15px; /* Opera 10.5+, 以及使用了IE-CSS3的IE浏览器 *//标准属性
@@ -225,11 +232,11 @@ input.btn,
 input[type="button"] {…};
 ```
 
-优化CSS选择器
+优化 CSS 选择器
 
 `#header a { color: #444; };/*CSS选择器是从右边到左边进行匹配*/`
 
-浏览器将检查整个文档中的所有链接和每个链接的父元素，并遍历文档树去查找ID为header的祖先元素，如果找不到header将追溯到文档的根节点，解决方法如下
+浏览器将检查整个文档中的所有链接和每个链接的父元素，并遍历文档树去查找 ID 为 header 的祖先元素，如果找不到 header 将追溯到文档的根节点，解决方法如下
 
 ```
 避免使用通配规则和相邻兄弟选择符、子选择符,、后代选择符、属性选择符等选择器
@@ -239,8 +246,8 @@ input[type="button"] {…};
 避免使用标签子选择符，如#header > li > a
 ```
 
-> 使用z-index属性尽量z-index的值不要超过150（通用组的除外），页面中的元素内容的z-index不能超过10（提示框等模块除外但维持在150以下），不允许直接使用（999\~9999）之间大值。
-> 尽量避免使用CSS Hack
+> 使用 z-index 属性尽量 z-index 的值不要超过 150（通用组的除外），页面中的元素内容的 z-index 不能超过 10（提示框等模块除外但维持在 150 以下），不允许直接使用（999\~9999）之间大值。
+> 尽量避免使用 CSS Hack
 
 ```css
 property:value; /* 所有浏览器 */
@@ -286,15 +293,15 @@ ul#top_blue_nav {…};
 减少使用影响性能的属性
 
 ```css
-position:absolute;
-float:left;//如这些定位或浮动属性
+position: absolute;
+float: left; //如这些定位或浮动属性
 ```
 
-减少在CSS中使用滤镜表达式和图片repeat,尤其在body当中,渲染性能极差, 如果需要用repeat的话,图片的宽或高不能少于8px
+减少在 CSS 中使用滤镜表达式和图片 repeat,尤其在 body 当中,渲染性能极差, 如果需要用 repeat 的话,图片的宽或高不能少于 8px
 
 ---
 
-### javaScript书写规范：
+### javaScript 书写规范：
 
 **命名规范**
 
@@ -325,12 +332,12 @@ float:left;//如这些定位或浮动属性
     -->如：_current、_defaultConfig
 变量名的前缀
     -->续
- ```
- 
- 代码格式
- 
- ```
- "()"前后需要跟空格
+```
+
+代码格式
+
+```
+"()"前后需要跟空格
 "="前后需要跟空格
 ","后面需要跟空格
 JSON对象需格式化对象参数
@@ -349,27 +356,29 @@ if (a==1) {
 
 `var arr = [1,2,3,];`
 
-> for-in循环体中必须用hasOwnProperty方法检查成员是否为自身成员，避免来自原型链上的污染。 长语句可考虑断行
+> for-in 循环体中必须用 hasOwnProperty 方法检查成员是否为自身成员，避免来自原型链上的污染。 长语句可考虑断行
 
 ```javascript
-TEMPL_SONGLIST.replace('{TABLE}', da['results'])
-    .replace('{PREV_NUM}', prev)
-    .replace('{NEXT_NUM}', next)
-    .replace('{CURRENT_NUM}', current)
-    .replace('{TOTAL_NUM}', da.page_total);
-  ```
-  为了避免和JSLint的检验机制冲突，“.”或“+”这类操作符放在行尾
-  
-  ```javascript
-  TEMPL_SONGLIST.replace('{TABLE}', da['results']).
-    replace('{PREV_NUM}', prev).
-    replace('{NEXT_NUM}', next).
-    replace('{CURRENT_NUM}', current).
-    replace('{TOTAL_NUM}', da.page_total);
-   ```
-如果模块代码中，使用其它全局变量想跳过JSLint的检查，可以在该文件中加入/*global*/声明。
-   
-` /*global alert: true, console: true, top: true, setTimeout: true */`
+TEMPL_SONGLIST.replace("{TABLE}", da["results"])
+  .replace("{PREV_NUM}", prev)
+  .replace("{NEXT_NUM}", next)
+  .replace("{CURRENT_NUM}", current)
+  .replace("{TOTAL_NUM}", da.page_total);
+```
+
+为了避免和 JSLint 的检验机制冲突，“.”或“+”这类操作符放在行尾
+
+```javascript
+TEMPL_SONGLIST.replace("{TABLE}", da["results"])
+  .replace("{PREV_NUM}", prev)
+  .replace("{NEXT_NUM}", next)
+  .replace("{CURRENT_NUM}", current)
+  .replace("{TOTAL_NUM}", da.page_total);
+```
+
+如果模块代码中，使用其它全局变量想跳过 JSLint 的检查，可以在该文件中加入/_global_/声明。
+
+`/*global alert: true, console: true, top: true, setTimeout: true */`
 
 使用严格的条件判断符。用`===`代替`==`，用`!==`代替`!=`，避免掉入`==`造成的陷阱,在条件判断时，这样的一些值表示`false`
 
@@ -384,16 +393,16 @@ NaN
 在==时，则会有一些让人难以理解的陷阱
 
 ```javascript
-(function () {
-    var undefined;
-    undefined == null; // true
-    1 == true; //true
-    2 == true; // false
-    0 == false; // true
-    0 == ''; // true
-    NaN == NaN;// false
-    [] == false; // true
-    [] == ![]; // true
+(function() {
+  var undefined;
+  undefined == null; // true
+  1 == true; //true
+  2 == true; // false
+  0 == false; // true
+  0 == ""; // true
+  NaN == NaN; // false
+  [] == false; // true
+  [] == ![]; // true
 })();
 ```
 
@@ -411,15 +420,15 @@ undefined与null相等
 下面类型的对象不建议用`new`构造
 
 ```javascript
-new Number
-new String
-new Boolean
-new Object //用{}代替
-new Array //用[]代替
+new Number();
+new String();
+new Boolean();
+new Object(); //用{}代替
+new Array(); //用[]代替
 ```
 
-引用对象成员用obj.prop代替obj[“prop”]，除非属性名是变量。
-从number到string的转换。
+引用对象成员用 obj.prop 代替 obj[“prop”]，除非属性名是变量。
+从 number 到 string 的转换。
 
 ```javascript
 /** 推荐写法*/
@@ -433,43 +442,43 @@ console.log(aa); //'1'
 new String(a)或a.toString()
 ```
 
-从string到number的转换，使用parseInt，必须显式指定第二个参数的进制。
+从 string 到 number 的转换，使用 parseInt，必须显式指定第二个参数的进制。
 
 ```javascript
 /** 推荐写法*/
-var a = '1';
-var aa = parseInt(a,10);
-typeof(a); //"string"
+var a = "1";
+var aa = parseInt(a, 10);
+typeof a; //"string"
 console.log(a); //'1'
-typeof(aa); //"number"
+typeof aa; //"number"
 console.log(aa); //1
 ```
 
-从float到integer的转换
+从 float 到 integer 的转换
 
 ```javascript
 /** 推荐写法*/
-Math.floor/Math.round/Math.ceil
+Math.floor / Math.round / Math.ceil;
 /** 不推荐写法*/
-parseInt
+parseInt;
 ```
 
-字符串拼接应使用数组保存字符串片段，使用时调用join方法。避免使用+或+=的方式拼接较长的字符串，每个字符串都会使用一个小的内存片段，过多的内存片段会影响性能。
+字符串拼接应使用数组保存字符串片段，使用时调用 join 方法。避免使用+或+=的方式拼接较长的字符串，每个字符串都会使用一个小的内存片段，过多的内存片段会影响性能。
 
 ```javascript
 /**推荐的拼接方式array的push、join*/
-var str=[],
-    list=['测试A','测试B'];
-for (var i=0 , len=list.length; i < len; i++) {
-    str.push( '<div>'+ list[i] + '</div>');
-};
-console.log(str.join('')); //<div>测试A</div><div>测试B</div>
+var str = [],
+  list = ["测试A", "测试B"];
+for (var i = 0, len = list.length; i < len; i++) {
+  str.push("<div>" + list[i] + "</div>");
+}
+console.log(str.join("")); //<div>测试A</div><div>测试B</div>
 /** 不推荐的拼接方式+=*/
-var str = '',
-    list=['测试A','测试B'];
-for (var i = 0, len = list.length; i< len; i++) {
-    str+='<div>' + list[i] + '</div>';
-};
+var str = "",
+  list = ["测试A", "测试B"];
+for (var i = 0, len = list.length; i < len; i++) {
+  str += "<div>" + list[i] + "</div>";
+}
 console.log(str); //<div>测试A</div><div>测试B</div>
 ```
 
@@ -477,33 +486,30 @@ console.log(str); //<div>测试A</div><div>测试B</div>
 
 `不要使用with，void，evil，eval_r，innerText`
 
-注重HTML分离, 减小reflow, 注重性能
+注重 HTML 分离, 减小 reflow, 注重性能
 
 ---
 
 ### 图片规范
 
-命名应用小写英文、数字、_组合，便于团队其他成员理解
+命名应用小写英文、数字、\_组合，便于团队其他成员理解
 
 ```
 header_btn.gif
 header_btn2.gif
 ```
 
-
-- 页面元素类图片均放入img文件夹,
-- 测试用图片放于img/testimg文件夹，psd源图放入img/psdimg文件夹。
-- 图片格式仅限于gif、png、jpg等。
-- 用png图片做图片时,要求图片格式为png-8格式,若png-8实在影响图片质量或其中有半透明效果,请为ie-6单独定义背景，并尽量避免使用半透明的png图片。
-- 背景图片请尽可能使用sprite技术, 减小http请求
-
+- 页面元素类图片均放入 img 文件夹,
+- 测试用图片放于 img/testimg 文件夹，psd 源图放入 img/psdimg 文件夹。
+- 图片格式仅限于 gif、png、jpg 等。
+- 用 png 图片做图片时,要求图片格式为 png-8 格式,若 png-8 实在影响图片质量或其中有半透明效果,请为 ie-6 单独定义背景，并尽量避免使用半透明的 png 图片。
+- 背景图片请尽可能使用 sprite 技术, 减小 http 请求
 
 ---
 
 ### 注释规范：
 
-> JAVASCRIPT、CSS文件注释需要标明作者、文件版本、创建/修改时间、重大版本修改记录、函数描述、文件版本、创建或者修改时间、功能、作者等信息。
-
+> JAVASCRIPT、CSS 文件注释需要标明作者、文件版本、创建/修改时间、重大版本修改记录、函数描述、文件版本、创建或者修改时间、功能、作者等信息。
 
 `/* * 注释块 */`
 
@@ -541,8 +547,3 @@ header_btn2.gif
 
 - 编码格式化，三码统一
 - 测试工具: 前期开发仅测试`FireFox & IE6 & IE7 & IE8 & IE9 & Opera & Chrome & Safari`
-
-
-
-    
-    
