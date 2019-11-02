@@ -454,6 +454,7 @@ git switch -
 
 # 建立追踪关系，在现有分支与指定的远程分支之间
 git branch --set-upstream <branch> <remote-branch>
+git branch --set-upstream-to=origin/dev dev
 
 # 修改正在跟踪的上游分支，你可以在任意时间使用 -u 或 --set-upstream-to 选项运行 git branch 来显式地设置。
 git branch -u origin/serverfix

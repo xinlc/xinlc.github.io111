@@ -1,19 +1,19 @@
-
 ---
 title: Docker 常用镜像
 date: 2019-07-28 13:40:00
 categories: Linux
-tags: 
+tags:
   - linux
   - docker
 ---
 
-Docker中有个非常重要的概念叫做——镜像（Image）。Docker 镜像是一个特殊的文件系统，
+Docker 中有个非常重要的概念叫做——镜像（Image）。Docker 镜像是一个特殊的文件系统，
 Image 里面是一层层文件系统，叫做 Union FS（联合文件系统）。联合文件系统，可以将几层目录挂载到一起，形成一个虚拟文件系统。
 
 虚拟文件系统的目录结构就像普通 Linux 的目录结构一样，Docker 通过这些文件再加上宿主机的内核提供了一个 Linux 的虚拟环境。每一层文件系统我们叫做一层 Layer，构建镜像的时候，从一个最基本的操作系统开始，每个构建的操作都相当于做一层的修改，增加了一层文件系统。
 
-在启动Docker Container时，依据Image，Docker 会为 Container 构建出一个虚拟的Linux环境。
+在启动 Docker Container 时，依据 Image，Docker 会为 Container 构建出一个虚拟的 Linux 环境。
+
 <!--more-->
 
 ## Docker 常用命令
@@ -70,10 +70,11 @@ sudo gpasswd -a <你的用户名> docker
 sudo service docker restart 或 sudo systemctl restart docker
 # 重新登录shelL
 # linux 系统 可以直接激活对组的更改
-newgrp docker 
+newgrp docker
 ```
 
 ## 镜像加速
+
 ```bash
 # 官方国内加速地址 https://www.docker-cn.com/registry-mirror
 # DaoCloud 加速 https://www.daocloud.io/mirror#accelerator-doc
@@ -100,6 +101,7 @@ service docker restart
 ## 常用的 Docker Image
 
 ### nginx
+
 ```bash
 docker pull nginx
 
@@ -133,6 +135,7 @@ docker restart container-name
 ```
 
 ### [Redis](https://redis.io)
+
 ```bash
 docker search redis
 docker pull redis
@@ -140,10 +143,10 @@ docker run --name redis -d -p 6339:6339 redis
 docker run -p 6379:6379 -v $PWD/data:/data -d redis redis-server --appendonly yes
 docker run --name redis-6379 -p 6379:6379 -v $PWD/data:/data -d --restart=always redis redis-server --appendonly yes --requirepass "123456"
 
-# -p 6379:6379 : 将容器内端口映射到宿主机端口(右边映射到左边) 
-# -v /data/docker/redis/data:/data : 将主机中当前目录下的data挂载到容器的/data 
-# redis-server –appendonly yes : 在容器执行redis-server启动命令，并打开redis持久化配置 
-# requirepass “your passwd” : 设置认证密码 
+# -p 6379:6379 : 将容器内端口映射到宿主机端口(右边映射到左边)
+# -v /data/docker/redis/data:/data : 将主机中当前目录下的data挂载到容器的/data
+# redis-server –appendonly yes : 在容器执行redis-server启动命令，并打开redis持久化配置
+# requirepass “your passwd” : 设置认证密码
 # –restart=always : 随docker启动而启动
 
 docker exec -it e55caa redis-cli
@@ -185,6 +188,7 @@ db.createUser(
 
 show users
 ```
+
 ### [Mysql](https://hub.docker.com/_/mysql)
 
 ```bash
@@ -205,55 +209,55 @@ show tables;
 ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root账户密码';
 
 # 常用命令
-# 导出整个数据库  
-mysqldump -u 用户名 -p –default-character-set=latin1 数据库名 > 导出的文件名(数据库默认编码是latin1)  
-mysqldump -u root -p test > test.sql  
+# 导出整个数据库
+mysqldump -u 用户名 -p –default-character-set=latin1 数据库名 > 导出的文件名(数据库默认编码是latin1)
+mysqldump -u root -p test > test.sql
 
-# 导出一个表  
-mysqldump -u 用户名 -p 数据库名 表名> 导出的文件名  
-mysqldump -u root -p test users> test_users.sql  
+# 导出一个表
+mysqldump -u 用户名 -p 数据库名 表名> 导出的文件名
+mysqldump -u root -p test users> test_users.sql
 
-# 导出一个数据库结构  
-mysqldump -u root -p -d –add-drop-table test >d:test.sql  
-# -d 没有数据 –add-drop-table 在每个create语句之前增加一个drop table  
+# 导出一个数据库结构
+mysqldump -u root -p -d –add-drop-table test >d:test.sql
+# -d 没有数据 –add-drop-table 在每个create语句之前增加一个drop table
 
 # 导入数据库
 # 1. source 导入数据
-source test.sql  
-# 2. 使用mysqldump命令  
-mysqldump -u username -p dbname < filename.sql  
+source test.sql
+# 2. 使用mysqldump命令
+mysqldump -u username -p dbname < filename.sql
 # 3. 使用mysql命令
-mysql -u username -p -D dbname < filename.sql  
+mysql -u username -p -D dbname < filename.sql
 
-# 库操作  
-# 创建数据库  
-# 命令：create database <数据库名>  
+# 库操作
+# 创建数据库
+# 命令：create database <数据库名>
 create database test;
 # 显示所有的数据库
-# 命令：show databases （注意：最后有个s）  
-# 删除数据库  
-# 命令：drop database <数据库名>  
-# 连接数据库  
-# 命令：use <数据库名>  
-# 查看当前使用的数据库  
-select database();  
-# 当前数据库包含的表信息：  
-# show tables; （注意：最后有个s）  
+# 命令：show databases （注意：最后有个s）
+# 删除数据库
+# 命令：drop database <数据库名>
+# 连接数据库
+# 命令：use <数据库名>
+# 查看当前使用的数据库
+select database();
+# 当前数据库包含的表信息：
+# show tables; （注意：最后有个s）
 
-# 表操作  
-# 命令：create table <表名> ( <字段名> <类型> [,..<字段名n> <类型n>]);  
-mysql> create table MyClass(  
-> id int(4) not null primary key auto_increment,  
-> name char(20) not null,  
-> sex int(4) not null default ’′,  
-> degree double(16,2));  
-# 获取表结构  
-# 命令：desc 表名，或者show columns from 表名  
-DESCRIBE MyClass  
-desc MyClass;  
-show columns from MyClass;  
-# 删除表  
-# 命令：drop table <表名>  
+# 表操作
+# 命令：create table <表名> ( <字段名> <类型> [,..<字段名n> <类型n>]);
+mysql> create table MyClass(
+> id int(4) not null primary key auto_increment,
+> name char(20) not null,
+> sex int(4) not null default ’′,
+> degree double(16,2));
+# 获取表结构
+# 命令：desc 表名，或者show columns from 表名
+DESCRIBE MyClass
+desc MyClass;
+show columns from MyClass;
+# 删除表
+# 命令：drop table <表名>
 ```
 
 ### [Zookeeper](https://hub.docker.com/_/zookeeper)
@@ -278,6 +282,7 @@ get /xxx
 ```
 
 ### [Consul](https://hub.docker.com/_/consul)
+
 ```bash
 
 docker pull consul
@@ -289,6 +294,7 @@ http://localhost:8500
 ```
 
 ### [rabbitmq](https://hub.docker.com/_/rabbitmq)
+
 ```bash
 
 docker pull rabbitmq
@@ -300,6 +306,7 @@ docker run --name rabbitmq -d -p5672:5672 -p 15671:15672 -e RABBITMQ_DEFAULT_USE
 ```
 
 ### activeMQ
+
 ```bash
 
 docker pull docker.io/webcenter/activemq
@@ -313,6 +320,7 @@ http://192.168.100.166:8162/ 本地虚拟机访问地址
 ```
 
 ### [zipkin](https://hub.docker.com/r/openzipkin/zipkin)
+
 ```bash
 https://github.comopenzipkin/docker-zipkin
 
@@ -330,16 +338,17 @@ docker run --name rabbit-zipkin -d -p 9411:9411 --link rabbitmq -e RABBIT_ADDRES
 ```
 
 ### [jenkins](https://hub.docker.com/r/jenkins/jenkins)
+
 ```bash
 docker pull jenkins/jenkins
 
 docker run -d -p 8090:8080 -p 50000:50000 -v ~/docker-data/jenkins:/var/jenkins_home --name jenkins jenkins/jenkins
 
-# -p 8090:8080将镜像的8080端口映射到服务器的8090端口
-# -p 50000:50000将镜像的50000端口映射到服务器的50000端口
-# -v jenkins:/var/jenkins_home/var/jenkins_home目录为jenkins工作目录，我们将硬盘上的一个目录挂载到这个位置，方便后续更新镜像后继续使用原来的工作目录。
-# -v /etc/localtime:/etc/localtime让容器使用和服务器同样的时间设置。
-# --name jenkins给容器起一个别名
+# -p 8090:8080 将镜像的8080端口映射到服务器的8090端口
+# -p 50000:50000 将镜像的50000端口映射到服务器的50000端口
+# -v jenkins:/var/jenkins_home jenkins_home目录为jenkins工作目录，我们将硬盘上的一个目录挂载到这个位置，方便后续更新镜像后继续使用原来的工作目录。
+# -v /etc/localtime:/etc/localtime 让容器使用和服务器同样的时间设置。
+# --name jenkins 给容器起一个别名
 
 # 获取密码
 docker exec jenkins tail /var/jenkins_home/secrets/initialAdminPassword
@@ -359,6 +368,7 @@ vi ~/docker-data/jenkins/hudson.model.UpdateCenter.xml
 ```
 
 ### [禅道](https://hub.docker.com/r/idoop/zentao)
+
 ```bash
 docker pull idoop/zentao
 
@@ -404,6 +414,7 @@ docker logs -f zentao-server
 ```
 
 ### (registry)(https://hub.docker.com/_/registry)
+
 [docker image 私有仓库](https://docs.docker.com/registry/)
 
 建议使用 [harbor](https://github.com/goharbor/harbor) 或 [Nexus3](https://www.sonatype.com/download-oss-sonatype) 搭建私有仓库
@@ -447,6 +458,6 @@ curl 127.0.0.1:5000/v2/_catalog
 ```
 
 ## 参考
+
 - [docker hub](https://hub.docker.com)
 - [daocloud](https://www.daocloud.io/mirror)
-
