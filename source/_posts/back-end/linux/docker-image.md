@@ -1,5 +1,5 @@
 ---
-title: Docker 常用镜像
+title: Docker 常用命令和镜像
 date: 2019-07-28 13:40:00
 categories: Linux
 tags:
@@ -46,7 +46,8 @@ docker-compose up -d # 通过 compose 启动
 
 # 登录aliyun镜像仓库
 sudo docker login --username=xxx registry.cn-hangzhou.aliyuncs.com
-sudo docker login -u=xxx -p xxx registry.cn-hangzhou.aliyuncs.com
+sudo docker login -u xxx -p xxx registry.cn-hangzhou.aliyuncs.com
+
 # 如果失败就不带用户名参数
 docker login registry.cn-hangzhou.aliyuncs.com
 
@@ -54,6 +55,11 @@ docker login registry.cn-hangzhou.aliyuncs.com
 docker stop $(docker ps -a | grep "Exited" | awk '{print $1 }') # 停止容器
 docker rm $(docker ps -a | grep "Exited" | awk '{print $1 }') # 删除容器
 docker rmi $(docker images | grep "none" | awk '{print $3}')  # 删除<none>镜像
+docker rmi $(docker images -f "dangling=true" -q) # 删除<none>镜像
+docker image prune -f # 删除所有悬空映像 -f 不提示。如果-a指定，还将删除任何容器未引用的所有映像
+
+# 格式化输出
+docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}\t{{.Status}}"
 
 # 解决 docker命令不需要敲sudo的方法
 # 由于docker daemon需要绑定到主机的Unix socket而不是普通的TCP端口，而Unix socket的属主为root用户，所以其他用户只有在命令前添加sudo选项才能执行相关操作。
@@ -466,5 +472,6 @@ curl 127.0.0.1:5000/v2/_catalog
 
 ## 参考
 
+- [docker docs](https://docs.docker.com)
 - [docker hub](https://hub.docker.com)
 - [daocloud](https://www.daocloud.io/mirror)
