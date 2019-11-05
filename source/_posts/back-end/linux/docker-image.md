@@ -18,6 +18,8 @@ Image 里面是一层层文件系统，叫做 Union FS（联合文件系统）�
 
 ## Docker 常用命令
 
+[CentOS7 安装 Docker](https://xinlc.github.io/2019/09/15/back-end/linux/linux-install-docker)
+
 ```bash
 docker pull <image>
 docker search <image>
