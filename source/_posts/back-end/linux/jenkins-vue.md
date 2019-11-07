@@ -16,7 +16,9 @@ tags:
 ## 新建任务
 
 1. 输入任务名，选择流水线（Pipeline）
-2. 选择流水定义 `Pipeline script`（官方建议在项目中添加 Jenkinsfile 文件），脚本如下
+2. 选择流水定义 `Pipeline script`（官方建议在项目中添加 Jenkinsfile 文件）
+
+### Pipeline script
 
 ```groovy
 pipeline {
@@ -87,6 +89,29 @@ pipeline {
 ```
 
 > 流水线代码可以点击 “流水线语法” 生成流水线脚本。流水线语法多读 Jenkins 官方文档，写的还可以。
+
+### Vue Dockerfile
+
+在项目根目录下添加 `Dockerfile` 并添加如下代码
+
+```Dockerfile
+FROM nginx:alpine
+
+ADD ./dist/ /usr/share/nginx/html/
+
+EXPOSE 80
+
+```
+
+在项目根目录下添加 `.dockerignore` 文件并添加如下
+
+```dockerignore
+.DS_Store
+node_modules/
+build/
+mock/
+tests/
+```
 
 ## 添加相关凭据
 
