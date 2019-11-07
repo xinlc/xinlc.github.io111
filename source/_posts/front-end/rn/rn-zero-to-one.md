@@ -3,7 +3,8 @@ title: React Native 之 从0到1
 date: 2019-08-03 10:31:00
 categories: RN
 tags:
-  - template
+  - mobile
+  - react-native
 ---
 
 React Native 从入门到入坑！
@@ -403,6 +404,8 @@ cd android
 
 ## 性能调优
 
+[Performance](https://facebook.github.io/react-native/docs/performance)
+
 ### 移除 `console.log` 语句
 
 在运行打好了离线包的应用时，控制台打印语句可能会极大地拖累 JavaScript 线程。
@@ -597,6 +600,10 @@ module.exports = config;
 ```
 
 在启用 RAM 格式之后，配置文件中的`preloadedModules`条目指示哪些模块需要预加载。当 bundle 被加载时，这些模块立即被加载，甚至在任何 requires 执行之前。blacklist 表明这些模块不应该被要求内联引用，因为它们是预加载的，所以使用内联没有性能优势。实际上每次解析内联引用 JavaScript 都会花费额外的时间。
+
+### Hermes 引擎
+
+[Using Hermes](https://facebook.github.io/react-native/docs/hermes)
 
 ## 常见问题
 
