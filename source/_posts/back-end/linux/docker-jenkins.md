@@ -38,7 +38,7 @@ services:
 
 - `privileged: true` 提升容器权限。
 - `user: root` 使用 root 用户。
-- `~/docker-data/jenkins_home:/var/jenkins_home` /var/jenkins_home 目录为 jenkins 工作目录，方便后续更新镜像后继续使用原来的工作目录。
+- `~/docker-data/jenkins_home:/var/jenkins_home` `/var/jenkins_home` 目录为 Jenkins 工作目录，方便后续更新镜像后继续使用原来的工作目录。
 - `/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro` 让容器使用和服务器同样的时间设置。
 - `/var/run/docker.sock:/var/run/docker.sock` 容器内可以使用主机 Docker 守护进程通信。
 
@@ -60,7 +60,7 @@ docker-compose logs -f
 
 ![2][2]
 
-### 输入后台打印出的密码，继续，耐心等吧。
+### 输入后台打印出的密码，继续，耐心等吧
 
 如果一直在 Please wait while Jenkins is getting ready to work ...，需要配置代理
 
@@ -93,6 +93,13 @@ docker-compose restart
 
 ![5][5]
 
+## 权限管理
+
+1. 在 系统管理->管理用户->新建用户
+2. 系统管理->全局安全配置, 注意添加一个 admin 用户
+
+![6][6]
+
 ## 环境变量配置
 
 如果找不到docker命令可以配置节点环境变量如下：
@@ -122,7 +129,7 @@ apk add npm=10.14.2-r0
 
 ## 安装常用插件
 
-系统管理 -> 插件管理
+系统管理->插件管理
 
 - Maven Integration plugin
 - SSH Pipeline Steps
@@ -139,3 +146,4 @@ apk add npm=10.14.2-r0
 [3]: /images/linux/docker-jenkins/3.jpg
 [4]: /images/linux/docker-jenkins/4.jpg
 [5]: /images/linux/docker-jenkins/5.jpg
+[6]: /images/linux/docker-jenkins/6.jpg
