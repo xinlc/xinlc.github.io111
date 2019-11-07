@@ -102,7 +102,7 @@ docker-compose restart
 
 ## 环境变量配置
 
-如果找不到docker命令可以配置节点环境变量如下：
+如果找不到 docker 命令可以配置节点环境变量如下：
 
 系统管理->节点管理->点击对应节点后的设置->环境变量
 
@@ -110,7 +110,7 @@ docker-compose restart
 
 ## 在容器中安装软件
 
-比如安装 node
+比如安装 NodeJS
 
 ```bash
 # 进入容器
