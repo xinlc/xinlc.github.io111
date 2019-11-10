@@ -693,6 +693,12 @@ git config --global credential.helper 'cache --timeout 7200'
 
 git config –-global http.emptyAuth true
 
+# 删除保存在本地的git账户
+git credential-manager uninstall
+
+# 缓存账户
+git config --global credential.helper wincred
+
 # 删除凭证
 vim ~/.git-credentials
 git config --system --unset credential.helper

@@ -185,6 +185,8 @@ src/2019/20190[1-9]/
 客户端同步到远程的脚本 rsync.sh：
 
 ```bash
+#!/bin/bash
+
 # rsync auto sync script with inotify
 # variables
 current_date=$(date +%Y%m%d_%H%M%S)
@@ -218,6 +220,8 @@ inotify_fun(){
 # inotify log
 inotify_fun >> ${log_file} 2>&1 &
 
+# nohup inotify_fun >> ${log_file} 2>&1 &
+
 ```
 
 给脚本执行权限：
@@ -227,7 +231,44 @@ chmod 777 rsync.sh
 
 ./rsync.sh
 
-# 开机自启动脚本，待完善……
+```
+
+监听 inotify 进程脚本，防止 inotify 由于某种原因中断无法实时同步
+
+```bash
+#!/bin/bash
+
+# 如果有 inotify 进程在运行，那么 echo $? 返回值是 0，条件为真。否则返回值为非 0
+ps -lef | pgrep inotify &>/dev/null
+if [ $? -eq 0 ]; then
+  echo "inotify is runing ..."
+else
+  ./rsync.sh
+  # nohup /usr/bin/bash /home/leo/scripts/rsync.sh &
+  echo "inotify aready runing ..."
+fi
+```
+
+添加定时任务计划, 每分钟检测一次
+
+```bash
+# crontab -e
+* * * * * /usr/bin/bash /home/leo/scripts/checkInotify.sh &>/dev/null
+```
+
+## 开机自启动
+
+不建议这样做，应使用编写 `systemd`
+
+```bash
+# 在 CentOS7 中，/etc/rc.d/rc.local 的权限被降低了，所以需要执行如下命令赋予其可执行权限
+chmod u+x  /etc/rc.d/rc.local
+
+# 打开 /etc/rc.d/rc.local 文件
+vim /etc/rc.d/rc.local
+
+# 在末尾添加
+rsync --daemon --config=/etc/rsyncd.conf
 ```
 
 ## 遇到的问题
