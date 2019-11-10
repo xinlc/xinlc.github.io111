@@ -8,8 +8,9 @@ ifconfig
 # mac 中
 # docker 18.03 加入了一个 feature，在容器中可以通过 host.docker.internal来访问主机 。
 
-# No route to host
+# nginx: No route to host
 # 服务器防火墙问题
+# systemctl status firewalld
 # 此问题适用于： RHEL/CentOS 7.x and later
 # 默认情况下，firewalld将阻止同一个docker主机上的intercontainer网络。要允许docker容器之间的通信，请运行以下命令：
 firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 4 -i docker0 -j ACCEPT
