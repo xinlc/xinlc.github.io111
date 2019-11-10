@@ -345,6 +345,65 @@ docker run --name rabbit-zipkin -d -p 9411:9411 --link rabbitmq -e RABBIT_ADDRES
 
 ```
 
+### [gitlab](https://docs.gitlab.com/omnibus/docker/)
+
+```bash
+docker pull gitlab/gitlab-ce
+
+docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 22443:443 --publish 20280:80 --publish 20222:22 \
+  --name gitlab \
+  --restart always \
+  --volume ~/docker-data/gitlab/config:/etc/gitlab \
+  --volume ~/docker-data/gitlab/logs:/var/log/gitlab \
+  --volume ~/docker-data/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+# 逐行解释
+# 1. 后台运行
+# 2. 设置主机名或域名
+# 3. 本地端口的映射
+# 4. gitlab-ce 的镜像运行成为一个容器，这里是对容器的命名
+# 5. 设置重启方式，always 代表一直开启，服务器开机后也会自动开启的
+# 6. 将 gitlab 的配置文件目录映射到 ~/docker-data/gitlab/config 目录中
+# 7. 将 gitlab 的log文件目录映射到 ~/docker-data/gitlab/logs 目录中
+# 8. 将 gitlab 的数据文件目录映射到 ~/docker-data/gitlab/data 目录中
+# 9. 需要运行的镜像
+
+# 查看容器列表
+docker container ls
+
+# 查看系统 ip
+ip addr
+
+# 打开 gitlab
+http://xxx:20280
+
+# 设置密码
+# 用 root 登录
+
+# docker-compose.yml
+
+gitlab-web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'https://gitlab.example.com'
+      # Add any other gitlab.rb configuration here, each on its own line
+  ports:
+    - '80:80'
+    - '443:443'
+    - '22:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+
+```
+
 ### [jenkins](https://hub.docker.com/r/jenkins/jenkins)
 
 ```bash
