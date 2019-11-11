@@ -45,7 +45,7 @@ sudo yum-config-manager \
   https://download.docker.com/linux/centos/docker-ce.repo
 ```
 
-安装最新版本的 Docker Engine - 社区和容器，或者转到下一步安装特定版本：
+安装最新版本的 Docker Engine - 社区和容器：
 
 ```bash
 # 安装

@@ -1,6 +1,8 @@
 ```bash
 # Docker 如何访问宿主机
 ifconfig
+ip addr show docker0
+ip addr show docker0 | grep -Po 'inet \K[\d.]+'
 # 会看到 docker0 那个 ip，可以使用来访问宿主机
 # 一般为172.17.0.1
 # 或者访问当前机器ip(192.168.1.xxx)
@@ -20,6 +22,30 @@ systemctl restart docker
 或者 docker run 加上 --net host
 docker-compse 加上 network_mode: host
 # p.s. host 模式 就不能绑定端口了，所有容器端口都对应属主机端口
+
+
+
+# 参考，但不好用：https://www.jianshu.com/p/03b386fece41
+
+# http://www.zsythink.net/archives/1199
+# https://wangchujiang.com/linux-command/c/firewall-cmd.html
+# 查看已经开放的端口：
+# firewall-cmd --list-ports
+# 开启端口
+# firewall-cmd --zone=public --add-port=80/tcp --permanent
+# 命令含义：
+# –zone #作用域
+# –add-port=80/tcp #添加端口，格式为：端口/通讯协议
+# –permanent #永久生效，没有此参数重启后失效
+# 重启防火墙
+# firewall-cmd --reload #重启firewall
+# systemctl stop firewalld.service #停止firewall
+# systemctl disable firewalld.service #禁止firewall开机启动
+# firewall-cmd --state #查看默认防火墙状态（关闭后显示notrunning，开启后显示running）
+
+# firewall-cmd --get-active-zone
+# iptables -L -n
+
 
 # docker 集群 zookeeper 碰到 java.net.NoRouteToHostException: Host is unreachable (Host unreachable)
 # 原因是 firewalld 的没有信任 docker 的 ip 地址，stackoverflower 中也有类似的问题。
