@@ -154,3 +154,52 @@ jenkins:
     JAVA_OPTS: '-Djava.util.logging.config.file=/var/jenkins_home/log.properties'
 
 ```
+
+
+## 201 防火墙
+
+```bash
+vim lockdown-whitelist.xml
+<?xml version="1.0" encoding="utf-8"?>
+<whitelist>
+  <command name="/usr/bin/python -Es /usr/bin/firewall-config"/>
+  <selinux context="system_u:system_r:NetworkManager_t:s0"/>
+  <selinux context="system_u:system_r:virtd_t:s0-s0:c0.c1023"/>
+  <user id="0"/>
+</whitelist>
+
+
+vim direct.xml
+<?xml version="1.0" encoding="utf-8"?>
+<direct>
+  <rule priority="4" table="filter" ipv="ipv4" chain="INPUT">-i docker0 -j ACCEPT</rule>
+</direct>
+
+vim zones/public.xml
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>Public</short>
+  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+  <service name="ssh"/>
+  <service name="dhcpv6-client"/>
+  <port protocol="tcp" port="1521"/>
+  <port protocol="tcp" port="21"/>
+  <port protocol="tcp" port="20"/>
+  <port protocol="tcp" port="22"/>
+  <port protocol="tcp" port="8090"/>
+  <port protocol="tcp" port="80"/>
+  <port protocol="tcp" port="6379"/>
+  <rule family="ipv4">
+    <source address="172.17.0.1/16"/>
+    <accept/>
+  </rule>
+</zone>
+
+vim zones/trusted.xml
+<?xml version="1.0" encoding="utf-8"?>
+<zone target="ACCEPT">
+  <short>Trusted</short>
+  <description>All network connections are accepted.</description>
+  <interface name="docker0"/>
+</zone>
+```
