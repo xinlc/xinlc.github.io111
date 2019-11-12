@@ -27,6 +27,16 @@ docker-compse 加上 network_mode: host
 
 # 参考，但不好用：https://www.jianshu.com/p/03b386fece41
 
+# https://unix.stackexchange.com/questions/331640/cant-add-docker0-interface-to-trusted-zone-with-firewalld
+firewall-cmd --permanent --zone=trusted --add-interface=docker0
+firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 3 -i docker0 -j ACCEPT
+firewall-cmd --reload
+systemctl restart docker
+# firewall-cmd --permanent --zone=trusted --add-port=443/tcp
+firewall-cmd --get-zone-of-interface=docker0
+
+# https://docs.docker.com/network/iptables/
+
 # http://www.zsythink.net/archives/1199
 # https://wangchujiang.com/linux-command/c/firewall-cmd.html
 # 查看已经开放的端口：
