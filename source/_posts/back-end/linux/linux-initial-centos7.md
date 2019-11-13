@@ -355,3 +355,41 @@ update_messages = yes, download_updates = yes, apply_updates = yes
 systemctl start crond
 systemctl start yum-cron
 ```
+
+## 系统安全加固
+
+1. 强制用户不重用最近使用的密码，降低密码猜测攻击风险
+
+  在 `/etc/pam.d/password-auth` 和 `/etc/pam.d/system-auth` 中 `password sufficient pam_unix.so` 这行的末尾配置 `remember` 参数为 `5-24` 之间，原来的内容不用更改, 只在末尾加了 `remember=5`。
+
+2. 检查密码长度和密码是否使用多种字符类型
+
+  编辑 `/etc/pam.d/password-auth` 和 `/etc/pam.d/system-auth` 配置文件中包含 `password requisite pam_cracklib.so` 这一行。增加配置 `minlen`（密码最小长度）设置为 9-32 位，`minclass`（至少包含小写字母、大写字母、数字、特殊字符等 4 类字符中等 3 类或 4 类）设置为 3 或 4。如 `password requisite pam_cracklib.so try_first_pass retry=3 minlen=11 minclass=3`
+
+3. 确保 rsyslog 服务已启用，记录日志用于审计
+
+  运行以下命令启用 `rsyslog`：`service rsyslog start`
+
+4. 确保 `ssh LogLevel` 设置为 `INFO`，记录登录和注销活动
+
+  编辑 `/etc/ssh/sshd_config` 文件以按如下方式设置参数(取消注释): `LogLevel INFO`
+
+5. 设置较低的 `Max AuthTrimes` 参数将降低 SSH 服务器被暴力攻击成功的风险。
+
+  在 `/etc/ssh/sshd_config` 中取消 `MaxAuthTries` 注释符号 #，设置最大密码尝试失败次数 `3-6`，建议为 4：`MaxAuthTries 4`
+
+6. 设置 SSH 空闲超时退出时间,可降低未授权用户访问其他用户 ssh 会话的风险
+
+  编辑 `/etc/ssh/sshd_config`，将 `ClientAliveInterval` 设置为 300 到 900，即 5-15 分钟，将 `ClientAliveCountMax` 设置为 0-3。`ClientAliveCountMax 2`
+
+7. 设置密码失效时间，强制定期修改密码，减少密码被泄漏和猜测风险，使用非密码登陆方式(如密钥对)请忽略此项。
+
+  使用非密码登陆方式如密钥对，请忽略此项。在 `/etc/login.defs` 中将 `PASS_MAX_DAYS` 参数设置为 60-180 之间，如 `PASS_MAX_DAYS 90`。需同时执行命令设置 root 密码失效时间： `chage --maxdays 90 root`。
+
+8. 设置密码修改最小间隔时间，限制密码更改过于频繁
+
+  在 `/etc/login.defs` 中将 `PASS_MIN_DAYS` 参数设置为 7-14 之间,建议为 7： PASS_MIN_DAYS 7 需同时执行命令为 root 用户设置： `chage --mindays 7 root`
+
+9. SSHD 强制使用 V2 安全协议
+
+  编辑 `/etc/ssh/sshd_config` 文件以按如下方式设置参数：`Protocol 2`
