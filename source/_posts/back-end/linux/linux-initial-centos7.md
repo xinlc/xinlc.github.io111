@@ -393,3 +393,38 @@ systemctl start yum-cron
 9. SSHD 强制使用 V2 安全协议
 
   编辑 `/etc/ssh/sshd_config` 文件以按如下方式设置参数：`Protocol 2`
+
+10. 限制ssh访问服务器的源IP
+
+  编辑 `hosts.allow` 配置文件，追加一行内容 `echo "sshd:192.168.43.226:allow" >> /etc/hosts.allow`，编辑 `hosts.deny` 配置文件，追加一行内容 `echo "sshd:ALL" >> /etc/hosts.deny`
+
+11. 限制ssh访问服务器的用户名
+
+ 修改sshd_config配置文件，允许leo用户ssh访问服务器（以空格分开用户；添加完允许，默认拒绝其他所有用户）, `echo "AllowUsers leo" >> /etc/ssh/sshd_config`, 重启sshd服务 `systemctl restart sshd`
+
+12. 修改telnet ssh端口时显示的版本号
+
+  ```bash
+  #查看sshd位置
+  [root@centos1 ~]# whereis sshd
+  sshd: /usr/sbin/sshd /usr/share/man/man8/sshd.8.gz
+
+  #查看SSH版本
+  [root@imzcy ~]# ssh -V
+  OpenSSH_7.4p1, OpenSSL 1.0.2k-fips  26 Jan 2017
+
+  #查看sshd程序关于版本的信息
+  [root@imzcy ~]# strings /usr/sbin/sshd |grep OpenSSH_7.4
+  OpenSSH_7.4p1-RHEL7-7.4p1-11
+  OpenSSH_7.4
+  OpenSSH_7.4p1
+
+  #使用sed替换版本（记得一定要先备份下）
+  [root@imzcy ~]# cp -p /usr/sbin/sshd ./
+  [root@imzcy ~]# sed -i 's/OpenSSH_7.4/OpenSSH_2.3/g' /usr/sbin/sshd
+
+  #重启下sshd服务，没有报错即可
+  [root@imzcy ~]# systemctl restart sshd
+
+  再使用telnet连接ssh端口，显示的版本则为：SSH-2.0-OpenSSH_2.3
+  ```
