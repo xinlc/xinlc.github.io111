@@ -1,5 +1,5 @@
 ---
-title: Docker 常用命令和镜像
+title: Docker 常用镜像
 date: 2019-07-28 13:40:00
 categories: Linux
 tags:
@@ -16,72 +16,9 @@ Image 里面是一层层文件系统，叫做 Union FS（联合文件系统）�
 
 <!--more-->
 
-## Docker 常用命令
+## 镜像加速
 
 [CentOS7 安装 Docker](https://xinlc.github.io/2019/09/15/back-end/linux/linux-install-docker)
-
-```bash
-docker pull <image>
-docker search <image>
-
-docker run [options] image [command][arg...]
--d                   # 后台运行容器
--e                   # 设置环境变量
---expose/-p          # 宿主端口：容器端口映射
---name               # 指定容器名称
---linke              # 连接不同容器
--v                   # 宿主目录：容器目录，挂载磁盘卷
-
-docker start/stop <容器名>
-docker ps <容器名>
-docker ps -a        # 查看所有容器
-dokcer ps -l        # 查看最后一次创建的容器
-docker rm           # 删除容器
-docker rmi          # 删除镜像
-docker logs <容器名> # 查看容器日志
-docker images       # 显示镜像列表
-docker inspect <容器名> # 查看容器信息
-
-docker exec -it <容器名> bash # 登录到容器中
-docker help          # 终极命令
-docker-compose up -d # 通过 compose 启动
-
-# 登录aliyun镜像仓库
-sudo docker login --username=xxx registry.cn-hangzhou.aliyuncs.com
-sudo docker login -u xxx -p xxx registry.cn-hangzhou.aliyuncs.com
-
-# 如果失败就不带用户名参数
-docker login registry.cn-hangzhou.aliyuncs.com
-
-# 批量操作
-docker stop $(docker ps -a | grep "Exited" | awk '{print $1 }') # 停止容器
-docker rm $(docker ps -a | grep "Exited" | awk '{print $1 }') # 删除容器
-docker rmi $(docker images | grep "none" | awk '{print $3}')  # 删除<none>镜像
-docker rmi $(docker images -f "dangling=true" -q) # 删除<none>镜像
-docker image prune -f # 删除所有悬空映像 -f 不提示。如果-a指定，还将删除任何容器未引用的所有映像
-
-# 格式化输出
-docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}\t{{.Status}}"
-
-# 解决 docker命令不需要敲sudo的方法
-# 由于docker daemon需要绑定到主机的Unix socket而不是普通的TCP端口，而Unix socket的属主为root用户，所以其他用户只有在命令前添加sudo选项才能执行相关操作。
-# 查看是否有docker用户组
-cat /etc/group
-
-# 没有就创建一个docker组
-sudo groupadd docker
-# 添加当前用户到docker组
-sudo usermod -aG docker $USER
-# 如果有用户组就直接添加
-sudo gpasswd -a <你的用户名> docker
-# 重启
-sudo service docker restart 或 sudo systemctl restart docker
-# 重新登录shelL
-# linux 系统 可以直接激活对组的更改
-newgrp docker
-```
-
-## 镜像加速
 
 ```bash
 # 官方国内加速地址 https://www.docker-cn.com/registry-mirror
@@ -106,9 +43,7 @@ service docker restart
 # sudo systemctl restart docker
 ```
 
-## 常用的 Docker Image
-
-### nginx
+## nginx
 
 ```bash
 docker pull nginx
@@ -142,7 +77,7 @@ docker kill -s HUP container-name
 docker restart container-name
 ```
 
-### [Redis](https://redis.io)
+## [Redis](https://redis.io)
 
 ```bash
 docker search redis
@@ -168,7 +103,7 @@ set key "value"
 auth "yourpassword"
 ```
 
-### MongoDB
+## MongoDB
 
 ```bash
 
@@ -197,7 +132,7 @@ db.createUser(
 show users
 ```
 
-### [Mysql](https://hub.docker.com/_/mysql)
+## [Mysql](https://hub.docker.com/_/mysql)
 
 ```bash
 docker pull mysql
@@ -268,7 +203,7 @@ show columns from MyClass;
 # 命令：drop table <表名>
 ```
 
-### [Zookeeper](https://hub.docker.com/_/zookeeper)
+## [Zookeeper](https://hub.docker.com/_/zookeeper)
 
 ```bash
 
@@ -289,7 +224,7 @@ ls /xxx
 get /xxx
 ```
 
-### [Consul](https://hub.docker.com/_/consul)
+## [Consul](https://hub.docker.com/_/consul)
 
 ```bash
 
@@ -301,7 +236,7 @@ http://localhost:8500
 
 ```
 
-### [rabbitmq](https://hub.docker.com/_/rabbitmq)
+## [rabbitmq](https://hub.docker.com/_/rabbitmq)
 
 ```bash
 
@@ -313,7 +248,7 @@ docker run --name rabbitmq -d -p5672:5672 -p 15671:15672 -e RABBITMQ_DEFAULT_USE
 
 ```
 
-### activeMQ
+## activeMQ
 
 ```bash
 
@@ -327,7 +262,7 @@ http://192.168.100.166:8162/ 本地虚拟机访问地址
 默认账号密码都是admin
 ```
 
-### [zipkin](https://hub.docker.com/r/openzipkin/zipkin)
+## [zipkin](https://hub.docker.com/r/openzipkin/zipkin)
 
 ```bash
 https://github.comopenzipkin/docker-zipkin
@@ -345,7 +280,7 @@ docker run --name rabbit-zipkin -d -p 9411:9411 --link rabbitmq -e RABBIT_ADDRES
 
 ```
 
-### [gitlab](https://docs.gitlab.com/omnibus/docker/)
+## [gitlab](https://docs.gitlab.com/omnibus/docker/)
 
 ```bash
 docker pull gitlab/gitlab-ce
@@ -404,7 +339,7 @@ gitlab-web:
 
 ```
 
-### [jenkins](https://hub.docker.com/r/jenkins/jenkins)
+## [jenkins](https://hub.docker.com/r/jenkins/jenkins)
 
 ```bash
 docker pull jenkins/jenkins
@@ -441,7 +376,7 @@ vi ~/docker-data/jenkins/hudson.model.UpdateCenter.xml
 
 ```
 
-### [禅道](https://hub.docker.com/r/idoop/zentao)
+## [禅道](https://hub.docker.com/r/idoop/zentao)
 
 ```bash
 docker pull idoop/zentao
@@ -487,7 +422,7 @@ docker logs -f zentao-server
 # 更多可以访问 http://www.zentao.net/goto.php?item=zbox.
 ```
 
-### [registry](https://hub.docker.com/_/registry)
+## [registry](https://hub.docker.com/_/registry)
 
 [docker image 私有仓库](https://docs.docker.com/registry/)
 
