@@ -1,7 +1,7 @@
 ---
 title: Docker 三剑客之 Docker Machine
 date: 2019-11-20 23:00:00
-categories: Linux
+categories: Docker
 tags:
   - docker
 ---
@@ -31,7 +31,7 @@ $ curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-mac
     sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
 ```
 
-[1]: /images/linux/docker-docker-machine/1.png
+[1]: /images/docker/docker-machine/1.png
 
 ## 使用
 
@@ -48,11 +48,8 @@ $ docker-machine create -d virtualbox test
 你也可以在创建时加上如下参数，来配置主机或者主机上的 Docker。
 
 - `--engine-opt dns=114.114.114.114` 配置 Docker 的默认 DNS
-
 - `--engine-registry-mirror https://dockerhub.azk8s.cn` 配置 Docker 的仓库镜像
-
 - `--virtualbox-memory 2048` 配置主机内存
-
 - `--virtualbox-cpu-count 2` 配置主机 CPU
 
 更多参数请使用 `docker-machine create --driver virtualbox --help` 命令查看。

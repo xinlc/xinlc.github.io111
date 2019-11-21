@@ -1,11 +1,9 @@
 ---
 title: Docker命令指令详情
 date: 2017-06-20 17:05:00
-categories: Linux
+categories: Docker
 tags:
-  - linux
   - docker
-  - cmd
 ---
 
 > 原文：http://www.dockerinfo.net/341.html

@@ -1,9 +1,8 @@
 ---
 title: Docker 之 Dockefile
 date: 2019-07-28 15:00:00
-categories: Linux
+categories: Docker
 tags:
-  - linux
   - docker
 ---
 

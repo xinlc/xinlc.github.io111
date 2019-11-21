@@ -1,9 +1,8 @@
 ---
 title: Docker 常用镜像
 date: 2019-07-28 13:40:00
-categories: Linux
+categories: Docker
 tags:
-  - linux
   - docker
 ---
 

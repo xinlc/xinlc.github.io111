@@ -1,10 +1,9 @@
 ---
 title: Docker 之 网络配置
 date: 2019-11-12 17:57:00
-categories: Linux
+categories: Docker
 tags:
   - docker
-  - network
 ---
 
 Docker 允许通过外部访问容器或容器互联的方式来提供网络服务。
@@ -451,12 +450,12 @@ firewall-cmd --zone=trusted --add-source=192.168.48.1/20 --permanent
 firewall-cmd --reload
 ```
 
-[1]: /images/linux/docker-network-configuration/1.jpg
-[2]: /images/linux/docker-network-configuration/2.jpg
-[3]: /images/linux/docker-network-configuration/3.jpg
-[4]: /images/linux/docker-network-configuration/4.jpg
-
 ## 参考
 
 - [docker network](https://docs.docker.com/network/)
 - [docker practice](https://yeasy.gitbooks.io/docker_practice/content/network/)
+
+[1]: /images/docker/docker-network/1.jpg
+[2]: /images/docker/docker-network/2.jpg
+[3]: /images/docker/docker-network/3.jpg
+[4]: /images/docker/docker-network/4.jpg
