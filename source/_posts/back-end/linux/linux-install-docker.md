@@ -58,6 +58,76 @@ sudo systemctl start docker
 sudo systemctl enable docker
 ```
 
+## 修改 docker 默认存储位置
+
+默认情况下 Docker 的存放位置为：`/var/lib/docker`
+
+可以执行 `docker info | grep "Docker Root Dir"` 查看
+
+### 方案 1 通过软连接来实现
+
+```bash
+# 1. 停掉 docker 服务
+systemctl stop docker
+
+# 2. 迁移整个 /var/lib/docker 目录到目的路径
+mv /var/lib/docker /mnt/data/docker
+
+# 3. 建立 symlink 软链接
+ln -s /mnt/data/docker /var/lib/docker
+
+# 4.确认文件夹类型为 symlink 类型
+ls -al /var/lib/docker
+
+# 5. 启动 docker 服务, 完活
+systemctl start docker
+```
+
+### 方案 2 修改镜像和容器的默认存放路径
+
+编辑 启动文件
+
+```bash
+vim /usr/lib/systemd/system/docker.service
+```
+
+在添加 ExecStart 后添加 `--graph /mnt/data/docker`
+
+```diff
+[Service]
+Type=notify
+# the default is not to use systemd for cgroups because the delegate issues still
+# exists and systemd currently does not support the cgroup feature set required
+# for containers run by docker
+- ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
++ ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --graph /mnt/data/docker
+ExecReload=/bin/kill -s HUP $MAINPID
+TimeoutSec=0
+RestartSec=2
+Restart=always
+```
+
+加载配置，重启服务
+
+```bash
+systemctl daemon-reload
+systemctl restart docker.service
+```
+
+## 方案 3 修改 daemon.json
+
+创建或修改 `/etc/docker/daemon.json` 文件, 修改后会立即生效，不需重启 docker 服务。
+
+```json
+{
+  "registry-mirrors": [
+    "加速地址"
+  ],
+  "insecure-registries": []
+  "graph": "/mnt/data/docker"
+}
+```
+
 ## Docker 常用命令
 
 ```bash
@@ -221,7 +291,7 @@ docker diff     # 显示容器文件系统的前后变化
 - `pause`：暂停一个容器中的所有进程；
 - `port`：查找一个 nat 到一个私有网口的公共口；
 - `ps`：列出主机上的容器；
-- `pull`：从一个Docker的仓库服务器下拉一个镜像或仓库；
+- `pull`：从一个 Docker 的仓库服务器下拉一个镜像或仓库；
 - `push`：将一个镜像或者仓库推送到一个 Docker 的注册服务器；
 - `rename`：重命名一个容器；
 - `restart`：重启一个运行中的容器；
