@@ -12,7 +12,7 @@ tags:
 Tmux 是一个工具，用于在一个终端窗口中运行多个终端会话, 一个会话（Session）可以包含多个窗口，一个窗口（Window）可以包含多个窗格（Pane)。  
 Tmux 使用 C/S 模型构建，主要包括以下单元模块：
 
-- `server` 输入 tmux 命令时就开启了一个服务器。
+- `server` 输入 tmux 命令时就开启了一个服务器（包含多个 session）。
 - `session` 一个服务器可以包含多个会话。
 - `window` 一个会话可以包含多个窗口。
 - `pane` 一个窗口可以包含多个面板。
@@ -40,10 +40,10 @@ $ sudo apt-get install tmux
 - `tmux ls` or `tmux list-session` 查看已有会话列表
 - `tmux detach` 分离会话
 - `tmux kill-session -t` 杀掉会话
-- `[PREFIX-:] new -s <name-of-my-session>` 在 tmux 中创建一个会话
-- `[PREFIX-$]` 重命名会话
-- `[PREFIX-:] kill-session` 在 tmux 中杀掉当前会话
-- `[PREFIX-,]` 重命名一个窗口, 之后输入名字回车
+- `<PREFIX> + : new -s <name-of-my-session>` 在 tmux 中创建一个会话
+- `<PREFIX> + $` 重命名会话
+- `<PREFIX> + : kill-session` 在 tmux 中杀掉当前会话
+- `<PREFIX> + ,` 重命名一个窗口, 之后输入名字回车
 - `exit` 退出窗口或 pane
 
 ## 操作
@@ -60,7 +60,7 @@ $ sudo apt-get install tmux
 - `r` 强制重绘未脱离的会话
 - `s` 选择并切换会话；在同时开启了多个会话时使用
 - `:` 进入命令行模式；此时可以输入支持的命令，例如 kill-server 可以关闭服务器
-- `[` 进入复制模式；此时的操作与 vi/emacs 相同，按 q/Esc 退出
+- `[` 进入复制模式(copy-mode)；此时的操作与 vi/emacs 相同，按 q/Esc 退出
 - `~` 列出提示信息缓存；其中包含了之前 tmux 返回的各种提示信息
 
 ### 窗口操作
@@ -75,6 +75,8 @@ $ sudo apt-get install tmux
 - `,` 重命名当前窗口；这样便于识别
 - `.` 修改当前窗口编号；相当于窗口重新排序
 - `f` 在所有窗口中查找指定文本
+- `a` 切换到最近的窗口
+- `space` 切换布局方式
 
 ### 面板操作
 
@@ -92,10 +94,11 @@ $ sudo apt-get install tmux
 - `}` 向后置换当前面板
 - `Alt+o` 逆时针旋转当前窗口的面板
 - `Ctrl+o` 顺时针旋转当前窗口的面板
+- `z` 进入全屏，再按一次恢复
 
 ## 复制粘贴
 
-- `[PREFIX-[]` 进入复制模式
+- `<PREFIX> + [` 进入复制模式
 - `space/v` 开始选择
 - `Ctrl-v` 整块选择
 - `hjkl` 方向键移动
@@ -106,7 +109,7 @@ $ sudo apt-get install tmux
 - `/ ?` 向下, 向上查找
 - `n/N` 查找后下一个, 上一个
 - `Enter/y` 复制
-- `[PREFIX-]]` 粘贴
+- `<PREFIX>> + ]` 粘贴
 
 ## Tmuxinator
 

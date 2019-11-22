@@ -318,7 +318,34 @@ http://xxx:20280
 # 用 root 登录
 
 # docker-compose.yml
+version: "3"
 
+services:
+  gitlab:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    ports:
+      - '20280:80'
+      - '22443:443'
+      - '20222:22'
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - '~/docker-data/gitlab/config:/etc/gitlab'
+      - '~/docker-data/gitlab/logs:/var/log/gitlab'
+      - '~/docker-data/gitlab/data:/var/opt/gitlab'
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 2048M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+# 官方 docker-compose.yml
 gitlab-web:
   image: 'gitlab/gitlab-ce:latest'
   restart: always
