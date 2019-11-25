@@ -492,6 +492,83 @@ curl 127.0.0.1:5000/v2/_catalog
 }
 ```
 
+## [openvpn](https://github.com/kylemanna/docker-openvpn.git)
+
+```bash
+docker pull kylemanna/openvpn
+
+# 存放 openvpn 数据
+OVPN_DATA="~/docker-data/openvpn"
+
+# OVPN_DATA="ovpn-data-example"
+# docker volume create --name $OVPN_DATA
+
+# 初始化，生成配置文件，VPN.SERVERNAME.COM 改成 host 公网 ip
+docker run \
+  -v $OVPN_DATA:/etc/openvpn \
+  --log-driver=none \
+  --rm kylemanna/openvpn \
+  ovpn_genconfig \
+  -u udp://VPN.SERVERNAME.COM
+
+# 生成秘钥文件，输入两次秘钥密码，CA 名称，输入两次秘钥密码
+docker run \
+  -v $OVPN_DATA:/etc/openvpn \
+  --log-driver=none \
+  --rm -it kylemanna/openvpn \
+  ovpn_initpki
+
+# 启动 OpenVPN 服务器进程
+docker run \
+  --name openvpn \
+  --restart always \
+  -v $OVPN_DATA:/etc/openvpn \
+  -d -p 1194:1194/udp \
+  --cap-add=NET_ADMIN \
+  kylemanna/openvpn
+
+# 生成没有密码的客户端证书, CLIENTNAME 换成你想起的证书名称, 输入上面的秘钥密码
+docker run \
+  -v $OVPN_DATA:/etc/openvpn \
+  --log-driver=none \
+  --rm -it kylemanna/openvpn \
+  easyrsa build-client-full CLIENTNAME nopass
+
+# 导出客户端配置, CLIENTNAME 替换成上面的证书名，CLIENTNAME.ovpn，导出的证书文件
+docker run \
+  -v $OVPN_DATA:/etc/openvpn \
+  --log-driver=none \
+  --rm kylemanna/openvpn \
+  ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
+
+# CentOS 7 配置防火墙
+firewall-cmd --zone=public --add-port=1194/udp --permanent
+firewall-cmd --reload
+
+# Mac 客户端配置
+https://tunnelblick.org/
+
+# 调试
+docker run -v $OVPN_DATA:/etc/openvpn -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn
+
+# openvpn 创建用户脚本
+#!/bin/bash
+read -p "please your username: " NAME
+docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full $NAME nopass
+docker run -v /data/openvpn:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient $NAME > /data/openvpn/conf/"$NAME".ovpn
+docker restart openvpn
+
+# openvpn 删除用户脚本
+#!/bin/bash
+read -p "Delete username: " DNAME
+docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn easyrsa revoke $DNAME
+docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn easyrsa gen-crl
+docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn rm -f /etc/openvpn/pki/reqs/"$DNAME".req
+docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn rm -f /etc/openvpn/pki/private/"$DNAME".key
+docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn rm -f /etc/openvpn/pki/issued/"$DNAME".crt
+docker restart openvpn
+```
+
 ## 参考
 
 - [docker docs](https://docs.docker.com)
