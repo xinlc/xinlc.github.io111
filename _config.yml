@@ -12,7 +12,8 @@ timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: https://xinlc.github.io
+# url: https://xinlc.github.io
+url: https://xinlichao.cn
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -83,12 +84,11 @@ avatar: https://avatars3.githubusercontent.com/u/18113256?v=3&s=460
 
 # 搜索
 ## Docs: http://theme-next.iissnan.com/third-party-services.html#algolia-search
-## https://www.algolia.com/explorer#?index=xinlc.github.io
+## https://www.algolia.com/explorer#?index=xinlc
 algolia:
-  applicationID: 'NZUC9QEBYB'
-  apiKey: '6b7a490b1545362bcd40bce2bbea43e2'
-  adminApiKey: '8ca10f767f1c81e83b12c0fb053f343a'
-  indexName: 'xinlc.github.io'
+  applicationID: '3ZZ8ITB7HE'
+  apiKey: '062eb5a54afbcbf3f20452d58fc40035'
+  indexName: 'xinlc'
   chunkSize: 5000
 
 # Extensions
