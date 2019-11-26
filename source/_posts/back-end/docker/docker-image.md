@@ -567,6 +567,26 @@ docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn rm -f /etc/o
 docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn rm -f /etc/openvpn/pki/private/"$DNAME".key
 docker run -v /data/openvpn:/etc/openvpn --rm -it kylemanna/openvpn rm -f /etc/openvpn/pki/issued/"$DNAME".crt
 docker restart openvpn
+
+
+# 配置 vpn 非全局代理
+# net_gateway 表示强行指定 ip 段不使用 vpn，vpn_gateway 表示强行 ip 段使用 vpn
+# 修改客户端配置, xxx.ovpn
+# 注释掉 redirect-gateway, redirect-gateway def1 代表所有流量都走 vpn
+; redirect-gateway def1
+
+# route-nopull 代表不会添加路由，任何流量都不走 vpn
+route-nopull
+
+# 默认只允许添加100条路由
+max-routes 1000
+
+# 添加需要走 vpn 的 ip
+route 192.168.0.80 255.255.255.255 vpn_gateway
+
+# 查看路由表
+netstat -nr
+
 ```
 
 ## 参考

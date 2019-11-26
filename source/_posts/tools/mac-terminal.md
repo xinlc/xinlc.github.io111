@@ -58,13 +58,18 @@ uninstall_oh_my_zsh
 - `Ctrl + &`：恢复 ctrl+h 或者 ctrl+d 或者 ctrl+w 删除的内容
 - `Ctrl + c`：终止进程/命令
 - `Alt + c`：从光标处更改为首字母大写的单词
-- `Ctrl + z`：挂起命令
+- `Ctrl + z`：挂起命令，用bg命令放到后台继续运行
+- `Ctrl + s`：挂起当前的标准输入（stdin）, 用 `Ctrl + q` 恢复（等价于XON字符）
+- `Ctrl + q`：继续当前的标准输入，之前在 `Ctrl + s` 后的输入会恢复（等价于XOFF字符）
 - `Alt + u`：从光标处更改为全部大写的单词
 - `Alt + l`：从光标处更改为全部小写的单词
 - `Ctrl + t`：交换光标处和之前的字符
 - `Alt + t`：交换光标处和之前的单词
 - `Alt + Backspace`：与 `Ctrl + w` 相同，分隔符有些差别
 - `Ctrl + o`：执行当前命令，并选择上一条命令
+- `Ctrl + j`：跳转到新一行，类似回车
+- `Ctrl + m`：回车
+
 
 ## Bang (!) 命令
 
