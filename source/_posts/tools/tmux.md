@@ -88,6 +88,7 @@ $ sudo apt-get install tmux
 - `Alt+方向键` 以 5 个单元格为单位移动边缘以调整当前面板大小
 - `Space` 在预置的面板布局中循环切换；依次包括 even-horizontal、even-vertical、main-horizontal、main-vertical、tiled
 - `q` 显示面板编
+- `;` 光标切换到上一个面板
 - `o` 在当前窗口中选择下一面板
 - `方向键` 移动光标以选择面板
 - `{` 向前置换当前面板

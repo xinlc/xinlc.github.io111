@@ -317,13 +317,12 @@ http://xxx:20280
 # 设置密码
 # 用 root 登录
 
-# docker-compose.yml
+# swarm docker-compose.yml
 version: "3"
 
 services:
   gitlab:
     image: 'gitlab/gitlab-ce:latest'
-    restart: always
     ports:
       - '20280:80'
       - '22443:443'
@@ -335,9 +334,13 @@ services:
       - '~/docker-data/gitlab/logs:/var/log/gitlab'
       - '~/docker-data/gitlab/data:/var/opt/gitlab'
     deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "2"
           memory: 2048M
     logging:
       driver: "json-file"
@@ -345,23 +348,28 @@ services:
         max-size: "20m"
         max-file: "2"
 
-# 官方 docker-compose.yml
-gitlab-web:
-  image: 'gitlab/gitlab-ce:latest'
-  restart: always
-  hostname: 'gitlab.example.com'
-  environment:
-    GITLAB_OMNIBUS_CONFIG: |
-      external_url 'https://gitlab.example.com'
-      # Add any other gitlab.rb configuration here, each on its own line
-  ports:
-    - '80:80'
-    - '443:443'
-    - '22:22'
-  volumes:
-    - '/srv/gitlab/config:/etc/gitlab'
-    - '/srv/gitlab/logs:/var/log/gitlab'
-    - '/srv/gitlab/data:/var/opt/gitlab'
+# docker-compose.yml
+version: "2.2"
+
+services:
+  gitlab-web:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    hostname: 'gitlab.example.com'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.example.com'
+        # Add any other gitlab.rb configuration here, each on its own line
+    ports:
+      - '80:80'
+      - '443:443'
+      - '22:22'
+    volumes:
+      - '/srv/gitlab/config:/etc/gitlab'
+      - '/srv/gitlab/logs:/var/log/gitlab'
+      - '/srv/gitlab/data:/var/opt/gitlab'
+    cpus: '0.5'
+    mem_limit: 2048m
 
 ```
 

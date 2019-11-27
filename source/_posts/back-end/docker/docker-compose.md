@@ -75,6 +75,8 @@ docker-compose scale web=3                         # 执行运行服务的数量
 
 ## Compose 模板文件
 
+注意：deploy 配置是 swarm 集群用法，不支持 `docker-compose up`，需使用 `docker stack deploy --compose-file=docker-compose.yml stackname`
+
 [更多参考 docker-compose-file](https://docs.docker.com/compose/compose-file/)
 
 ```yaml
@@ -86,19 +88,30 @@ services:
     container_name: mysql # 指定启动后的容器名
     ports: # 指定开放的端口号，主机:容器
       - "3306:3306"
-    restart: always # docker 启动后，容器自启动
     environment: # 指定环境变量
       - MYSQL_ROOT_PASSWORD=root
     networks: # 指定网络
       - my-net
     volumes: # 定义数据卷所挂载路径设置 HOST:CONTAINER，ro 代表只读
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ~/docker-data/mysql-data:/var/lib/mysql
       - ~/docker-data/mysql.conf.d:/etc/mysql/mysql.conf.d
-    deploy: # 限制容器使用资源
-      resources:
+    deploy:
+      placement: # 部署规则，只部署在 manager 节点上
+        constraints: [node.role == manager]
+      mode: replicated
+      replicas: 1
+      restart_policy: # 重启规则
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config: # 更新规则
+        parallelism: 1
+        delay: 10s
+      resources:  # 限制容器使用资源
         limits:
-          cpus: "0.5"
+          cpus: "0.5" # 使用cpu内核个数的计算资源，0.5 代表使用一个内核的50%，2 代表使用2个内核 100%(跑满就200%)，可以使用 docker stats 查看
           memory: 2048M
     logging: # 指定 log 使用的驱动
       driver: "json-file"
@@ -108,7 +121,6 @@ services:
 
   web:
     image: nginx:latest
-    restart: always
     depends_on:
       - mysql
     ports:
@@ -125,6 +137,37 @@ services:
 
 networks:
     my-net:
+```
+
+[https://docs.docker.com/compose/compose-file/compose-versioning/#version-2x-to-3x](https://docs.docker.com/compose/compose-file/compose-versioning/#version-2x-to-3x)
+
+version 2：
+
+```yaml
+version: "2.2"
+
+services:
+  mysql: # 指定 service 名
+    image: mysql:5.7 # 指定使用的镜像，默认从 docker hub
+    container_name: mysql # 指定启动后的容器名
+    ports: # 指定开放的端口号，主机:容器
+      - "3306:3306"
+    restart: always # docker 启动后，容器自启动
+    environment: # 指定环境变量
+      - MYSQL_ROOT_PASSWORD=root
+    networks: # 指定网络
+      - my-net
+    volumes: # 定义数据卷所挂载路径设置 HOST:CONTAINER，ro 代表只读
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - ~/docker-data/mysql-data:/var/lib/mysql
+      - ~/docker-data/mysql.conf.d:/etc/mysql/mysql.conf.d
+    cpus: "0.5" # 限制容器使用资源
+    mem_limit: 2048m
+    logging: # 指定 log 使用的驱动
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
 ```
 
 ## 参考

@@ -180,6 +180,27 @@ deploy
 
 ```
 
+### Dockerfile
+
+在子项目根目录下添加 Dockerfile 并添加如下代码
+
+```Dockerfile
+# FROM openjdk:8-jdk-alpine
+FROM java:8
+
+# COPY  /target/demo-1.0.0-SNAPSHOT.jar app.jar
+ADD ./target/demo-demo.jar /app.jar
+
+VOLUME ["/data"]
+
+ENV PORT 8080
+
+EXPOSE $PORT
+
+# ENTRYPOINT ["java", "-jar", "/app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-Dserver.port=${PORT}", "-jar", "/app.jar"]
+```
+
 ## 添加相关凭据
 
 凭据->系统->全局凭据->添加凭据

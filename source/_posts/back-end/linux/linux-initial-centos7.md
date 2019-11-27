@@ -185,7 +185,7 @@ ssh-copy-id leo@SERVER_IP_ADDRESS
 # 2. 如果不支持 ssh-copy-id 命令，需要手动将公钥 ~/.ssh/id_ras.pub 的内容拷贝到服务端用户 leo 的 ~/.ssh/authorized_keys 文件中。
 cat ~/.ssh/id_rsa.pub | ssh leo@SERVER_IP_ADDRESS "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 
-# 注意 authorized_keys 文件需要 600 权限，否则 sshd 不会读取
+# 注意 authorized_keys 文件需要 600 或 400 权限，否则 sshd 不会读取
 chmod 600 ~/.ssh/authorized_keys
 ```
 
@@ -198,6 +198,12 @@ ssh-keygen -t rsa -b 2048
 # 将公钥添加到 authorized_keys 文件，一行一条公钥
 # 可以使用scp 将私钥下载到客户端
 scp -P 22 leo@SERVER_IP_ADDRESS:~/.ssh/id_rsa ~/.ssh/
+```
+
+使用秘钥登录：
+
+```bash
+ssh -i ~/.ssh/201_id_rsa root@192.168.2.201 -p 22
 ```
 
 多个`SSH`秘钥配置：
@@ -231,8 +237,18 @@ vim ~/.ssh/config
 
 Host 192.168.2.201
   IdentityFile ~/.ssh/201_id_rsa
-Host 192.168.2.201
+Host 192.168.2.202
   IdentityFile ~/.ssh/202_id_rsa
+
+# 别名方式配置
+Host dev
+HostName 192.168.2.202
+Port 22
+User root
+IdentityFile ~/.ssh/202_id_rsa
+
+# ssh 登录
+ssh dev
 ```
 
 > 现在就可以使用秘钥+秘钥密码登录了，不设置秘钥密码会直接登录。
