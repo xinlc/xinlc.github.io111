@@ -89,7 +89,8 @@ docker run --name redis-6379 -p 6379:6379 -v $PWD/data:/data -d --restart=always
 # -v /data/docker/redis/data:/data : 将主机中当前目录下的data挂载到容器的/data
 # redis-server –appendonly yes : 在容器执行redis-server启动命令，并打开redis持久化配置
 # requirepass “your passwd” : 设置认证密码
-# –restart=always : 随docker启动而启动
+# –restart=always : 随 docker 启动而启动
+# –restart=unless-stopped : 如果容器正常 stopped，然后机器重启或 docker 服务重启，这种情况下容器将不会被 restart。
 
 docker exec -it e55caa redis-cli
 docker exec -it e55caa redis-cli -a <密码>

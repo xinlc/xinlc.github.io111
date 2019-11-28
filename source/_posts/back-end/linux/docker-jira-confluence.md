@@ -49,7 +49,7 @@ services:
     container_name: mysql
     ports:
       - "3306:3306"
-    restart: always
+    restart: unless-stopped
     networks:
       atlassian-net:
         aliases:
@@ -77,7 +77,7 @@ services:
     container_name: jira
     ports:
       - "9005:8080"
-    restart: always
+    restart: unless-stopped
     depends_on:
       - mysql
     networks:
@@ -96,7 +96,7 @@ services:
     container_name: confluence
     ports:
       - "9006:8090"
-    restart: always
+    restart: unless-stopped
     depends_on:
       - mysql
     networks:

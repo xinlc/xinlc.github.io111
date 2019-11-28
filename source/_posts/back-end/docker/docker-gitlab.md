@@ -65,14 +65,14 @@ version: "3"
 services:
   gitlab:
     image: 'gitlab/gitlab-ce:latest'
-    restart: always
+    restart: unless-stopped #1
     ports:
       - '11080:80'
       - '11443:443'
       - '11022:22'
     volumes:
-      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro #1
-      - /etc/timezone:/etc/timezone:ro #2
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro #2
+      - /etc/timezone:/etc/timezone:ro #3
       - '/mnt/docker-data/gitlab/config:/etc/gitlab'
       - '/mnt/docker-data/gitlab/logs:/var/log/gitlab'
       - '/mnt/docker-data/gitlab/data:/var/opt/gitlab'
@@ -85,8 +85,9 @@ services:
 
 说明：
 
-- `#1`：挂载时间，保证主机时间和容器内时间一致（ro 代表容器内只读）。
-- `#2`：挂载时区。
+- `#1`：unless-stopped 和 always 基本一样，如果容器正常 stopped，然后机器重启或 docker 服务重启，这种情况下容器将不会被 restart。
+- `#2`：挂载时间，保证主机时间和容器内时间一致（ro 代表容器内只读）。
+- `#3`：挂载时区。
 
 > 注意：生产环境要限制cpu和内存。
 
@@ -140,7 +141,7 @@ version: "3"
 services:
   gitlab-runner:
     image: 'gitlab/gitlab-runner:latest'
-    restart: always
+    restart: unless-stopped
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
