@@ -1948,6 +1948,104 @@ export function scrollTo(to, duration, callback) {
 }
 ```
 
+## 下载图片的几种方式
+
+```js
+function exportImageAct(imgUrl, imgName) {
+  if (!!window.ActiveXObject || "ActiveXObject" in window) {
+    aLinkDownload(imgUrl, imgName); // IE浏览器
+  } else if (navigator.userAgent.indexOf("Firefox") !== -1) {
+    imageCanvasAlink(imgUrl, imgName); // 火狐浏览器
+  } else if (navigator.userAgent.indexOf("Chrome") !== -1) {
+    fileUrlDownload(imgUrl, imgName); // Chrome内核浏览器
+  } else {
+    aLinkDownload(imgUrl, imgName);
+  }
+}
+
+// 注意：download 由于浏览器安全策略不支持跨域
+// 接口返回文件流 chrome 浏览器会识别不了类型
+function aLinkDownload(url, imgName) {
+  var a = document.createElement("a");
+  let event = new MouseEvent("click");
+  a.href = url;
+  if (imgName) {
+    a.download = imgName + ".jpg";
+  } else {
+    a.download = "down_load.jpg";
+  }
+  // a.click();火狐浏览器不触发
+  a.dispatchEvent(event);
+}
+
+// 下载文件流的方式 火狐浏览器会默认XML格式，无法定义文件类型
+function fileUrlDownload(url, imgName) {
+  console.log(url, itemData);
+  var xhr = new XMLHttpRequest();
+  xhr.responseType = "blob"; // 返回类型blob
+  xhr.onload = function () {
+    // 定义请求完成的处理函数
+    if (this.status === 200) {
+      var blob = this.response;
+      var reader = new FileReader();
+      reader.readAsDataURL(blob); // 转换为base64，可以直接放入a标签href
+      reader.onload = function (e) {
+        var str = e.target.result;
+        var type = str.substring(str.indexOf("/") + 1, str.indexOf(";"));
+        var a = document.createElement("a"); // 转换完成，创建一个a标签用于下载
+        let event = new MouseEvent("click");
+        if (imgName) {
+          a.download = imgName + "." + type;
+        } else {
+          a.download = "down_load.jpg";
+        }
+        a.href = e.target.result;
+        a.dispatchEvent(event);
+      };
+    } else if (this.status === 504) {
+      alert("导出失败，请求超时");
+    } else {
+      alert("导出失败");
+    }
+  };
+  xhr.open("get", url, true);
+  //此处为兼容后端中间件，设置请求头，文件格式
+  xhr.setRequestHeader(
+    "Accept",
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3"
+  );
+  xhr.send();
+}
+
+// 通过canvas转换
+function imageCanvasAlink(src, imgName) {
+  // 通过Images对象
+  let image = new Image();
+  image.setAttribute("crossOrigin", "anonymous");
+  image.onload = function (e) {
+    let canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    let context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, image.width, image.height);
+    // window.navigator.msSaveBlob(canvas.msToBlob(), 'image.jpg');
+    let url = canvas.toDataURL("image/png");
+    let a = document.createElement("a");
+    let event = new MouseEvent("click");
+    if (imgName) {
+      a.download = imgName + ".jpg";
+    } else {
+      a.download = "down_load.jpg";
+    }
+    a.href = url;
+    // 触发a的单击事件
+    a.dispatchEvent(event);
+  };
+  // 获取img上的src值，赋值之后，完成之后会调用 onload事件
+  image.src = src;
+}
+```
+
 - [30-seconds-of-code](https://github.com/Chalarangelo/30-seconds-of-code)
 - [检查浏览器环境](/resource/js/browser.js)
 - [storage Utils](/resource/js/storage.js)
