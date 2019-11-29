@@ -7,7 +7,7 @@ tags:
   - js
 ---
 
-# JavaScript 常用代码片段
+## JavaScript 常用代码片段
 
 ---
 
