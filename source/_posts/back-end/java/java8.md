@@ -1,7 +1,7 @@
 ---
 title: Java8 新特性汇总
 date: 2019-12-01 21:25:00
-categories: java
+categories: Java
 tags:
   - java
   - java8
