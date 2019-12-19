@@ -1,10 +1,9 @@
 ---
 title: mysqldump 常用命令
 date: 2019-09-15 11:00:00
-categories: Linux
+categories: Database
 tags:
-  - linux
-  - mysql
+  - MySQL
 ---
 
 数据备份！数据备份！数据备份！

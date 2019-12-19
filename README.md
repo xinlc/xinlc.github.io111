@@ -1,6 +1,7 @@
 # Leo Xin's Blog
 
 ## [Hexo Commands](https://hexo.io/zh-cn/docs/commands.html)
+
 ```bash
 npm config set registry "https://registry.npm.taobao.org" #设置为淘宝镜像站
 npm install -g hexo-cli   #安装
@@ -9,8 +10,8 @@ hexo init                 #初始化一个目录
 hexo new "postName"       #新建文章
 hexo new page "pageName"  #新建页面
 hexo generate             #生成网页，可以在 public 目录查看整个网站的文件
-  -d, --deploy            #文件生成后立即部署网站  
-  -w, --watch	            #监视文件变动  
+  -d, --deploy            #文件生成后立即部署网站
+  -w, --watch	            #监视文件变动
 hexo server               #本地预览，’Ctrl+
   -p, --port	            #重设端口
   -s, --static	          #只使用静态文件

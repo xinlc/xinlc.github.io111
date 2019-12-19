@@ -1,11 +1,9 @@
 ---
 title: 在 CentOS7 上实现 MySQL5.7 全量备份+增量备份
 date: 2019-09-15 11:30:00
-categories: Linux
+categories: Database
 tags:
-  - linux
-  - centos7
-  - mysql
+  - MySQL
 ---
 
 数据备份！数据备份！数据备份！
