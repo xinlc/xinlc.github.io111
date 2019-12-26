@@ -598,6 +598,167 @@ netstat -nr
 
 ```
 
+## dnsmasq
+
+```bash
+
+## 带 web ui
+docker pull jpillora/dnsmasq
+
+# 创建配置文件
+vim /mnt/docker-data/dns/dnsmasq.conf
+#dnsmasq config, for a complete example, see:
+#  http://oss.segetech.com/intra/srv/dnsmasq.conf
+#log all dns queries
+log-queries
+#dont use hosts nameservers
+no-resolv
+#use cloudflare as default nameservers, prefer 1^4
+server=114.114.114.114
+server=8.8.8.8
+strict-order
+#serve all .company queries using a specific nameserver
+server=/company/10.0.0.1
+#explicitly define host-ip mappings
+address=/myhost.company/10.0.0.2
+address=/test.demo.com/192.168.0.10
+
+# 运行容器
+docker run \
+    --name dnsmasq \
+    -d \
+    -p 53:53/udp \
+    -p 5380:8080 \
+    -v /opt/dnsmasq.conf:/etc/dnsmasq.conf \
+    --log-opt "max-size=100m" \
+    -e "HTTP_USER=foo" \
+    -e "HTTP_PASS=bar" \
+    --restart always \
+    jpillora/dnsmasq
+
+# 防火墙开放端口
+firewall-cmd --zone=public --add-port=53/udp --permanent
+firewall-cmd --zone=public --add-port=5380/tcp --permanent
+firewall-cmd --reload
+
+# 测试
+host myhost.company <docker-host>
+
+# docker-compose.yml
+version: "2.2"
+
+services:
+  dns-server:
+    image: 'jpillora/dnsmasq:latest'
+    restart: unless-stopped
+    ports:
+      - '53:53/udp'
+      - '5380:8080'
+    environment:
+      - HTTP_USER=root
+      - HTTP_PASS=zkyc
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - '/mnt/docker-data/dns/dnsmasq.conf:/etc/dnsmasq.conf'
+    cpus: '0.5'
+    mem_limit: 512m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+## 不带ui
+# https://github.com/andyshinn/docker-dnsmasq.git
+docker pull andyshinn/dnsmasq
+# docker pull andyshinn/dnsmasq:2.78
+
+docker run -d \
+  --restart=always \
+  -p 53:53/tcp -p 53:53/udp \
+  --cap-add=NET_ADMIN \
+  --name dns-server andyshinn/dnsmasq:latest
+
+# 进入容器
+docker exec -it dns-server /bin/sh
+
+# 配置上行的真正的dns服务器地址，毕竟你只是个本地代理，不了解外部规则
+vim /etc/resolv.dnsmasq
+nameserver 114.114.114.114
+nameserver 8.8.8.8
+# 或者使用阿里云的 DNS
+nameserver 223.5.5.5
+nameserver 223.6.6.6
+
+# 配置本地解析规则
+vim /etc/dnsmasq.hosts
+192.168.0.79 dev.demo.com test.demo.com
+192.168.0.80 master
+192.168.0.81 slave01
+192.168.0.82 slave02
+
+# 修改 dnsmasq 配置文件，指定使用上述两个我们自定义的配置文件
+vim /etc/dnsmasq.conf
+resolv-file=/etc/resolv.dnsmasq
+addn-hosts=/etc/dnsmasq.hosts
+
+# 重启容器
+docker restart dns-server
+
+# 接下来添加dns服务器ip到电脑，或者添加到路由器上就可以了
+
+# docker-compose.yml
+version: "3"
+
+services:
+  dns-server:
+    image: 'andyshinn/dnsmasq:latest'
+    restart: unless-stopped
+    cap_add
+      - NET_ADMIN
+    ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - '~/docker-data/dns/resolv.dnsmasq:/etc/resolv.dnsmasq'
+      - '~/docker-data/dns/dnsmasq.hosts:/etc/dnsmasq.hosts'
+      - '~/docker-data/dns/dnsmasq.conf:/etc/dnsmasq.conf'
+
+
+# https://github.com/andyshinn/docker-dnsmasq/issues/14
+# 问：Can't resolve name when the dockerized app and dockerized dnsmasq on the same host
+
+# 答：I think this is a hairpin NAT problem (containers going out the NAT cannot connect back in to the same NAT). Do we know if Docker supports this?
+
+# You could solve it by connecting to the Docker bridge IP (usually 172.17.42.1 but could be different). I think you can also specify a gateway IP when creating a network. You could create a network (docker network create --subnet 192.168.52.0/24 --gateway 192.168.52.1 mynetwork) and then specify this network to attach in both Docker Compose and the dnsmasq container. Your container applications would then use DNS for 192.168.52.1.
+```
+
+## [bind](https://github.com/sameersbn/docker-bind)
+
+```bash
+# docker pull sameersbn/bind
+
+## 创建docker网
+# 创建一个macvlan网络，可以使容器的IP和宿主机IP在同一个网段。这样就可以直接使用容器IP来访问DNS服务了。
+# 查看主机网卡，一般是eth0
+ifconfig
+docker network create -d macvlan --subnet=10.0.10.0/24 --gateway=10.0.10.1 -o parent=eth0 mynet
+# -d 驱动， 这里使用 macvlan
+# --subnet，指定子网
+# --gateway，指定网关
+# parent，这里指定宿主机网卡名称
+# appnet，这是新创建的docker网络名称
+
+# 运行
+docker run -dit --hostname bind --net=appnet --ip=10.0.10.1 --name bind --restart=always --volume /app/bind:/data sameersbn/bind:latest
+
+# 使用--net 指定刚刚创建的macvlan网络，使用--ip指定一个IP地址
+打开浏览器：https://10.0.10.1:10000，输入默认的用户名：root，密码：password，点击左则菜单的 Servers 就可以看到 DNS 服务器已经运行起来了
+```
+
 ## 参考
 
 - [docker docs](https://docs.docker.com)
