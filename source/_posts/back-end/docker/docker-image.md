@@ -601,8 +601,7 @@ netstat -nr
 ## dnsmasq
 
 ```bash
-
-## 带 web ui
+## 1. 带 web ui https://github.com/jpillora/docker-dnsmasq
 docker pull jpillora/dnsmasq
 
 # 创建配置文件
@@ -669,8 +668,8 @@ services:
         max-size: "20m"
         max-file: "2"
 
-## 不带ui
-# https://github.com/andyshinn/docker-dnsmasq.git
+
+## 2. 不带 ui https://github.com/andyshinn/docker-dnsmasq.git
 docker pull andyshinn/dnsmasq
 # docker pull andyshinn/dnsmasq:2.78
 
@@ -756,7 +755,7 @@ docker network create -d macvlan --subnet=10.0.10.0/24 --gateway=10.0.10.1 -o pa
 docker run -dit --hostname bind --net=appnet --ip=10.0.10.1 --name bind --restart=always --volume /app/bind:/data sameersbn/bind:latest
 
 # 使用--net 指定刚刚创建的macvlan网络，使用--ip指定一个IP地址
-打开浏览器：https://10.0.10.1:10000，输入默认的用户名：root，密码：password，点击左则菜单的 Servers 就可以看到 DNS 服务器已经运行起来了
+# 打开浏览器：https://10.0.10.1:10000，输入默认的用户名：root，密码：password，点击左则菜单的 Servers 就可以看到 DNS 服务器已经运行起来了
 ```
 
 ## 参考
