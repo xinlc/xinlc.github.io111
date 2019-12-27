@@ -268,6 +268,51 @@ $ docker service create \
 
 > 如果你没有在 target 中显式的指定路径时，默认的 redis.conf 以 tmpfs 文件系统挂载到容器的 /config.conf。
 
+#### compose-file
+
+- [compose-file-configs](https://docs.docker.com/compose/compose-file/#configs)
+- [swarm-configs](https://docs.docker.com/engine/swarm/configs/)
+
+```yaml
+version: "3.7"
+
+services:
+  nginx-router:
+    image: nginx:1.17.3
+    ports:
+      - "9080:80"
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/nginx.conf
+        mode: 0440
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+configs:
+  nginx_config:
+    file: ./data/nginx/nginx.conf
+
+```
+
 ## Stack 多服务编排
 
 之前 swarm 集群中 `docker service create` 一次只能部署一个微服务，我们可以使用 `docker stack + compose` 一次启动多个服务。
