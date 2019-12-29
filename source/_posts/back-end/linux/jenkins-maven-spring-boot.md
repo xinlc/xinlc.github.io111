@@ -80,9 +80,13 @@ pipeline {
     }
 
     // 登录远程服务器，拉取新镜像并部署
-    stage('Deploy') {
+    stage('Deliver for development') {
       agent any
+      when {
+        branch 'development'
+      }
       steps {
+        // input message: 'Finished using the web site? (Click "Proceed" to continue)'
         script {
           // 从全局凭据中获取 sshUser202 用户名和密码
           withCredentials([usernamePassword(credentialsId: 'sshUser202', passwordVariable: 'userPwd', usernameVariable: 'userName')]) {
@@ -103,6 +107,24 @@ pipeline {
             }
           }
         }
+      }
+    }
+
+    // 人工确认
+    // stage('Sanity check') {
+    //   steps {
+    //     input "Does the staging environment look ok?"
+    //   }
+    // }
+
+    stage('Deploy for production') {
+      when {
+        branch 'production'
+      }
+      steps {
+        sh './jenkins/scripts/deploy-for-production.sh'
+        input message: 'Finished using the web site? (Click "Proceed" to continue)'
+        sh './jenkins/scripts/kill.sh'
       }
     }
   }

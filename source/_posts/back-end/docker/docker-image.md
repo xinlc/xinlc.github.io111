@@ -618,9 +618,12 @@ server=8.8.8.8
 strict-order
 #serve all .company queries using a specific nameserver
 server=/company/10.0.0.1
+server=/foo.com/192.168.0.10
 #explicitly define host-ip mappings
 address=/myhost.company/10.0.0.2
-address=/test.demo.com/192.168.0.10
+address=/.foo.com/192.168.0.10
+address=/a.foo.com/192.168.0.11
+address=/a.bar.com/192.168.0.12
 
 # 运行容器
 docker run \
