@@ -169,6 +169,25 @@ apk search node
 # 安装 node & npm
 apk add nodejs=10.14.2-r0
 apk add npm=10.14.2-r0
+
+# 安装 node-sass 依赖
+set SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass/
+npm install node-sass
+# 或修改.npmrc
+sass_binary_site=https://npm.taobao.org/mirrors/node-sass/
+phantomjs_cdnurl=https://npm.taobao.org/mirrors/phantomjs/
+electron_mirror=https://npm.taobao.org/mirrors/electron/
+registry=https://registry.npm.taobao.org
+
+# 如果是 Nexus 则 set SASS_BINARY_SITE=https://nexus/repository/npm/
+npm install -g cnpm; cnpm install
+
+# 可能还需要安装一下软件
+apk add git=2.20.2-r0
+apk add maven=3.6.0-r0
+apk add python2=2.7.16-r1
+apk add make=4.2.1-r2
+apk add g++=8.3.0-r
 ```
 
 ## 参考
