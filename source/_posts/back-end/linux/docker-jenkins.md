@@ -135,6 +135,14 @@ apk add npm=10.14.2-r0
 - SSH Pipeline Steps
 - Publish Over SSH
 
+## Jenkins时区设置为北京时间
+
+打开 【系统管理】->【脚本命令行】运行下面的命令
+
+```java
+System.setProperty('org.apache.commons.jelly.tags.fmt.timeZone', 'Asia/Shanghai')
+```
+
 ## 参考
 
 - [jenkins](https://jenkins.io/zh/doc/)
