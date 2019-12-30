@@ -761,6 +761,99 @@ docker run -dit --hostname bind --net=appnet --ip=10.0.10.1 --name bind --restar
 # 打开浏览器：https://10.0.10.1:10000，输入默认的用户名：root，密码：password，点击左则菜单的 Servers 就可以看到 DNS 服务器已经运行起来了
 ```
 
+## svn
+
+```bash
+docker pull garethflowers/svn-server
+
+docker run \
+    --name svn-server \
+    --detach \
+    --volume /home/svn:/var/opt/svn \
+    --publish 3690:3690 \
+    garethflowers/svn-server
+
+# 创建新仓库
+docker exec -it svn-server svnadmin create repo
+
+# 当前仓库下
+## ！！！注意！！！配置文件不要注释！！！
+## ！！！注意！！！配置文件不要注释！！！
+## ！！！注意！！！配置文件不要注释！！！
+## 资源仓库配置，修改 conf/svnserve.conf
+vim conf/svnserve.conf
+
+[general]
+anon-access=none             # 匿名用户不可读写，也可设置为只读 read
+auth-access=write            # 授权用户可读可写
+password-db=passwd           # 密码文件路径，相对于当前目录
+authz-db=authz               # 访问控制文件
+realm=/var/opt/svn/repo      # 认证命名空间，会在认证提示界面显示，并作为凭证缓存的关键字，可以写仓库名称比如repo
+# realm=repo
+
+## 配置账号与密码，修改 conf/passwd 文件，格式为“账号 = 密码”
+[users]
+# harry = harryssecret
+# sally = sallyssecret
+admin=123456
+
+## 配置账户权限，修改 conf/authz 文件
+[groups]
+owner=admin
+
+[/]               # / 表示所有仓库
+admin=rw        # 用户 admin 在所有仓库拥有读写权限
+
+[repo:/]           # 表示以下用户在仓库 svn 的所有目录有相应权限
+@owner=rw       # 表示 owner 组下的用户拥有读写权限
+
+# 防火墙开放端口
+firewall-cmd --zone=public --add-port=3690/tcp --permanent
+firewall-cmd --reload
+
+# 重启 svn-server
+docker restart svn-server
+
+# 常用命令
+## 检出仓库
+svn checkout svn://localhost:3690/repo --username admin
+# svn checkout svn://localhost:3690/repo /Users/leo/repo --username admin
+# svn co svn://localhost/repo --username admin --password 123456
+
+### 提交文件
+echo abc > test.txt
+svn add test.txt
+svn commit -m 'test'
+
+### 查看仓库中的文件
+svn list test.txt
+
+### 还原文件
+svn revert test.txt
+
+# docker-compose.yml
+version: "2.2"
+
+services:
+  svn:
+    image: 'garethflowers/svn-server:latest'
+    restart: unless-stopped
+    ports:
+      - '3690:3690'
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - '/mnt/docker-data/svn/home:/var/opt/svn'
+    cpus: '1'
+    mem_limit: 1024m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+```
+
 ## 参考
 
 - [docker docs](https://docs.docker.com)
