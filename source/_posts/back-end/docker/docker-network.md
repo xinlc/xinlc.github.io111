@@ -376,6 +376,20 @@ none 模式，使用 `--network=none` 指定。
 
 ## 问题
 
+### Docker 如何访问宿主机?
+
+```bash
+ifconfig
+ip addr show docker0
+ip addr show docker0 | grep -Po 'inet \K[\d.]+'
+# 会看到 docker0 那个 ip，可以使用来访问宿主机
+# 一般为 172.17.0.1
+# 或者访问当前机器ip(192.168.1.xxx)
+
+# MacOS 中
+# docker 18.03 加入了一个 feature，在容器中可以通过 host.docker.internal 来访问主机 。
+```
+
 ### docker 访问宿主机 ip 时
 
 [NO ROUTE TO HOST network request from container to host-ip:port published from other container](https://forums.docker.com/t/no-route-to-host-network-request-from-container-to-host-ip-port-published-from-other-container/39063)
