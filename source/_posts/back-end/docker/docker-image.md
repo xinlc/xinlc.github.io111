@@ -854,6 +854,32 @@ services:
 
 ```
 
+## [nginx-proxy](https://github.com/jwilder/nginx-proxy)
+
+自动化 Nginx 反向代理 Docker, nginx-proxy 启动一个容器来运行 nginx 和 docker-gen。 在主机上的容器启动和停止时 docker-gen 会生成 nginx 反向代理配置并且重新加载 nginx。
+
+```bash
+version: '2'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  whoami:
+    image: jwilder/whoami
+    environment:
+      # - VIRTUAL_HOST=whoami.local # 定义访问改容器的域名
+      - VIRTUAL_HOST=xinlichao.cn,www.xinlichao.cn
+      - VIRTUAL_PORT=8000
+
+
+curl -H "Host: whoami.local" localhost
+```
+
 ## 参考
 
 - [docker docs](https://docs.docker.com)
