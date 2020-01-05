@@ -1114,7 +1114,13 @@ public static void reduce(){
 
 Java 8 提供了一些列的匹配的终止操作符来帮助开发者判断流当中的元素是否符合某些判断规则。所有的匹配类型的操作都会返回布尔类型。
 
+- `anyMatch` 表示，判断的条件里，任意一个元素成功，返回 true
+- `allMatch` 表示，判断条件里的元素，所有的都是，返回 true
+- `noneMatch` 跟 `allMatch` 相反，判断条件里的元素，所有的都不是，返回 true
+
 ```java
+List<String> stringCollection = Arrays.asList("a", "a", "a", "a", "b");
+
 boolean anyStartsWithA =
     stringCollection
         .stream()
