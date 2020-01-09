@@ -374,6 +374,14 @@ public class Lambda1 {
 Formula formula = (a) -> sqrt( a * 100);
 ```
 
+### Lambda 表达式里面给外部变量赋值的问题
+
+在 Lambda 中修改外部变量，会发现报错 Variable used in lambda expression should be final or effectively final。
+
+前面也说了，这是因为Java会将外部变量的值作为参数传递给 Lambda 表达式，为 Lambda 表达式建立一个副本，它的代码访问的是这个副本，而不是外部声明变量。为什么非要建立副本呢，直接访问外部的result变量得多方便呢。答案是：这是不可能滴，因为外部变量定义在栈中，当 Lambda 表达式被执行的时候，外部变量可能已经被释放掉了。
+
+一定要在 Lambda 表达式里面修改外部变量的值也是可以的，可以将变量定义为实例变量或放入数组、Map、AtomicReference等。
+
 ## Default Methods for Interfaces
 
 Java 8 允许我们利用 default 关键字来向接口中添加非抽象的方法作为默认方法。所有实现这个接口的类都会接受默认方法的实现，除非子类提供的自己的实现。例如：
