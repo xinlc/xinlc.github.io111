@@ -484,6 +484,8 @@ ctrl + i  # 下一个光标的位置
 ctrl + o  # 编辑模式下，暂时离开插入模式并执行一次命令
 ctrl + a  # Normal模式下，数字+1
 ctrl + x  # Normal模式下，数字-1
+ctrl + [  # 退出insert mode
+ctrl + c  # 退出insert mode
 ```
 
 ## 注释与反注释
