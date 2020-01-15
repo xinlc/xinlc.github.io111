@@ -12,15 +12,17 @@ MySQL记录——七七八八
 
 ## Mysql 悲观锁（for update)
 
-解锁条件：
+加锁(sql 最后加 FOR UPDATE)：
 
-1. 执行相同条件的 update
-2. 执行 commit
-3. 退出数据库 logout
-
-检索的时候 如果不是主键和索引，有没有结果都会锁整表。
+检索的时候 如果检索条件不是主键和索引，有没有结果都会锁整表。
 
 有主键或有索引（只有有一个就行，其他条件没有索引）有结果，行级锁，没结果，不会锁。
+
+解锁：
+
+1. 执行相同条件的 update
+2. 执行 commit 或当前事务结束
+3. 退出数据库 logout
 
 ## mysql 中 tinyint、smallint、int、bigint 的区别
 

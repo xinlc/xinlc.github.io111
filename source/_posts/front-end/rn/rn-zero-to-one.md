@@ -115,6 +115,7 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 - `react-native-router-flux` Router 管理。
 - `ant-design` 组件库。
 - `axios` http 管理。
+- `iron-redux` 一个类型完美的 Redux 去形式化的库。主要解决 Redux 冗余样板代码问题。
 
 ```bash
 # 1. 克隆本项目
