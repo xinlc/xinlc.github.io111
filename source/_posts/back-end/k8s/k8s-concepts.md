@@ -14,7 +14,18 @@ Kubernetes，简称K8S 是一个 Google 开源容器编排引擎，用于容器�
 
 ## Kubenetes 解决什么问题？
 
-K8S 本质上是用来简化微服务开发和部署的公共关注点平台解决方案。如下图中间蓝框部分：
+K8S 本质上是用来简化微服务开发和部署的公共关注点平台解决方案。提供资源调度、均衡容灾、服务注册、动态扩缩容等功能套件。K8S 提供应用部署、维护、 扩展机制等功能，利用 K8S 能方便地管理跨机器运行容器化的应用，其主要功能如下：
+
+- `数据卷` Pod 中容器之间共享数据，可以使用数据卷。
+- `应用程序健康检查` 容器内服务可能进程堵塞无法处理请求，可以设置监控检查策略保证应用健壮性。
+- `复制应用程序实例` 控制器维护着 Pod 副本数量，保证一个 Pod 或一组同类的 Pod 数量始终可用。
+- `弹性伸缩` 根据设定的指标（CPU利用率）自动缩放 Pod 副本数。
+- `服务发现` 使用环境变量或 DNS 服务插件保证容器中程序发现 Pod 入口访问地址。
+- `负载均衡` 一组 Pod 副本分配一个私有的集群 IP 地址，负载均衡转发请求到后端容器。在集群内部其他 Pod 可通过这个 ClusterIP 访问应用。
+- `滚动更新` 更新服务不中断，一次更新一个 Pod ，而不是同时删除整个服务。
+- `服务编排` 通过文件描述部署服务，使得应用程序部署变得更高效。
+- `资源监控` Node 节点组件集成 cAdvisor 资源收集工具，可通过 Heapster 汇总整个集群节点资源数据，然后存储到 InfluxDB 时序数据库，再由 Grafana 展示。
+- `提供认证和授权` 支持属性访问控制（ABAC）、角色访问控制（RBAC）认证授权策略。
 
 ![1][1]
 
@@ -34,7 +45,7 @@ Worker 节点主要组件如下：
 - `kubelet` 相当于 Worker 节点上的小脑一个 agent 角色，负责管理 Worker 节点上的组件，和 Master 节点上的 API server 进行交互。接收指令和操作，比如说启动 pod 和关闭 pod 或上报一些事件信息。
 - `kube-proxy` 负责对 pod 进行寻址和负载均衡的组件，是实现 service 和服务发现抽象的关键，底层操作 iptables 规则。
 
-pod 之前的通信走的是 Overlay 网络。
+pod 之间的通信走的是 Overlay 网络。
 
 ![2][2]
 
@@ -102,12 +113,26 @@ ReplicaSet 可以认为是一种基本的发布机制，可以实现高级的发
 
 ![11][11]
 
+### Ingress
+
+Kubernetes中的负载均衡我们主要用到了以下两种机制：
+- `Service` 使用 Service 提供集群内部的负载均衡，Kube-proxy 负责将 service 请求负载均衡到后端的 Pod 中。
+- `Ingress Controller` 使用 Ingress 提供集群外部的负载均衡。
+
+Service 和 Pod 的 IP 仅可在集群内部访问。集群外部的请求需要通过负载均衡转发到 service 所在节点暴露的端口上，然后再由 kube-proxy 通过边缘路由器将其转发到相关的 Pod，Ingress 可以给 service 提供集群外部访问的 URL、负载均衡、HTTP 路由等，为了配置这些 Ingress 规则，集群管理员需要部署一个 Ingress Controller，它监听 Ingress 和 service 的变化，并根据规则配置负载均衡并提供访问入口。
+
+常用的 `ingress controller`：
+- nginx
+- traefik
+- Kong
+- Openresty
+
 ### 其他概念
 
 - `Volume`卷存储抽象，可以是节点本地文件存储，也可是远程存储。挂载 Mount 之后成为 pod 的一部分。pod 销毁 Volume 也销毁，但是 Volume 的存储还存在。
 - `PersistenVolume` 持久卷，如果 Volume 只用文件的本地存储，那么下次 pod 重启可能会换一个节点，PV 是高级的存储抽象，可以对接各种云存储。可以灵活插到集群中。
 - `PersistenVolumeClaims` 这个是应用申请 PV 时需要填写的规范，包括磁盘大小，类型等。简称 PVC 应用通过 PVC 申请 PV 资源，然后以 Volume 的形式挂载到 pod 当中。PV 和 PVC 的引入可以使 Volume 和具体的物理存储可以近一步解耦。
-- `StatefulSet` 顾名思义支持有状态的应用发布，比如说你要发布 Mysql 数据库或 Redis 等。和 ReplicaSet 相对应，ReplicaSet 是无状态应用发布。
+- `StatefulSet` 顾名思义支持有状态的应用发布，有唯一的网络标识符（IP），持久存储，有序的部署、扩展、删除和滚动更新。比如说你要发布 Mysql 数据库或 Redis 等。StatefuleSet 能够保证 Pod 的每个副本在整个生命周期中名称是不变的。而其他 Controller 不提供这个功能，当某个 Pod 发生故障需要删除并重新启动时，Pod 的名称会发生变化。同时 StatefuleSet 会保证副本按照固定的顺序启动、更新或者删除。和 ReplicaSet 相对应，ReplicaSet 是无状态应用发布。
 - `Job` 支持跑一次的任务。
 - `CronJob` 支持周性的任务。
 
