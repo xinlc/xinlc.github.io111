@@ -1,5 +1,5 @@
 ---
-title:【转】数据库：Mysql中“select ... for update”排他锁分析
+title: 【转】数据库：Mysql中“select ... for update”排他锁分析
 date: 2020-02-12 17:16:00
 categories: Database
 tags:
