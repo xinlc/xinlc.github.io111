@@ -66,9 +66,9 @@ Eureka 是一个基于 REST 的服务，主要用于 AWS 云中的定位服务�
 
 如上图所示，其中
 
-- Application Server：表示服务提供方
-- Application Client：表示服务消费方
-- Make Remote Call：表示远程调用
+- Application Server：表示服务提供方；
+- Application Client：表示服务消费方；
+- Make Remote Call：表示远程调用；
 
 服务在 Eureka 上注册，然后每隔30秒发送心跳来更新它们的租约。如果客户端不能多次续订租约，那么它将在大约90秒内从服务器注册表中剔除。注册信息和更新被复制到集群中的所有 Eureka 节点。来自任何区域的客户端都可以查找注册表信息（每30秒发生一次）来定位它们的服务（可能在任何区域）并进行远程调用。
 
@@ -76,14 +76,14 @@ Eureka 是一个基于 REST 的服务，主要用于 AWS 云中的定位服务�
 
 两大组件：
 
-- Eureka Server：提供注册服务
-- Eureka Client：JAVA客户端，负责发送心跳
+- Eureka Server：提供注册服务；
+- Eureka Client：JAVA客户端，负责发送心跳；
 
 三大角色：
 
-- Eureka Server：提供服务注册和发现
-- Service Provider：服务提供方，将自身服务注册到 Eureka，从而使服务消费方能够找到
-- Service Consumer：服务消费方，从 Eureka 获取注册服务列表，从而能够消费服务。
+- Eureka Server：提供服务注册和发现；
+- Service Provider：服务提供方，将自身服务注册到 Eureka，从而使服务消费方能够找到；
+- Service Consumer：服务消费方，从 Eureka 获取注册服务列表，从而能够消费服务；
 
 ### Eureka 客户端与服务器之间的通信
 
@@ -111,10 +111,7 @@ Eureka 客户端在关机时向 Eureka 服务器发送一个取消请求。这�
 
 任何客户端，如果连续3次心跳更新失败，那么它将被视为非正常终止，病句将被剔除。当超过当前注册实例15%的客户端都处于这种状态，那么自我保护将被开启。
 
-当自我保护开启以后，Eureka 服务器将停止剔除所有实例，直到：
-
-1. 它看到的心跳续借的数量回到了预期的阈值之上，或者
-2. 自我保护被禁用
+当自我保护开启以后，Eureka 服务器将停止剔除所有实例，直到：它看到的心跳续借的数量回到了预期的阈值之上，或者自我保护被禁用。
 
 默认情况下，自我保护是启用的，并且，默认的阈值是要大于当前注册数量的15%。
 
