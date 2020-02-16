@@ -15,8 +15,8 @@ tags:
 ### 安装 pip
 
 ```bash
-$ curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-$ python get-pip.py
+curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+python get-pip.py
 ```
 
 <!--more-->
@@ -24,8 +24,8 @@ $ python get-pip.py
 ### 安装 SS
 
 ```bash
-$ pip install --upgrade pip
-$ pip install shadowsocks
+pip install --upgrade pip
+pip install shadowsocks
 ```
 
 ### 创建 SS 配置文件
@@ -34,7 +34,7 @@ $ pip install shadowsocks
 
 ```bash
 # 创建配置文件
-$ vi /etc/shadowsocks.json
+vi /etc/shadowsocks.json
 
 # 添加下面内容
 {
@@ -65,17 +65,17 @@ $ vi /etc/shadowsocks.json
 ### 关闭防火墙
 
 ```bash
-$ systemctl stop firewalld.service
+systemctl stop firewalld.service
 ```
 
 ### 启动/关闭
 
 ```bash
 # 启动SS
-$ ssserver -c /etc/shadowsocks.json -d start
+ssserver -c /etc/shadowsocks.json -d start
 
 # 关闭SS
-$ ssserver -c /etc/shadowsocks.json -d stop
+ssserver -c /etc/shadowsocks.json -d stop
 ```
 
 ### 配置自启动
@@ -83,7 +83,7 @@ $ ssserver -c /etc/shadowsocks.json -d stop
 创建配置文件
 
 ```bash
-$ vi /etc/systemd/system/shadowsocks.service
+vi /etc/systemd/system/shadowsocks.service
 # 加入下面内容
 [Unit]
 Description=Shadowsocks
@@ -99,11 +99,11 @@ WantedBy=multi-user.target
 执行以下命令启动 shadowsocks 服务
 
 ```bash
-$ systemctl enable shadowsocks
-$ systemctl start shadowsocks
+systemctl enable shadowsocks
+systemctl start shadowsocks
 
 # 查看状态
-$ systemctl status shadowsocks -l
+systemctl status shadowsocks -l
 ```
 
 ### 客户端下载
@@ -116,11 +116,11 @@ $ systemctl status shadowsocks -l
 ## 快速安装
 
 ```bash
-$ wget --no-check-certificate -O shadowsocks.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks.sh
+wget --no-check-certificate -O shadowsocks.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks.sh
 
-$ chmod +x shadowsocks.sh
+chmod +x shadowsocks.sh
 
-$ ./shadowsocks.sh 2>&1 | tee shadowsocks.log
+./shadowsocks.sh 2>&1 | tee shadowsocks.log
 ```
 
 依次执行上面的命令后，选择输入：
@@ -135,34 +135,34 @@ $ ./shadowsocks.sh 2>&1 | tee shadowsocks.log
 ## 一键安装最新内核并开启 [BBR](https://teddysun.com/489.html) 脚本
 
 ```bash
-$ wget --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh
-$ chmod +x bbr.sh
-$ ./bbr.sh
+wget --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh
+chmod +x bbr.sh
+./bbr.sh
 ```
 
 ```bash
-$ reboot # 重启
+reboot # 重启
 ```
 
 ### 验证
 
 ```bash
-$ uname -r  # 查看版本是否更新
+uname -r  # 查看版本是否更新
 ```
 
-```
-$ lsmod | grep bbr # 返回值有 tcp_bbr 即bbr已启动。
+```bash
+lsmod | grep bbr # 返回值有 tcp_bbr 即bbr已启动。
 ```
 
 ## 优化 TCP 配置
 
 ```bash
-$ vim /etc/sysctl.conf
+vim /etc/sysctl.conf
 ```
 
 复制如下代码：
 
-```
+```bash
 # TCP配置优化
 fs.file-max = 51200
 # 提高整个系统的文件限制
@@ -189,9 +189,9 @@ net.ipv4.tcp_congestion_control = bbr
 应用 & 重启 SS
 
 ```bash
-$ sysctl -p
-$ /etc/init.d/shadowsocks-r restart
-$ ssserver -c /etc/shadowsocks.json -d start
+sysctl -p
+/etc/init.d/shadowsocks-r restart
+ssserver -c /etc/shadowsocks.json -d start
 ```
 
 ## 参考

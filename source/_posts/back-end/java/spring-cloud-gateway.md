@@ -136,9 +136,9 @@ public class GatewayConfig {
 
 ## Route Predicate 的使用
 
-- Spring Cloud Gateway 包含许多内置的 Route Predicate Factories
-- 所有这些 predicates 用于匹配HTTP请求的不同属性
-- 多个 Route Predicate Factories 可以通过逻辑与（and）结合起来一起使用
+- Spring Cloud Gateway 包含许多内置的 Route Predicate Factories；
+- 所有这些 predicates 用于匹配HTTP请求的不同属性；
+- 多个 Route Predicate Factories 可以通过逻辑与（and）结合起来一起使用；
 
 Spring Cloud Gateway 将路由匹配作为 Spring WebFlux HandlerMapping 基础架构的一部分。 Spring Cloud Gateway 包括许多内置的 Route Predicate工厂。 所有这些 Predicate 都与 HTTP 请求的不同属性匹配。 多个 Route Predicate 工厂可以进行组合
 
@@ -812,7 +812,6 @@ eureka:
 logging:
   level:
     org.springframework.cloud.gateway: debug
-
 ```
 
 使用 application-eureka.yml 配置文件启动 api-gateway 服务，访问 http://localhost:9201/user-service/user/1 ，可以路由到 user-service的http://localhost:8201/user/1 处。

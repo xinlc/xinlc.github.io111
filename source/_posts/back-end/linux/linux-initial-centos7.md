@@ -44,14 +44,14 @@ ping -c 4 www.baidu.com
 
 网卡参数说：
 
-- TYPE=Ethernet（设备连接类型，此处为以太网）
-- IPADDR=IP 地址（192.168.2.201）
-- NETMASK=子掩码（255.255.255.0）
-- GATEWAY=网关（192.168.2.1）
-- DNS1=DNS 地址 （114.114.114.114 或 8.8.8.8）
-- ONBOOT=yes（网卡随系统启动， 默认为 no）
-- BOOTPROTO=static (使用动态 IP 还是静态 IP，默认为 dhcp)
-- HWADDR=MAC 地址
+- TYPE=Ethernet（设备连接类型，此处为以太网）；
+- IPADDR=IP 地址（192.168.2.201）；
+- NETMASK=子掩码（255.255.255.0）；
+- GATEWAY=网关（192.168.2.1）；
+- DNS1=DNS 地址 （114.114.114.114 或 8.8.8.8）；
+- ONBOOT=yes（网卡随系统启动， 默认为 no）；
+- BOOTPROTO=static (使用动态 IP 还是静态 IP，默认为 dhcp）；
+- HWADDR=MAC 地址；
 
 ## 安装常用工具
 

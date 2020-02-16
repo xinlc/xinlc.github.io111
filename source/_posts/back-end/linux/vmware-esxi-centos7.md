@@ -22,7 +22,6 @@ tags:
 
 ### 下载系统镜像
 
--
 - CentOS7 系统 [官网](https://www.centos.org)
 - [使用阿里云镜像下载 CentOS7.6](http://mirrors.aliyun.com/centos/7.6.1810/isos/x86_64/CentOS-7-x86_64-DVD-1810.iso)
 

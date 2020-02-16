@@ -32,17 +32,17 @@ Pipeline 相当于一个构建任务，里面可以包含多个流程，如依�
 
 Stage 表示构建的阶段，即上面提到的流程。
 
-- 所有 Stages 按顺序执行，即当一个 Stage 完成后，下一个 Stage 才会开始。
-- 任一 Stage 失败，后面的 Stages 将永不会执行，Pipeline 失败。
-- 只有当所有 Stages 完成后，Pipeline 才会成功。
+- 所有 Stages 按顺序执行，即当一个 Stage 完成后，下一个 Stage 才会开始；
+- 任一 Stage 失败，后面的 Stages 将永不会执行，Pipeline 失败；
+- 只有当所有 Stages 完成后，Pipeline 才会成功；
 
 #### Jobs
 
 Job 是 Stage 中的任务。
 
-- 相同 Stage 中的 Jobs 会并行执行。
-- 任一 Job 失败，那么 Stage 失败，Pipeline 失败。
-- 相同 Stage 中的 Jobs 都执行成功时，该 Stage 成功。
+- 相同 Stage 中的 Jobs 会并行执行；
+- 任一 Job 失败，那么 Stage 失败，Pipeline 失败；
+- 相同 Stage 中的 Jobs 都执行成功时，该 Stage 成功；
 
 ### GitLab Runner
 
@@ -52,8 +52,8 @@ Job 是 Stage 中的任务。
 
 GitLab-Runner可以分类两种类型：Shared Runner（共享型）和Specific Runner（指定型）。
 
-- `Shared Runner`：所有工程都能够用的，且只有系统管理员能够创建。
-- `Specific Runner`：只有特定的项目可以使用。
+- `Shared Runner`：所有工程都能够用的，且只有系统管理员能够创建；
+- `Specific Runner`：只有特定的项目可以使用；
 
 ## 安装 GitLab CE
 
@@ -85,9 +85,9 @@ services:
 
 说明：
 
-- `#1`：unless-stopped 和 always 基本一样，如果容器正常 stopped，然后机器重启或 docker 服务重启，这种情况下容器将不会被 restart。
-- `#2`：挂载时间，保证主机时间和容器内时间一致（ro 代表容器内只读）。
-- `#3`：挂载时区。
+- `#1`：unless-stopped 和 always 基本一样，如果容器正常 stopped，然后机器重启或 docker 服务重启，这种情况下容器将不会被 restart；
+- `#2`：挂载时间，保证主机时间和容器内时间一致（ro 代表容器内只读）；
+- `#3`：挂载时区；
 
 > 注意：生产环境要限制cpu和内存。
 
@@ -286,17 +286,17 @@ deploy_pord_job:
 
 说明：
 
-- `#1`：默认全局镜像。
-- `#2`：配置的一些环境变量。
-- `#3`：这里我连接的是宿主机的 `docker daemon`，为了使用宿主机的镜像。如果想要连接 `dind` 自己，使用 `tcp://docker:2375`
-- `#4`：配置缓存。
-- `#5`：配置需要依赖的额外的服务，如构建可能需要依赖 mysql，redis 等。 `docker:dind`，docker 打包需要依赖 dind。services 的本质其实是使用了 docker 的 `--link`。
-- `#6`：Stages 表示构建阶段，是一些按序执行的流程，具体执行是依赖于 Jobs。
-- `#7`：定义的 Jobs 之一，用于构建 jar 包。
-- `#8`：工件，就是在依赖项之间传递的东西，以便后面job使用。我这里是聚合项目，配置的是构建一个子项目。
-- `#9`：当前阶段用到的镜像，镜像提供阶段用到的环境。
-- `#10`：使用 sshpass 进行远程部署。[推荐使用官方使用ssh免密的方法](https://docs.gitlab.com/ee/ci/ssh_keys/README.html)。
-- `#11`：手动触发部署。
+- `#1`：默认全局镜像；
+- `#2`：配置的一些环境变量；
+- `#3`：这里我连接的是宿主机的 `docker daemon`，为了使用宿主机的镜像。如果想要连接 `dind` 自己，使用 `tcp://docker:2375`；
+- `#4`：配置缓存；
+- `#5`：配置需要依赖的额外的服务，如构建可能需要依赖 mysql，redis 等。 `docker:dind`，docker 打包需要依赖 dind。services 的本质其实是使用了 docker 的 `--link`；
+- `#6`：Stages 表示构建阶段，是一些按序执行的流程，具体执行是依赖于 Jobs；
+- `#7`：定义的 Jobs 之一，用于构建 jar 包；
+- `#8`：工件，就是在依赖项之间传递的东西，以便后面job使用。我这里是聚合项目，配置的是构建一个子项目；
+- `#9`：当前阶段用到的镜像，镜像提供阶段用到的环境；
+- `#10`：使用 sshpass 进行远程部署。[推荐使用官方使用ssh免密的方法](https://docs.gitlab.com/ee/ci/ssh_keys/README.html)；
+- `#11`：手动触发部署；
 
 ### 问题
 
@@ -513,10 +513,10 @@ sudo docker run --rm -ti -v /var/run/docker.sock:/var/run/docker.sock docker:sta
 
 #### 如何实现
 
-- 创建组和用户，并将用户加入该组。 使用 `groupadd` 和 `useradd` 命令。
-- 更新 subuid 和 subgid 文件， 将新用户和组配置到 `/etc/subgid` 和 `/etc/subuid` 文件中。`subuid` 和 `subgid` 规定了允许用户使用的从属id。
-- 接下来需要挂载 `/sys/kernel/security` 为 securityfs 类型可以使用 mountpoint 命令进行测试 `mountpoint /sys/kernel/security` 如果不是一个挂载点，那么使用 `mount -t securityfs none /sys/kernel/security` 进行挂载。如果没有挂载成功的话， 可以检查是否是 SELinux 或者 AppArmor 阻止了这个行为。这里详细的安全问题，可以参考 Linux Security Modules (LSM)。
-- 接下来允许 dockerd 命令启动 daemon 即可，`dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375` 即可将docker daemon 监听至 2375 端口。
+- 创建组和用户，并将用户加入该组。 使用 `groupadd` 和 `useradd` 命令；
+- 更新 subuid 和 subgid 文件， 将新用户和组配置到 `/etc/subgid` 和 `/etc/subuid` 文件中。`subuid` 和 `subgid` 规定了允许用户使用的从属id；
+- 接下来需要挂载 `/sys/kernel/security` 为 securityfs 类型可以使用 mountpoint 命令进行测试 `mountpoint /sys/kernel/security` 如果不是一个挂载点，那么使用 `mount -t securityfs none /sys/kernel/security` 进行挂载。如果没有挂载成功的话， 可以检查是否是 SELinux 或者 AppArmor 阻止了这个行为。这里详细的安全问题，可以参考 Linux Security Modules (LSM)；
+- 接下来允许 dockerd 命令启动 daemon 即可，`dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375` 即可将docker daemon 监听至 2375 端口；
 
 #### 简单做法
 

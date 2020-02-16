@@ -74,10 +74,10 @@ personSupplier.get();   // new Person
 
 其他 Supplier 扩展接口：
 
-- `BooleanSupplier`：boolean getAsBoolean(); 返回 boolean
-- `DoubleSupplier`：double getAsDouble(); 返回 double
-- `IntSupplier`：int getAsInt(); 返回 int
-- `LongSupplier`：long getAsLong(); 返回 long
+- `BooleanSupplier`：boolean getAsBoolean(); 返回 boolean；
+- `DoubleSupplier`：double getAsDouble(); 返回 double；
+- `IntSupplier`：int getAsInt(); 返回 int；
+- `LongSupplier`：long getAsLong(); 返回 long；
 
 ### Consumers
 
@@ -102,13 +102,13 @@ andThen 可以实现消费两次。消费一次后，继续消费一次。
 
 其他 Consumer 扩展接口：
 
-- `BiConsumer`：void accept(T t, U u); 接受两个参数
-- `DoubleConsumer`：void accept(double value); 接受一个 double 参数
-- `IntConsumer`：void accept(int value); 接受一个 int 参数
-- `LongConsumer`：void accept(long value); 接受一个 long 参数
-- `ObjDoubleConsumer`：void accept(T t, double value); 接受一个泛型参数一个 double 参数
-- `ObjIntConsumer`：void accept(T t, int value); 接受一个泛型参数一个 int 参数
-- `ObjLongConsumer`：void accept(T t, long value); 接受一个泛型参数一个 long 参数
+- `BiConsumer`：void accept(T t, U u); 接受两个参数；
+- `DoubleConsumer`：void accept(double value); 接受一个 double 参数；
+- `IntConsumer`：void accept(int value); 接受一个 int 参数；
+- `LongConsumer`：void accept(long value); 接受一个 long 参数；
+- `ObjDoubleConsumer`：void accept(T t, double value); 接受一个泛型参数一个 double 参数；
+- `ObjIntConsumer`：void accept(T t, int value); 接受一个泛型参数一个 int 参数；
+- `ObjLongConsumer`：void accept(T t, long value); 接受一个泛型参数一个 long 参数；
 
 ### Predicates
 
@@ -175,10 +175,10 @@ System.out.println(Predicate.isEqual(new Long(1)).test(new Integer(1))); // fals
 
 其他 Predicate 扩展接口：
 
-- `BiPredicate`：boolean test(T t, U u); 接受两个参数的, 判断返回 bool
-- `DoublePredicate`：boolean test(double value); 入参为 double 的谓词函数
-- `IntPredicate`：boolean test(int value); 入参为 int 的谓词函数
-- `LongPredicate`：boolean test(long value); 入参为 long 的谓词函数
+- `BiPredicate`：boolean test(T t, U u); 接受两个参数的, 判断返回 bool；
+- `DoublePredicate`：boolean test(double value); 入参为 double 的谓词函数；
+- `IntPredicate`：boolean test(int value); 入参为 int 的谓词函数；
+- `LongPredicate`：boolean test(long value); 入参为 long 的谓词函数；
 
 ### Functions
 
@@ -861,8 +861,8 @@ Stream API 是把真正的函数式编程风格引入到 Java 中。其实简单
 
 #### short-circuiting（短路操作）
 
-- 对于一个 intermediate 操作，如果它接受的是一个无限流，它可以返回一个有限的新 Stream。
-- 对于一个 terminal 操作，如果它接受的是一个无限流，但能在有限的时间计算出结果。
+- 对于一个 intermediate 操作，如果它接受的是一个无限流，它可以返回一个有限的新 Stream；
+- 对于一个 terminal 操作，如果它接受的是一个无限流，但能在有限的时间计算出结果；
 
 > anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 limit
 
@@ -1126,9 +1126,9 @@ public static void reduce(){
 
 Java 8 提供了一些列的匹配的终止操作符来帮助开发者判断流当中的元素是否符合某些判断规则。所有的匹配类型的操作都会返回布尔类型。
 
-- `anyMatch` 表示，判断的条件里，任意一个元素成功，返回 true
-- `allMatch` 表示，判断条件里的元素，所有的都是，返回 true
-- `noneMatch` 跟 `allMatch` 相反，判断条件里的元素，所有的都不是，返回 true
+- `anyMatch` 表示，判断的条件里，任意一个元素成功，返回 true；
+- `allMatch` 表示，判断条件里的元素，所有的都是，返回 true；
+- `noneMatch` 跟 `allMatch` 相反，判断条件里的元素，所有的都不是，返回 true；
 
 ```java
 List<String> stringCollection = Arrays.asList("a", "a", "a", "a", "b");

@@ -12,10 +12,10 @@ tags:
 Tmux 是一个工具，用于在一个终端窗口中运行多个终端会话, 一个会话（Session）可以包含多个窗口，一个窗口（Window）可以包含多个窗格（Pane)。  
 Tmux 使用 C/S 模型构建，主要包括以下单元模块：
 
-- `server` 输入 tmux 命令时就开启了一个服务器（包含多个 session）。
-- `session` 一个服务器可以包含多个会话。
-- `window` 一个会话可以包含多个窗口。
-- `pane` 一个窗口可以包含多个面板。
+- `server` 输入 tmux 命令时就开启了一个服务器（包含多个 session）；
+- `session` 一个服务器可以包含多个会话；
+- `window` 一个会话可以包含多个窗口；
+- `pane` 一个窗口可以包含多个面板；
 
 <!--more-->
 
@@ -23,28 +23,28 @@ Tmux 使用 C/S 模型构建，主要包括以下单元模块：
 
 ```bash
 # Mac OS 系统
-$ brew install tmux
-$ brew install reattach-to-user-namespace # 让 Tmux 将文本复制到系统的剪贴板。
+brew install tmux
+brew install reattach-to-user-namespace # 让 Tmux 将文本复制到系统的剪贴板。
 
 
 # ubuntu 系统
-$ sudo apt-get install tmux
+sudo apt-get install tmux
 ```
 
 ## 命令
 
-- `tmux new -s <name-of-my-session>` 创建 session, 可以指定 Session 名
-- `tmux attach-session -t <name-of-my-session>` 重新连接此会话
-- `tmux attach` 连接会话(只有一个)
-- `tmux a -t 0` 连接第一个会话
-- `tmux ls` or `tmux list-session` 查看已有会话列表
-- `tmux detach` 分离会话
-- `tmux kill-session -t` 杀掉会话
-- `<PREFIX> + : new -s <name-of-my-session>` 在 tmux 中创建一个会话
-- `<PREFIX> + $` 重命名会话
-- `<PREFIX> + : kill-session` 在 tmux 中杀掉当前会话
-- `<PREFIX> + ,` 重命名一个窗口, 之后输入名字回车
-- `exit` 退出窗口或 pane
+- `tmux new -s <name-of-my-session>` 创建 session, 可以指定 Session 名；
+- `tmux attach-session -t <name-of-my-session>` 重新连接此会话；
+- `tmux attach` 连接会话(只有一个)；
+- `tmux a -t 0` 连接第一个会话；
+- `tmux ls` or `tmux list-session` 查看已有会话列表；
+- `tmux detach` 分离会话；
+- `tmux kill-session -t` 杀掉会话；
+- `<PREFIX> + : new -s <name-of-my-session>` 在 tmux 中创建一个会话；
+- `<PREFIX> + $` 重命名会话；
+- `<PREFIX> + : kill-session` 在 tmux 中杀掉当前会话；
+- `<PREFIX> + ,` 重命名一个窗口, 之后输入名字回车；
+- `exit` 退出窗口或 pane；
 
 ## 操作
 
@@ -53,71 +53,71 @@ $ sudo apt-get install tmux
 
 ### 系统操作
 
-- `?` 列出所有快捷键；按 q 返回
-- `d` 脱离当前会话；这样可以暂时返回 Shell 界面，输入 tmux attach 能够重新进入之前的会话
-- `D` 选择要脱离的会话；在同时开启了多个会话时使用
-- `Ctrl+z` 挂起当前会话
-- `r` 强制重绘未脱离的会话
-- `s` 选择并切换会话；在同时开启了多个会话时使用
-- `:` 进入命令行模式；此时可以输入支持的命令，例如 kill-server 可以关闭服务器
-- `[` 进入复制模式(copy-mode)；此时的操作与 vi/emacs 相同，按 q/Esc 退出
-- `~` 列出提示信息缓存；其中包含了之前 tmux 返回的各种提示信息
+- `?` 列出所有快捷键；按 q 返回；
+- `d` 脱离当前会话；这样可以暂时返回 Shell 界面，输入 tmux attach 能够重新进入之前的会话；
+- `D` 选择要脱离的会话；在同时开启了多个会话时使用；
+- `Ctrl+z` 挂起当前会话；
+- `r` 强制重绘未脱离的会话；
+- `s` 选择并切换会话；在同时开启了多个会话时使用；
+- `:` 进入命令行模式；此时可以输入支持的命令，例如 kill-server 可以关闭服务器；
+- `[` 进入复制模式(copy-mode)；此时的操作与 vi/emacs 相同，按 q/Esc 退出；
+- `~` 列出提示信息缓存；其中包含了之前 tmux 返回的各种提示信息；
 
 ### 窗口操作
 
-- `c` 创建新窗口
-- `&` 关闭当前窗口
-- `数字键` 切换至指定窗口
-- `p` 切换至上一窗口
-- `n` 切换至下一窗口
-- `l` 在前后两个窗口间互相切换
-- `w` 通过窗口列表切换窗口
-- `,` 重命名当前窗口；这样便于识别
-- `.` 修改当前窗口编号；相当于窗口重新排序
-- `f` 在所有窗口中查找指定文本
-- `a` 切换到最近的窗口
-- `space` 切换布局方式
+- `c` 创建新窗口；
+- `&` 关闭当前窗口；
+- `数字键` 切换至指定窗口；
+- `p` 切换至上一窗口；
+- `n` 切换至下一窗口；
+- `l` 在前后两个窗口间互相切换；
+- `w` 通过窗口列表切换窗口；
+- `,` 重命名当前窗口；这样便于识别；
+- `.` 修改当前窗口编号；相当于窗口重新排序；
+- `f` 在所有窗口中查找指定文本；
+- `a` 切换到最近的窗口；
+- `space` 切换布局方式；
 
 ### 面板操作
 
-- `“` 将当前面板平分为上下两块
-- `%` 将当前面板平分为左右两块
-- `x` 关闭当前面板
-- `!` 将当前面板置于新窗口；即新建一个窗口，其中仅包含当前面板
-- `Ctrl+方向键` 以 1 个单元格为单位移动边缘以调整当前面板大小
-- `Alt+方向键` 以 5 个单元格为单位移动边缘以调整当前面板大小
-- `Space` 在预置的面板布局中循环切换；依次包括 even-horizontal、even-vertical、main-horizontal、main-vertical、tiled
-- `q` 显示面板编
-- `;` 光标切换到上一个面板
-- `o` 在当前窗口中选择下一面板
-- `方向键` 移动光标以选择面板
-- `{` 向前置换当前面板
-- `}` 向后置换当前面板
-- `Alt+o` 逆时针旋转当前窗口的面板
-- `Ctrl+o` 顺时针旋转当前窗口的面板
-- `z` 进入全屏，再按一次恢复
+- `“` 将当前面板平分为上下两块；
+- `%` 将当前面板平分为左右两块；
+- `x` 关闭当前面板；
+- `!` 将当前面板置于新窗口；即新建一个窗口，其中仅包含当前面板；
+- `Ctrl+方向键` 以 1 个单元格为单位移动边缘以调整当前面板大小；
+- `Alt+方向键` 以 5 个单元格为单位移动边缘以调整当前面板大小；
+- `Space` 在预置的面板布局中循环切换；依次包括 even-horizontal、even-vertical、main-horizontal、main-vertical、tiled；
+- `q` 显示面板编；
+- `;` 光标切换到上一个面板；
+- `o` 在当前窗口中选择下一面板；
+- `方向键` 移动光标以选择面板；
+- `{` 向前置换当前面板；
+- `}` 向后置换当前面板；
+- `Alt+o` 逆时针旋转当前窗口的面板；
+- `Ctrl+o` 顺时针旋转当前窗口的面板；
+- `z` 进入全屏，再按一次恢复；
 
 ## 复制粘贴
 
-- `<PREFIX> + [` 进入复制模式
-- `space/v` 开始选择
-- `Ctrl-v` 整块选择
-- `hjkl` 方向键移动
-- `w/b` 向前向后移动一个单词
-- `fx/Fx` 行内移动到下一个字符位置
-- `ctrl-b/f` 在缓冲区里面翻页
-- `g/G` 到缓冲区最顶/底端
-- `/ ?` 向下, 向上查找
-- `n/N` 查找后下一个, 上一个
-- `Enter/y` 复制
-- `<PREFIX>> + ]` 粘贴
+- `<PREFIX> + [` 进入复制模式；
+- `space/v` 开始选择；
+- `Ctrl-v` 整块选择；
+- `hjkl` 方向键移动；
+- `w/b` 向前向后移动一个单词；
+- `fx/Fx` 行内移动到下一个字符位置；
+- `ctrl-b/f` 在缓冲区里面翻页；
+- `g/G` 到缓冲区最顶/底端；
+- `/ ?` 向下, 向上查找；
+- `n/N` 查找后下一个, 上一个；
+- `Enter/y` 复制；
+- `<PREFIX>> + ]` 粘贴；
 
 ## Tmuxinator
 
 Tmuxinator 是一个 Ruby 的 gem 包，可用于创建 Tmux 的会话。它的工作方式是先在配置文件中定义会话中的细节，然后用 1 条命令创建出这些会话。
 
 ```bash
-$ gem install tmuxinator # 安装
+gem install tmuxinator # 安装
 ```
 
 ### 基础设置
@@ -207,13 +207,13 @@ tmuxinator 命令已 alias 为 mux。
 new 简写为 n，open 简写为 o，edit 简写为 e，list 简写为 l，copy 简写为 c，delete 简写为 d。
 
 ```bash
-$ mux n ws      # 创建工程ws
-$ mux o ws      # 打开工程ws的配置文件
-$ mux e ws      # 同上
-$ mux c ws ws1  # 复制ws工程到ws1
-$ mux d ws      # 删除ws工程
-$ mux l         # 显示所有工程
-$ mux ws        # 开启ws工程
+mux n ws      # 创建工程ws
+mux o ws      # 打开工程ws的配置文件
+mux e ws      # 同上
+mux c ws ws1  # 复制ws工程到ws1
+mux d ws      # 删除ws工程
+mux l         # 显示所有工程
+mux ws        # 开启ws工程
 ```
 
 ### 配置
@@ -290,7 +290,7 @@ windows:
 
 ### vim 插件
 
-```
+```bash
 christoomey/vim-tmux-navigator, 安装更便捷的导航跳转
 ```
 

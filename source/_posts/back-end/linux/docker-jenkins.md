@@ -36,11 +36,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 ```
 
-- `privileged: true` 提升容器权限。
-- `user: root` 使用 root 用户。
-- `~/docker-data/jenkins_home:/var/jenkins_home` `/var/jenkins_home` 目录为 Jenkins 工作目录，方便后续更新镜像后继续使用原来的工作目录。
-- `/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro` 让容器使用和服务器同样的时间设置。
-- `/var/run/docker.sock:/var/run/docker.sock` 容器内可以使用主机 Docker 守护进程通信。
+- `privileged: true` 提升容器权限；
+- `user: root` 使用 root 用户；
+- `~/docker-data/jenkins_home:/var/jenkins_home` `/var/jenkins_home` 目录为 Jenkins 工作目录，方便后续更新镜像后继续使用原来的工作目录；
+- `/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro` 让容器使用和服务器同样的时间设置；
+- `/var/run/docker.sock:/var/run/docker.sock` 容器内可以使用主机 Docker 守护进程通信；
 
 ### 启动
 

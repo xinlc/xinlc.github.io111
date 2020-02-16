@@ -53,12 +53,12 @@ react-native run-ios
 
 ### Android
 
-- 下载安装 [Android Studio](https://developer.android.com/studio/index.html)
-- `Android Studio` 默认安装最新的 `Android SDK`。可以通过 `Android Studio` 中的 `SDK Manager` 安装其他 Android SDK。`Preferences → Appearance & Behavior → System Settings → Android SDK.`
-- 从 SDK Manager 中选择`SDK Platforms`选项卡，然后选中右下角`Show Package Details`。查找并展开`Android 9 (Pie)`，然后确保选中以下项目：
-- `Android SDK Platform 28`
-- `Intel x86 Atom_64 System Image` 或 `Google APIs Intel x86 Atom System Image`
-- 选择`SDK Tools`选项卡，然后选中右下角`Show Package Details`。查找并展开`Android SDK Build-Tools`，然后选中`28.0.3`。最后，点击`Apply`下载并安装`Android SDK`和相关的构建工具。
+- 下载安装 [Android Studio](https://developer.android.com/studio/index.html)；
+- `Android Studio` 默认安装最新的 `Android SDK`。可以通过 `Android Studio` 中的 `SDK Manager` 安装其他 Android SDK。`Preferences → Appearance & Behavior → System Settings → Android SDK.`；
+- 从 SDK Manager 中选择`SDK Platforms`选项卡，然后选中右下角`Show Package Details`。查找并展开；`Android 9 (Pie)`，然后确保选中以下项目：
+- `Android SDK Platform 28`；
+- `Intel x86 Atom_64 System Image` 或 `Google APIs Intel x86 Atom System Image`；
+- 选择`SDK Tools`选项卡，然后选中右下角`Show Package Details`。查找并展开`Android SDK Build-Tools`，然后选中`28.0.3`。最后，点击`Apply`下载并安装`Android SDK`和相关的构建工具；
 - 配置环境变量, `$HOME/.bashrc` (推荐使用 `zsh`, `$HOME/.zshrc`) 加入如下内容：
 
 ```bashrc
@@ -108,14 +108,14 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 项目使用的技术栈：
 
-- 使用 `TypeScript` 开发，用了就知道，比 `Flow` 好很多。
-- 函数式组件 [React Hooks](https://reactjs.org/docs/hooks-intro.html)
-- `redux` 状态管理。
-- `redux-saga` 解决组件副作用，业务抽离。
-- `react-native-router-flux` Router 管理。
-- `ant-design` 组件库。
-- `axios` http 管理。
-- `iron-redux` 一个类型完美的 Redux 去形式化的库。主要解决 Redux 冗余样板代码问题。
+- 使用 `TypeScript` 开发，用了就知道，比 `Flow` 好很多；
+- 函数式组件 [React Hooks](https://reactjs.org/docs/hooks-intro.html)；
+- `redux` 状态管理；
+- `redux-saga` 解决组件副作用，业务抽离；
+- `react-native-router-flux` Router 管理；
+- `ant-design` 组件库；
+- `axios` http 管理；
+- `iron-redux` 一个类型完美的 Redux 去形式化的库。主要解决 Redux 冗余样板代码问题；
 
 ```bash
 # 1. 克隆本项目

@@ -47,10 +47,10 @@ $ docker-machine create -d virtualbox test
 
 你也可以在创建时加上如下参数，来配置主机或者主机上的 Docker。
 
-- `--engine-opt dns=114.114.114.114` 配置 Docker 的默认 DNS
-- `--engine-registry-mirror https://dockerhub.azk8s.cn` 配置 Docker 的仓库镜像
-- `--virtualbox-memory 2048` 配置主机内存
-- `--virtualbox-cpu-count 2` 配置主机 CPU
+- `--engine-opt dns=114.114.114.114` 配置 Docker 的默认 DNS；
+- `--engine-registry-mirror https://dockerhub.azk8s.cn` 配置 Docker 的仓库镜像；
+- `--virtualbox-memory 2048` 配置主机内存；
+- `--virtualbox-cpu-count 2` 配置主机 CPU；
 
 更多参数请使用 `docker-machine create --driver virtualbox --help` 命令查看。
 
