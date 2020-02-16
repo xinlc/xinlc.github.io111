@@ -10,6 +10,82 @@ Kubectl 常用命令
 
 <!--more-->
 
+## Kubectl 常用命令
+
+所有命令前都可以加上 watch 命令来观察状态的实时变化，如：`watch kubectl get pods --all-namespaces`
+
+```bash
+
+# 应用一个 yaml 配置，创建 Pod 或更新 Pod
+kubectl apply -f <YAML>
+
+# 查看组件状态
+kubectl get cs
+
+# 查看环境信息
+kubectl cluster-info
+
+# 查看 Node
+kubectl get nodes -o wide
+
+# 查看集群配置
+kubectl -n kube-system get cm kubeadm-config -oyaml
+
+# 运行容器
+kubectl run nginx --image=nginx --replicas=2 --port=80
+
+# 暴露服务
+kubectl expose deployment nginx --port=80 --type=LoadBalancer
+
+# 查看命名空间
+kubectl get namespace
+
+# 查看容器
+kubectl get pods -o wide
+kubectl get deployment -o wide
+
+# 查看服务
+kubectl get service -o wide
+
+# 查看详情
+kubectl describe pod <Pod Name>
+kubectl describe deployment <Deployment Name>
+kubectl describe service <Service Name>
+
+# 查看日志
+kubectl logs -f <Pod Name>
+
+# 删除容器和服务
+kubectl delete deployment <Deployment Name>
+kubectl delete service <Service Name>
+
+# 配置方式运行
+kubectl create -f <YAML>
+
+# 配置方式删除
+kubectl delete -f <YAML>
+
+# 查看配置
+kubeadm config view
+kubectl config view
+
+# 查看 Ingress
+kubectl get ingress
+
+# 查看持久卷
+kubectl get pv
+
+# 查看持久卷消费者
+kubectl get pvc
+
+# 查看 ConfigMap
+kubectl get cm <ConfigMap Name>
+
+# 修改 ConfigMap
+kubectl edit cm <ConfigMap Name>
+
+```
+
 ## 基本命令
 
 ```bash
@@ -82,6 +158,58 @@ Usage:
 Use "kubectl <command> --help" for more information about a given command.
 Use "kubectl options" for a list of global command-line options (applies to all commands).
 ```
+
+## Kubectl 与 Docker 命令
+
+Docker 命令和 Kubectl 命令有很多相似的地方，Docker 操作容器，Kubectl 操作 Pod（容器的集合）等。
+
+### 运行容器
+
+- docker：`docker run -d --restart=always -e DOMAIN=cluster --name nginx-app -p 80:80 nginx`
+- kubectl：
+  - `kubectl run --image=nginx nginx-app --port=80 --env="DOMAIN=cluster"`
+  - `kubectl expose deployment nginx-app --port=80 --name=nginx-http`
+
+> 注意： kubectl run 会创建一个 Deployment 并且默认会在后台运行，以上面的代码为例它的名称为 nginx-app。默认情况 Deployment 并不会将端口暴露出去，所以我们还需要使用 kubectl expose 暴露端口以供访问，此时还会创建一个同名的 Service。
+
+### 查看已运行的容器
+
+- docker：`docker ps`
+- kubectl：
+  - `kubectl get pods`
+  - `kubectl get deployment`
+  - `kubectl get service`
+
+### 交互式进入容器
+
+- docker：`docker exec -it <容器 ID/NAME> /bin/bash`
+- kubectl：`kubectl exec -it <容器名> -- /bin/bash`
+
+### 打印日志
+
+- docker：`docker logs -f <容器 ID/NAME>`
+- kubectl：`kubectl logs -f <容器名>`
+
+### 停止和删除容器
+
+- docker：
+  - `docker stop <容器 ID/NAME>`
+  - `docker rm <容器 ID/NAME>`
+- kubectl：
+  - `kubectl delete deployment <Deployment 名称>`
+  - `kubectl delete service <Service 名称>`
+
+> 注意： 不要直接删除 Pod，使用 kubectl 请删除拥有该 Pod 的 Deployment。如果直接删除 Pod，则 Deployment 将会重新创建该 Pod。
+
+### 查看版本
+
+- docker：`docker version`
+- kubectl：`kubectl version`
+
+### 查看环境信息
+
+- docker：`docker info`
+- kubectl：`kubectl cluster-info`
 
 ## 参考
 
