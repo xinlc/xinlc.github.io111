@@ -48,10 +48,10 @@ tags:
 
 Eureka 是一个基于 REST 的服务，主要用于 AWS 云中的定位服务，以实现中间层服务器的负载平衡和故障转移。在 Spring Cloud 微服务架构中通常用作注册中心，我们称这个服务为 Eureka Server，还有一个与之交互的客户端称之为 Eureka Client。
 
-- 阿基米德发现浮力定律时发出的惊叹声，寓意微服务发现
-- 云服务发现组件，支持跨区域高可用（AP 原则：高可用，分区容错性）
-- 提供Java based client，提供 RESTful API 支持多语言对接
-- 主要解决云中服务实例动态启停、漂移问题
+- 阿基米德发现浮力定律时发出的惊叹声，寓意微服务发现；
+- 云服务发现组件，支持跨区域高可用（AP 原则：高可用，分区容错性）；
+- 提供Java based client，提供 RESTful API 支持多语言对接；
+- 主要解决云中服务实例动态启停、漂移问题；
 - 2012年由 Netflix 开源
   - https://github.com/Netflix/eureka
   - https://github.com/Netflix/eureka/wiki/Eureka-at-a-glance
@@ -72,7 +72,7 @@ Eureka 是一个基于 REST 的服务，主要用于 AWS 云中的定位服务�
 
 服务在 Eureka 上注册，然后每隔30秒发送心跳来更新它们的租约。如果客户端不能多次续订租约，那么它将在大约90秒内从服务器注册表中剔除。注册信息和更新被复制到集群中的所有 Eureka 节点。来自任何区域的客户端都可以查找注册表信息（每30秒发生一次）来定位它们的服务（可能在任何区域）并进行远程调用。
 
-> PS：Eureka Client需要每30秒给 Eureka Server发一次心跳，同时更新 Server 上最新的注册信息到本地，如果Server 多次没有收到来自客户端的心跳，那么在90秒内会被 Server 上剔除
+> PS：Eureka Client 需要每30秒给 Eureka Server 发一次心跳，同时更新 Server 上最新的注册信息到本地，如果Server 多次没有收到来自客户端的心跳，那么在90秒内会被 Server 上剔除。
 
 两大组件：
 
@@ -117,6 +117,12 @@ Eureka 客户端在关机时向 Eureka 服务器发送一个取消请求。这�
 2. 自我保护被禁用
 
 默认情况下，自我保护是启用的，并且，默认的阈值是要大于当前注册数量的15%。
+
+## 环境
+
+- JDK：1.8
+- Spring Boot：2.2.4 RELEASE
+- Spring Cloud：Hoxton.SR1
 
 ## 搭建 Eureka 注册中心
 
@@ -399,6 +405,22 @@ Zookeeper 集群中有一个 Leader，多个 Follower。Leader 负责写，Follo
 - Etcd https://github.com/etcd-io/etcd/
 - Apache Zookeeper http://zookeeper.apache.org/
 - Alibaba Nacos https://github.com/alibaba/nacos/
+
+### 常用服务发现组件比较
+
+| 功能 | Eureka | Consul | Zookeeper | Etcd |
+| :-------------- | :----------- |:----------- |:----------- |:----------- |
+|服务健康检查 | 客户主动报心跳 | 服务状态，内存，磁盘等 | (弱)长连接，keepalive | 连接心跳 |
+| 多数据中心支持 | 支持 | 支持 | 不支持 | 不支持 |
+| Kv存储支持 | 不支持 | 支持 | 支持 | 支持 |
+| 一致性协议 | 定制P2P | Raft | Paxos | Raft |
+| CAP | AP | CP | CP | CP |
+| 客户端接口 | Java/http http/dns | 客户端 | http/grpc |
+| watch支持 | 定期pull/大部分增量 | 全量/支持long pulling | 支持 | 支持long pulling |
+| 自身监控 | Metrics | Metrics | NA | Metrics |
+| 安全 | NA | ACL/https | ACL | https支持(弱) |
+| Spring cloud 集成 | 已支持 | 已支持 | 已支持 | 已支持 |
+| 社区流行度（服务注册发现场景）| 流行 | 流行 | 一般 | 一般 |
 
 ### ServiceMesh 和 Istio 简介
 

@@ -77,6 +77,12 @@ Spring Cloud Gateway 具有如下特性：
 
 很像 SpringMVC 的请求处理过程，客户端向 Spring Cloud Gateway 发出请求。如果 Gateway Handler Mapping确定请求与路由匹配，则将其发送给 Gateway Web Handler。这个 Handler 运行通过特定于请求的过滤器链发送请求。过滤器可以在发送代理请求之前或之后执行逻辑。执行所有的“pre”过滤逻辑，然后发出代理请求，最后执行“post”过滤逻辑。
 
+## 环境
+
+- JDK：1.8
+- Spring Boot：2.2.4 RELEASE
+- Spring Cloud：Hoxton.SR1
+
 ## 集成 Gateway
 
 创建 api-gateway 模块，在 pom.xml 中添加相关依赖：
