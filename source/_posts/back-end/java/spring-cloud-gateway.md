@@ -71,7 +71,7 @@ Spring Cloud Gateway 具有如下特性：
 - Predicate（断言）：指的是 Java 8 的 Function Predicate。 输入类型是 Spring 框架中的ServerWebExchange。 这使开发人员可以匹配 HTTP 请求中的所有内容，例如请求头或请求参数。如果请求与断言相匹配，则进行路由；
 - Filter（过滤器）：指的是 Spring 框架中 GatewayFilter 的实例，使用过滤器，可以在请求被路由前后对请求进行修改；
 
-## 原理
+## 工作原理
 
 ![3][3]
 
@@ -635,10 +635,21 @@ public GlobalFilter c() {
 
 ```java
 @Configuration
-public class AccessGatewayFilter implements GlobalFilter {
+//@Order(0)
+public class AccessGatewayFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
       return chain.filter(exchange);
+    }
+
+   /**
+    * 优先级
+    *
+    * @return int 数字越大优先级越低，可以是负数
+    */
+    @Override
+    public int getOrder() {
+      return 0;
     }
 }
 ```
