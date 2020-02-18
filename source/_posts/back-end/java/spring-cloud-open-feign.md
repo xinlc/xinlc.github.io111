@@ -24,8 +24,6 @@ Feign 是一个伪客户端，即它不做任何的请求处理。Feign 通过�
 
 Requst Json 根据需要可以经过一些截获器做进一步处理，处理完以后传递给 Http Client，由 Http Client 发送 Requst Json 到服务端。服务端的响应回被解码器进行解码，这个 Json 消息的互转就是序列化和反序列化，另外一个叫法叫 Json 对象绑定。
 
-虽然我们开发出的服务是弱类型 RESTful 的服务，但是有了 Feign 的支持，我们只要简单给出一个强类型的 Java API 接口，就可以获得一个强类型的客户端。这样我们同时获得强弱类型 API 的好处，包括：编译器自动类型检查、不需要手动编码解码、不需要开发代码生成工具、而且客户端和服务端不强耦合。
-
 ## 环境
 
 - JDK：1.8
@@ -284,10 +282,10 @@ API 控制器可能会返回正常的响应，也可能会返回异常响应。�
 
 改造模块依赖：
 
-1. 抽出 Feign 接口为 user-api 模块。
-2. 请求和响应封装在 user-api 模块 dto 中。
+1. 抽出 FeignUserService 接口为 user-api 模块。
+2. 请求和响应对象封装在 user-api 模块 dto 中。
 3. user-service 依赖 user-api 使用 dto。
-4. feign-service 依赖 user-api 使用 Feign 和 dto。
+4. feign-service 依赖 user-api 使用 FeignUserService 和 dto。
 
 common-lib 模块下 BaseResponse.java：
 
@@ -353,6 +351,8 @@ feign-service 模块：
 
 // ...
 ```
+
+虽然我们开发出的服务是弱类型 RESTful 的服务，但是有了 Feign 的支持，我们只要简单给出一个强类型的 Java API 接口，就可以获得一个强类型的客户端。这样我们同时获得强弱类型 API 的好处，包括：编译器自动类型检查、不需要手动编码解码、不需要开发代码生成工具、而且客户端和服务端不强耦合。
 
 ### 整合 Resilience4j
 
