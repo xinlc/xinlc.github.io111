@@ -314,8 +314,32 @@ public class FeignRequestHeaderInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate requestTemplate) {
         String userId = AuthContext.getUserId();
         if (!StringUtils.isEmpty(userId)) {
-            requestTemplate.header(AuthConstant.CURRENT_USER_HEADER, userId);
+            requestTemplate.header("X-current-user-id", userId);
         }
+
+        /*
+        // Feign 请求拦截器（设置请求头，传递请求参数）
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = attributes.getRequest();
+        Enumeration<String> headerNames = request.getHeaderNames();
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+                String name = headerNames.nextElement();
+                String values = request.getHeader(name);
+                requestTemplate.header(name, values);
+            }
+        }
+
+        // 设置 request 中的 attribute 到 header:主要是设置自行设置的 token、userId 等信息，以便转发到 Feign 调用的服务
+        Enumeration<String> reqAttrbuteNames = request.getAttributeNames();
+        if (reqAttrbuteNames != null) {
+            while (reqAttrbuteNames.hasMoreElements()) {
+                String attrName = reqAttrbuteNames.nextElement();
+                String values = request.getAttribute(attrName).toString();
+                requestTemplate.header(attrName, values);
+            }
+        }
+        */
     }
 }
 ```
