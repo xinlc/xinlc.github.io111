@@ -69,6 +69,7 @@ eureka:
 
 ```java
 @EnableFeignClients
+// @EnableFeignClients(basePackages = {"com.leo.user"})
 @EnableDiscoveryClient
 @SpringBootApplication
 public class FeignServiceApplication {
@@ -82,21 +83,23 @@ public class FeignServiceApplication {
 
 ```java
 @FeignClient(value = "user-service")
+// @FeignClient(name = "user-service", path = "/v1/userInfo", url = "${user.user-service-endpoint}")
+// @Validated
 public interface FeignUserService {
     @PostMapping("/user/create")
     CommonResult create(@RequestBody User user);
 
     @GetMapping("/user/{id}")
-    CommonResult<User> getUser(@PathVariable Long id);
+    CommonResult<User> getUser(@PathVariable("id") Long id);
 
     @GetMapping("/user/getByUsername")
-    CommonResult<User> getByUsername(@RequestParam String username);
+    CommonResult<User> getByUsername(@RequestParam("username") String username);
 
     @PostMapping("/user/update")
     CommonResult update(@RequestBody User user);
 
     @PostMapping("/user/delete/{id}")
-    CommonResult delete(@PathVariable Long id);
+    CommonResult delete(@PathVariable("id") Long id);
 }
 ```
 
@@ -266,11 +269,103 @@ Feign 的源码实现的过程如下：
 - Feign 自身是一个声明式的伪 http 客户端，写起来更加思路清晰和方便；
 - Fegin 是一个采用基于接口的注解的编程方式，更加简便；
 
+### 向下传递 request 信息
+
+可以通过 RequestContextHolder 很方便的获取 request，然后通过 Feign 拦截器自动设置 requestTemplate header。比如要实现自动向下传递用户ID，代码如下：
+
+AuthContext.java 用于保存当前 userId 和 authz 信息的上下文容器类：
+
+```java
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import javax.servlet.http.HttpServletRequest;
+
+public class AuthContext {
+    private static String getRequetHeader(String headerName) {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes instanceof ServletRequestAttributes) {
+            HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
+            String value = request.getHeader(headerName);
+            return value;
+        }
+        return null;
+    }
+
+    public static String getUserId() {
+        return getRequetHeader("X-current-user-id");
+    }
+
+    public static String getAuthz() {
+        return getRequetHeader("Authorization");
+    }
+}
+```
+
+FeignRequestHeaderInterceptor.java Feign 拦截器，用于将 auth 信息传递到后端：
+
+```java
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import org.springframework.util.StringUtils;
+
+public class FeignRequestHeaderInterceptor implements RequestInterceptor {
+    @Override
+    public void apply(RequestTemplate requestTemplate) {
+        String userId = AuthContext.getUserId();
+        if (!StringUtils.isEmpty(userId)) {
+            requestTemplate.header(AuthConstant.CURRENT_USER_HEADER, userId);
+        }
+    }
+}
+```
+
+FeignConfig.java 来配置 Feign：
+
+```java
+import feign.RequestInterceptor;
+import feign.codec.Decoder;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.support.SpringDecoder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class FeignConfig {
+    /**
+     * 自定义反序列化解析器
+     *
+     * @return
+     */
+    @Bean
+    public Decoder feignDecoder() {
+        ObjectFactory<HttpMessageConverters> messageConverters = () -> {
+            HttpMessageConverters converters = new HttpMessageConverters();
+            return converters;
+        };
+        return new SpringDecoder(messageConverters);
+    }
+
+    /**
+     * Feign 拦截器
+     *
+     * @return
+     */
+    @Bean
+    public RequestInterceptor feignRequestInterceptor() {
+        return new FeignRequestHeaderInterceptor();
+    }
+}
+```
+
+这样就可以实现自动向下传递 request 信息了，下游服务通过 `AuthContext.getUserId()` 来获取用户Id。
+
 ### 强类型接口设计
 
 API 控制器可能会返回正常的响应，也可能会返回异常响应。我们采用强类型接口如何能处理正常响应，又能处理异常返回呢？而且这个接口又能是统一的呢？
 
-封装消息+捎带模式：
+采用封装消息+捎带模式：
 
 ![2][2]
 
@@ -278,7 +373,7 @@ API 控制器可能会返回正常的响应，也可能会返回异常响应。�
 
 这里有个 ListUserResponse 继承自 BaseResponse，当客户端向 UserController 请求获取用户列表的时候，如果这个响应异常了，那么他就只返回对应 BaseResponse 异常的消息，这个异常消息可以被 Json 自动序列化自动绑定到 ListUserResponse 对象上，因为两者有继承关系。BaseResponse 是 ListUserResponse 的部分，只不过绑定的时候 ListUserResponse 对象自己扩展的字段为空。这个时候客户端根据错误 code 进行处理。
 
-如果响应是正常的，客户端根据 code 成功响应码进行处理。
+如果响应是正常的，客户端根据 code 成功响应码进行处理。通过这种简单的继承机制，强类型接口就可以同时处理正常异常两种情况。
 
 改造模块依赖：
 
@@ -354,9 +449,42 @@ feign-service 模块：
 
 虽然我们开发出的服务是弱类型 RESTful 的服务，但是有了 Feign 的支持，我们只要简单给出一个强类型的 Java API 接口，就可以获得一个强类型的客户端。这样我们同时获得强弱类型 API 的好处，包括：编译器自动类型检查、不需要手动编码解码、不需要开发代码生成工具、而且客户端和服务端不强耦合。
 
+> 注意：这种继承关系（ListUserResponse 继承 BaseResponse ），除了这种继承关系之外 ListUserResponse 内部尽量不要再有继承关系，泛型也尽量不要采用（除了 Collection 这种泛型），否则可能会无法反序列化。因为 Java 在运行期泛型回被擦除，造成无法反序列化。
+>
+> 由于 Java 泛型的实现机制，使用了泛型的代码在运行期间相关的泛型参数的类型会被擦除，我们无法在运行期间获知泛型参数的具体类型（所有的泛型类型在运行时都是 Object 类型），但是在编译 Java 源代码成 class 文件中还是保存了泛型相关的信息，这些信息被保存在 class 字节码常量池中，使用了泛型的代码处会生成一个 signature 签名字段，通过签名 signature 字段指明这个常量池的地址。
+>
+> Java 引入泛型擦除的原因是避免因为引入泛型而导致运行时创建不必要的类。我们其实可以通过定义类的方式，在类信息中保留泛型信息，从而获得这些泛型信息。Java 的泛型擦除是有范围的，即类定义中的泛型是不会被擦除的。
+
 ### 整合 Resilience4j
 
 - https://github.com/resilience4j/resilience4j
+
+## 问题
+
+### 与 Spring Cloud Gateway 整合问题
+
+```log
+feign.codec.DecodeException: No qualifying bean of type 'org.springframework.boot.autoconfigure.http.HttpMessageConverters' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {@org.springframework.beans.factory.annotation.Autowired(required=true)}
+```
+
+解决：
+
+```java
+@Configuration
+public class FeignResponseDecoderConfig {
+    @Bean
+    public Decoder feignDecoder() {
+
+        ObjectFactory<HttpMessageConverters> messageConverters = () -> {
+            HttpMessageConverters converters = new HttpMessageConverters();
+            return converters;
+        };
+        return new SpringDecoder(messageConverters);
+    }
+}
+```
+
+> https://github.com/spring-cloud/spring-cloud-openfeign/issues/235
 
 ## 参考
 

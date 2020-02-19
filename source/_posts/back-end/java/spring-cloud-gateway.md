@@ -853,12 +853,35 @@ spring:
           enabled: true
 eureka:
   client:
-    service-url: 
+    service-url:
       defaultZone: http://localhost:8001/eureka/
 
 logging:
   level:
     org.springframework.cloud.gateway: debug
+```
+
+## 问题
+
+### 引入 spring-boot-starter-web 无法启动
+
+由于 Spring Cloud Gateway 使用的是 WebFlux，默认使用 Netty，所以从依赖中排除 Tomcat，WebMvc 相关的依赖：
+
+```xml
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+      <exclusion>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-webmvc</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-tomcat</artifactId>
+      </exclusion>
+    </exclusions>
+  </dependency>
 ```
 
 ## 参考
