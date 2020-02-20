@@ -1,8 +1,9 @@
 ---
-title: Spring Cloud Ribbon
+title: 微服务架构之客户端负载均衡：Spring Cloud Ribbon
 date: 2020-02-16 12:37:00
 categories: Java
 tags:
+  - MicroServices
   - SpringCloud
 ---
 

@@ -1,8 +1,9 @@
 ---
-title: Spring Cloud Eureka
+title: 微服务架构之服务注册与发现：Spring Cloud Eureka
 date: 2020-02-15 15:38:00
 categories: Java
 tags:
+  - MicroServices
   - SpringCloud
 ---
 

@@ -1,8 +1,9 @@
 ---
-title: Spring Cloud OpenFeign
+title: 微服务架构之声明式服务调用：Spring Cloud OpenFeign
 date: 2020-02-18 20:07:00
 categories: Java
 tags:
+  - MicroServices
   - SpringCloud
 ---
 
