@@ -515,6 +515,7 @@ public class FeignResponseDecoderConfig {
 
 - https://github.com/OpenFeign/feign/
 - https://cloud.spring.io/spring-cloud-openfeign/reference/html/
+- https://juejin.im/post/5d9c85c3e51d45782c23fab6/
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-open-feign/1.jpg

@@ -58,6 +58,7 @@ Spring Cloud Gateway 为 SpringBoot 应用提供了API网关支持，具有强�
 Spring Cloud Gateway 具有如下特性：
 
 - 基于Spring Framework 5, Project Reactor 和 Spring Boot 2.0 进行构建；
+- 使用 Netty 进行网络通信建立，使用非阻塞 API，支持 Websockets；
 - 动态路由：能够匹配任何请求属性；
 - 可以对路由指定 Predicate（断言）和 Filter（过滤器）；
 - 集成 Hystrix 的断路器功能；
@@ -892,6 +893,7 @@ logging:
 - https://cloud.spring.io/spring-cloud-gateway/reference/html/
 - https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-sample
 - https://cloud.spring.io/spring-cloud-static/spring-cloud-netflix/2.1.2.RELEASE/single/spring-cloud-netflix.html
+- https://juejin.im/post/5db6eed6518825644076d0b6/
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-gateway/reverse-proxy-vs-gateway.jpg

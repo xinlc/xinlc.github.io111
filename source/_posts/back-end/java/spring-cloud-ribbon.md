@@ -428,6 +428,7 @@ user-service:
 - https://github.com/Netflix/ribbon/wiki/
 - https://medium.com/netflix-techblog/announcing-ribbon-tying-the-netflix-mid-tier-services-together-a89346910a62 
 - [深入理解Ribbon之源码解析](https://blog.csdn.net/forezp/article/details/74820899/)
+- https://juejin.im/post/5d7f9006f265da03951a260c/
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-ribbon/1.gif

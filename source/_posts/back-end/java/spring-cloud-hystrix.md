@@ -723,7 +723,7 @@ public class TurbineServiceApplication {
 
 ### 线程 vs 信号量隔离
 
-| 机制 | 优点 | 不足 | 通用 |
+| 机制 | 优点 | 不足 | 适用 |
 | :-------------- | :----------- |:----------- |:----------- |
 | 信号量隔离 | 轻量，无额外开销 | 不支持任务排队和主动超时；不支持异步调用 | 受信客户；高扇出(网关)； 高频高速调用(cache) |
 | 线程池隔离 | 支持排队和超时；支持异步调用 | 线程调用会产生额外的开销 | 不受信客户；有限扇出 |
@@ -776,6 +776,7 @@ public class HystrixRequestContextFilter implements Filter {
 - https://github.com/Netflix/Hystrix/wiki/
 - https://cloud.spring.io/spring-cloud-netflix/reference/html/
 - [防雪崩利器：熔断器 Hystrix 的原理与使用](https://segmentfault.com/a/1190000005988895)
+- https://juejin.im/post/5d822d27e51d45621479ad92/
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-hystrix/1.jpg
