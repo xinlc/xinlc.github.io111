@@ -777,6 +777,7 @@ public class HystrixRequestContextFilter implements Filter {
 - https://cloud.spring.io/spring-cloud-netflix/reference/html/
 - [防雪崩利器：熔断器 Hystrix 的原理与使用](https://segmentfault.com/a/1190000005988895)
 - https://juejin.im/post/5d822d27e51d45621479ad92/
+- 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-hystrix/1.jpg

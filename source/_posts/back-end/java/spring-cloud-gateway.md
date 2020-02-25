@@ -894,6 +894,7 @@ logging:
 - https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-sample
 - https://cloud.spring.io/spring-cloud-static/spring-cloud-netflix/2.1.2.RELEASE/single/spring-cloud-netflix.html
 - https://juejin.im/post/5db6eed6518825644076d0b6/
+- 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-gateway/reverse-proxy-vs-gateway.jpg

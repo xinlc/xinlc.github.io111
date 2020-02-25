@@ -599,6 +599,7 @@ V4 和 V3 架构差不多，只是引入了开放平台 BFF 和开发平台网�
 - https://github.com/Netflix/zuul/
 - https://cloud.spring.io/spring-cloud-netflix/reference/html/
 - https://juejin.im/post/5d9f2dea6fb9a04e3e724067/
+- 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-zuul/1.jpg

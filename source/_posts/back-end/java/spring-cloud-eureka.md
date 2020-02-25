@@ -452,6 +452,7 @@ Istio 是一个 Google 发起的组织，其实就是把 ServiceMesh 给产品�
 - https://cloud.spring.io/spring-cloud-netflix/reference/html/
 - [深度剖析服务发现组件~Netflix Eureka](https://zhuanlan.zhihu.com/p/24829766/)
 - https://juejin.im/post/5d78cd53f265da03d55e8351/
+- 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-eureka/1.jpg

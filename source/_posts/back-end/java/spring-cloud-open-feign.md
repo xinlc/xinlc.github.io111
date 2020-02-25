@@ -484,6 +484,112 @@ feign-service 模块：
 
 - https://github.com/resilience4j/resilience4j
 
+### 使用 [OkHttp3](https://github.com/square/okhttp)
+
+在 Feign 中，Client 是一个非常重要的组件，Feign 最终发送 Request 请求以及接收 Response 响应都是由 Client 组件来完成的。Client 在 Feign 源码中是一个接口，在默认情况下，Client 的实现类是 Client.Default，是由 HttpURLConnection 来实现网络请求的。另外 Client 还支持以下常见客户端：
+
+- LoadBalancerFeignClient：这是一个特殊的 feign.Client 客户端实现类。内部先使用 Ribbon 负载均衡算法计算 Server 服务器，然后使用包装的 Delegate 客户端实例，去完成 HTTP URL 请求处理；
+- ApacheHttpClient：内部使用 Apache HttpClient 开源组件完成 HTTP URL 请求处理；
+- WebClient：是 Spring 5 中最新引入的，可以将其理解为 reactive 版的 RestTemplate，基于 reactor 的 WebClient。
+- OkHttpClient：内部使用 OkHttp3 开源组件完成 HTTP URL 请求处理；
+
+引入 OkHttp3 的依赖：
+
+```xml
+ <dependency>
+    <groupId>io.github.openfeign</groupId>
+    <artifactId>feign-okhttp</artifactId>
+    <version>10.7.4</version>
+</dependency>
+```
+
+修改 application.yaml 配置：
+
+```yaml
+# 禁用 httpclient，使用 OkHttp
+feign:
+  httpclient:
+    enabled: false
+  okhttp:
+    enabled: true
+```
+
+修改 FeignConfig 配置类：
+
+```java
+import feign.Client;
+import feign.Feign;
+import feign.codec.Decoder;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
+import org.springframework.cloud.openfeign.support.SpringDecoder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+@Configuration
+@ConditionalOnClass(Feign.class)
+/*
+ 这里网上大部分是 @AutoConfigureBefore，实际是行不通的，原因是 FeignAutoConfiguration 类里面加了 @ConditionalOnMissingBean({okhttp3.OkHttpClient.class})
+ 只有当容器中没有 OkHttpClient 的实例时才会运行，所以不能在 FeignAutoConfiguration 之前注入了我们自己定义的 OkHttpClient 实例。
+*/
+@AutoConfigureAfter(FeignAutoConfiguration.class)
+// @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+@Slf4j
+public class FeignOkHttpConfig {
+    @Bean
+    public Decoder feignDecoder() {
+
+        ObjectFactory<HttpMessageConverters> messageConverters = () -> {
+            HttpMessageConverters converters = new HttpMessageConverters();
+            return converters;
+        };
+        return new SpringDecoder(messageConverters);
+    }
+
+    // 复制 FeignAutoConfiguration 类的配置。
+    @Bean
+    @ConditionalOnMissingBean({Client.class})
+    public Client feignClient(OkHttpClient client) {
+        return new feign.okhttp.OkHttpClient(client);
+    }
+
+    @Bean
+    public OkHttpClient okHttpClient() {
+        return new OkHttpClient.Builder()
+                // 设置读超时
+                .readTimeout(60, TimeUnit.SECONDS)
+                // 设置连接超时
+                .connectTimeout(60, TimeUnit.SECONDS)
+                // 设置写超时
+                .writeTimeout(120, TimeUnit.SECONDS)
+                // 错误重连
+                .retryOnConnectionFailure(true)
+                .connectionPool(new ConnectionPool(10, 5L, TimeUnit.MINUTES))
+                .addInterceptor(new Interceptor() { // 自定义 OkHttpLogInterceptor 或 添加 header
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request request = chain.request().newBuilder()
+                                .addHeader("X-Token", "1")
+                                .build();
+
+                        log.info("OkHttpUrl : " + chain.request().url());
+                        return chain.proceed(request);
+                    }
+                })
+                .build();
+    }
+}
+```
+
 ## 问题
 
 ### 与 Spring Cloud Gateway 整合问题
@@ -516,6 +622,7 @@ public class FeignResponseDecoderConfig {
 - https://github.com/OpenFeign/feign/
 - https://cloud.spring.io/spring-cloud-openfeign/reference/html/
 - https://juejin.im/post/5d9c85c3e51d45782c23fab6/
+- 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 
 [1]: /images/java/spring-cloud-open-feign/1.jpg
