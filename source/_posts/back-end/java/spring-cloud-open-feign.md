@@ -490,7 +490,7 @@ feign-service 模块：
 
 - LoadBalancerFeignClient：这是一个特殊的 feign.Client 客户端实现类。内部先使用 Ribbon 负载均衡算法计算 Server 服务器，然后使用包装的 Delegate 客户端实例，去完成 HTTP URL 请求处理；
 - ApacheHttpClient：内部使用 Apache HttpClient 开源组件完成 HTTP URL 请求处理；
-- WebClient：是 Spring 5 中最新引入的，可以将其理解为 reactive 版的 RestTemplate，基于 reactor 的 WebClient。
+- WebClient：是 Spring 5 中最新引入的，可以将其理解为 Reactive 版的 RestTemplate，基于 Reactor 的 WebClient。
 - OkHttpClient：内部使用 OkHttp3 开源组件完成 HTTP URL 请求处理；
 
 引入 OkHttp3 的依赖：
@@ -545,6 +545,9 @@ import java.util.concurrent.TimeUnit;
 // @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @Slf4j
 public class FeignOkHttpConfig {
+    /**
+     * 自定义反序列化解析器
+     */
     @Bean
     public Decoder feignDecoder() {
 
@@ -555,13 +558,28 @@ public class FeignOkHttpConfig {
         return new SpringDecoder(messageConverters);
     }
 
-    // 复制 FeignAutoConfiguration 类的配置。
+
+    /**
+     * 解决中文乱码
+     */
+    // @Bean
+    // public Encoder encoder() {
+    //     return new FormEncoder();
+    // }
+
+
+    /**
+     * 复制 FeignAutoConfiguration 类的配置。
+     */
     @Bean
     @ConditionalOnMissingBean({Client.class})
     public Client feignClient(OkHttpClient client) {
         return new feign.okhttp.OkHttpClient(client);
     }
 
+    /**
+     * 配置 OkHttp3
+     */
     @Bean
     public OkHttpClient okHttpClient() {
         return new OkHttpClient.Builder()
@@ -573,8 +591,10 @@ public class FeignOkHttpConfig {
                 .writeTimeout(120, TimeUnit.SECONDS)
                 // 错误重连
                 .retryOnConnectionFailure(true)
+                // 10个线程，保存5分钟长连接
                 .connectionPool(new ConnectionPool(10, 5L, TimeUnit.MINUTES))
-                .addInterceptor(new Interceptor() { // 自定义 OkHttpLogInterceptor 或 添加 header
+                // 自定义 OkHttpLogInterceptor 或 添加 header
+                .addInterceptor(new Interceptor() {
                     @Override
                     public Response intercept(Chain chain) throws IOException {
                         Request request = chain.request().newBuilder()
@@ -586,6 +606,16 @@ public class FeignOkHttpConfig {
                     }
                 })
                 .build();
+    }
+
+    /**
+     * 定义 Feign 拦截器，添加请求头
+     *
+     * @return
+     */
+    @Bean
+    public RequestInterceptor feignRequestInterceptor() {
+        return new FeignRequestHeaderInterceptor();
     }
 }
 ```

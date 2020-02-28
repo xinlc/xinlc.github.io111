@@ -641,7 +641,18 @@ public GlobalFilter c() {
 public class AccessGatewayFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-      return chain.filter(exchange);
+      ServerHttpRequest request = exchange.getRequest();
+      String authentication = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+      String method = request.getMethodValue();
+      String url = request.getPath().value();
+
+      ServerHttpRequest.Builder builder = request.mutate();
+
+      // 传递 header
+      builder.header("X-Token", authentication);
+
+      return chain.filter(exchange.mutate().request(builder.build()).build());
+      // return chain.filter(exchange);
     }
 
    /**
@@ -861,6 +872,45 @@ eureka:
 logging:
   level:
     org.springframework.cloud.gateway: debug
+```
+
+## 扩展
+
+### Ant 风格路径表达式
+
+在 Spring 中提供了 `UrlPathHelper` 和 `AntPathMatcher` 工具类对 URL 进行匹配以及处理。SpringMVC 的路径匹配规则是依照 Ant 的来的，实际上不只是 SpringMVC，整个 Spring 框架的路径解析都是按照 Ant 的风格来的；AntPathMatcher 不仅可以匹配 Spring 的`@RequestMapping` 路径，也可以用来匹配各种字符串，包括文件路径等。
+
+#### 规则
+
+- `?`：匹配一个字符（除过操作系统默认的文件分隔符）；
+- `*`：匹配0个或多个字符；
+- `**`：匹配0个或多个目录；
+- `{spring:[a-z]+}` 将正则表达式[a-z]+匹配到的值,赋值给名为 spring 的路径变量；
+
+#### 使用
+
+```java
+// AntPathMatcher matcher = new AntPathMatcher(File.separator)；
+AntPathMatcher antPathMatcher = new AntPathMatcher();
+// 缓存 pattern
+antPathMatcher.setCachePatterns(true);
+// 大小写敏感
+antPathMatcher.setCaseSensitive(true);
+// 去除空格
+antPathMatcher.setTrimTokens(true);
+// 分隔符
+antPathMatcher.setPathSeparator("/");
+
+// 匹配：com/test.jsp , com/tast.jsp , com/txst.jsp
+Assert.assertTrue(antPathMatcher.match("com/t?st.jsp", "com/test.jsp"));
+// 匹配：com文件夹下的全部.jsp文件
+Assert.assertTrue(antPathMatcher.match("com/*.jsp", "com.a.jsp"));
+// 匹配：com文件夹和子文件夹下的全部.jsp文件
+Assert.assertTrue(antPathMatcher.match("com/**/test.jsp", "com/a/b/test.jsp"));
+// 匹配：/test/下所有 api
+Assert.assertTrue(antPathMatcher.match("/test/**", "/test/a/b"));
+// 匹配：有值的路径
+Assert.assertTrue(antPathMatcher.match("/test/{id}", "/test/1234"));
 ```
 
 ## 问题
