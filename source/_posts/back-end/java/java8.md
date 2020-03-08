@@ -649,6 +649,10 @@ System.out.println(month);          // DECEMBER
 
 long minuteOfDay = sylvester.getLong(ChronoField.MINUTE_OF_DAY);
 System.out.println(minuteOfDay);    // 1439
+
+// 时间戳转换成 LocalDateTime
+Long timestamp = LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli();
+LocalDateTime time =LocalDateTime.ofEpochSecond(timestamp/1000, 0, ZoneOffset.ofHours(8));
 ```
 
 上文中提及的 Instant 也可以用来将时间根据时区转化：
