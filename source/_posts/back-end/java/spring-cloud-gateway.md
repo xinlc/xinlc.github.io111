@@ -512,15 +512,21 @@ RequestRateLimiter 过滤器可以用于限流，使用 RateLimiter 实现来确
 ```java
 @Configuration
 public class RedisRateLimiterConfig {
-    @Bean
+    @Bean(value = "userKeyResolver")
     KeyResolver userKeyResolver() {
-        return exchange -> Mono.just(exchange.getRequest().getQueryParams().getFirst("username"));
+        return exchange -> Mono.just(exchange.getRequest().getQueryParams().getFirst("userId"));
     }
 
-    @Bean
-    public KeyResolver ipKeyResolver() {
+    @Bean("hostNameKeyResolver")
+    public KeyResolver hostNameKeyResolver() {
         return exchange -> Mono.just(exchange.getRequest().getRemoteAddress().getHostName());
     }
+
+    @Bean("ipKeyResolver")
+    public KeyResolver ipKeyResolver() {
+        return exchange -> Mono.just(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress());
+    }
+
 }
 ```
 
@@ -542,9 +548,9 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1 #每秒允许处理的请求数量
-                redis-rate-limiter.burstCapacity: 2 #每秒最大处理的请求数量
-                key-resolver: "#{@ipKeyResolver}" #限流策略，对应策略的Bean
+                redis-rate-limiter.replenishRate: 10 # 允许用户每秒处理多少个请求  (令牌桶每秒填充平均速率)
+                redis-rate-limiter.burstCapacity: 20 # 允许在一秒钟内完成的最大请求数 (令牌桶总容量)
+                key-resolver: "#{@ipKeyResolver}" # 限流策略，对应策略的Bean
           predicates:
             - Method=GET
 logging:

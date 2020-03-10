@@ -253,6 +253,16 @@ ovnet overlay network 结构是怎么样的？
 
 如果有多个 overlay ，每个 overlay 使用不同的 `vxlan id` 来标识，每个单独的 overlay 链接到 ovnet 命名空间中不同的 bridge 设备。通过 bridge 设备转发数据到 vxlan 设备，vxlan 设备对数据进行封装（加vxlan header 等）后，转发（arp proxy）数据到主机中，主机网络将数据发出。
 
+通过查看 nat 转发规则可以看到相关端口已经转发到了 docker_gwbridge 上：
+
+```bash
+# 查看路由
+route
+
+# 查看 nat
+iptables -t nat -L -n
+```
+
 ### 构建自定义 overlay 网络集群
 
 ```bash
@@ -464,10 +474,17 @@ firewall-cmd --zone=trusted --add-source=192.168.48.1/20 --permanent
 firewall-cmd --reload
 ```
 
+### 容器间如何访问？
+
+1. 在容器内可以通过 docker0 ip + 容器对外暴露的端口来访问其他容器
+2. 可以通过 service name + 容器内部端口来访问
+
 ## 参考
 
 - [docker network](https://docs.docker.com/network/)
 - [docker practice](https://yeasy.gitbooks.io/docker_practice/content/network/)
+- [Docker swarm中的LB和服务发现详解](https://www.jianshu.com/p/c83a9173459f/)
+- [Docker Swarm - 服务发现和负载均衡原理](https://www.jianshu.com/p/dba9342071d8/)
 
 [1]: /images/docker/docker-network/1.jpg
 [2]: /images/docker/docker-network/2.jpg
