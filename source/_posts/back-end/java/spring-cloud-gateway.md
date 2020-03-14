@@ -332,6 +332,33 @@ spring:
         - Weight=group1, 2
 ```
 
+### 自定义 Route Predicate 工厂
+
+```java
+public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
+
+    public MyRoutePredicateFactory() {
+        super(Config.class);
+    }
+
+    @Override
+    public Predicate<ServerWebExchange> apply(Config config) {
+        // grab configuration from Config object
+        return exchange -> {
+            //grab the request
+            ServerHttpRequest request = exchange.getRequest();
+            //take information from the request to see if it
+            //matches configuration.
+            return matches(config, request);
+        };
+    }
+
+    public static class Config {
+        //Put the configuration properties for your filter here
+    }
+}
+```
+
 ## Route Filter 的使用
 
 路由过滤器可用于修改进入的 HTTP 请求和返回的 HTTP 响应，路由过滤器只能指定路由进行使用。Spring Cloud Gateway 内置了多种路由过滤器，他们都由 GatewayFilter 的工厂类来产生。
@@ -637,6 +664,32 @@ public GlobalFilter c() {
         }));
     };
 }
+
+@Bean
+public GlobalFilter customGlobalFilter() {
+    return (exchange, chain) -> exchange.getPrincipal()
+        .map(Principal::getName)
+        .defaultIfEmpty("Default User")
+        .map(userName -> {
+          //adds header to proxied request
+          exchange.getRequest().mutate().header("CUSTOM-REQUEST-HEADER", userName).build();
+          return exchange;
+        })
+        .flatMap(chain::filter);
+}
+
+@Bean
+public GlobalFilter customGlobalPostFilter() {
+    return (exchange, chain) -> chain.filter(exchange)
+        .then(Mono.just(exchange))
+        .map(serverWebExchange -> {
+          //adds header to response
+          serverWebExchange.getResponse().getHeaders().set("CUSTOM-RESPONSE-HEADER",
+              HttpStatus.OK.equals(serverWebExchange.getResponse().getStatusCode()) ? "It worked": "It did not work");
+          return serverWebExchange;
+        })
+        .then();
+}
 ```
 
 或者实现 GlobalFilter 接口：
@@ -689,6 +742,98 @@ spring:
         predicates:
         - Path=/service/**
 ```
+
+### 自定义 GatewayFilter 工厂
+
+自定义过滤器工厂相对来说这种方式更加灵活。
+
+> 注意：当我们继承 AbstractGatewayFilterFactory 的时候，要把自定义的 Config 类传给父类，否者会报错。
+
+前置过滤器工厂：
+
+```java
+public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGatewayFilterFactory.Config> {
+
+    public PreGatewayFilterFactory() {
+        super(Config.class);
+    }
+
+    @Override
+    public GatewayFilter apply(Config config) {
+        // grab configuration from Config object
+        return (exchange, chain) -> {
+            //If you want to build a "pre" filter you need to manipulate the
+            //request before calling chain.filter
+            ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+            //use builder to manipulate the request
+            return chain.filter(exchange.mutate().request(request).build());
+        };
+    }
+
+    public static class Config {
+        //Put the configuration properties for your filter here
+    }
+}
+```
+
+后置过滤器工厂：
+
+```java
+public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostGatewayFilterFactory.Config> {
+
+    public PostGatewayFilterFactory() {
+        super(Config.class);
+    }
+
+    @Override
+    public GatewayFilter apply(Config config) {
+        // grab configuration from Config object
+        return (exchange, chain) -> {
+            return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+                ServerHttpResponse response = exchange.getResponse();
+                //Manipulate the response in some way
+            }));
+        };
+    }
+
+    public static class Config {
+        //Put the configuration properties for your filter here
+    }
+
+}
+```
+
+将工厂注入到 spring 容器当中：
+
+```java
+@Configuration
+public class FilterFactory {
+    @Bean
+    public PreGatewayFilterFactory preGatewayFilterFactory() {
+        return new PreGatewayFilterFactory();
+    }
+
+    @Bean
+    public PostGatewayFilterFactory postGatewayFilterFactory() {
+        return new PostGatewayFilterFactory();
+    }
+}
+```
+
+然后是 yaml 的配置，这里需要注意的是名称为前缀(Pre，Post)，SpringBoot 约定过滤器的前缀为配置的 name，而后面最好统一都是GatewayFilterFactory。
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: custom_gateway_filter_factories
+          uri: https://example.org
+          filters:
+            - Pre
+```
+
+过滤器工厂的顶级的接口是 GatewayFilterFactory，我们可以直接继承它们的两个抽象类 AbstractGatewayFilterFactory 和 AbstractNameValueGatewayFilterFactory 来简化开发。区别在于 AbstractGatewayFilterFactory 是接受一个参数，AbstractNameValueGatewayFilterFactory 是接收两个参数，例如：- AddResponseHeader=X-Response-Default-Foo, Default-Bar
 
 ## 详细配置使用
 
@@ -917,6 +1062,252 @@ Assert.assertTrue(antPathMatcher.match("com/**/test.jsp", "com/a/b/test.jsp"));
 Assert.assertTrue(antPathMatcher.match("/test/**", "/test/a/b"));
 // 匹配：有值的路径
 Assert.assertTrue(antPathMatcher.match("/test/{id}", "/test/1234"));
+```
+
+### gateway 异常处理
+
+异常处理配置类, 覆盖默认的异常处理类：
+
+```java
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.web.ResourceProperties;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.reactive.error.ErrorAttributes;
+import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.reactive.result.view.ViewResolver;
+
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * 异常处理配置类, 覆盖默认的异常处理
+ *
+ * @author Leo
+ * @date 2020.02.17
+ */
+@Configuration
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+@ConditionalOnClass(WebFluxConfigurer.class)
+@AutoConfigureBefore(WebFluxAutoConfiguration.class)
+@EnableConfigurationProperties({ServerProperties.class, ResourceProperties.class})
+public class ErrorHandlerConfig {
+
+	private ServerProperties serverProperties;
+
+	private ApplicationContext applicationContext;
+
+	private ResourceProperties resourceProperties;
+
+	private List<ViewResolver> viewResolvers;
+
+	private ServerCodecConfigurer serverCodecConfigurer;
+
+	public ErrorHandlerConfig(ServerProperties serverProperties,
+							  ResourceProperties resourceProperties,
+							  ObjectProvider<List<ViewResolver>> viewResolversProvider,
+							  ServerCodecConfigurer serverCodecConfigurer,
+							  ApplicationContext applicationContext) {
+		this.serverProperties = serverProperties;
+		this.applicationContext = applicationContext;
+		this.resourceProperties = resourceProperties;
+		this.viewResolvers = viewResolversProvider.getIfAvailable(Collections::emptyList);
+		this.serverCodecConfigurer = serverCodecConfigurer;
+	}
+
+	@Bean
+	public ErrorWebExceptionHandler errorWebExceptionHandler(ErrorAttributes errorAttributes) {
+		DefaultErrorWebExceptionHandler exceptionHandler = new CustomErrorWebExceptionHandler(
+				errorAttributes, this.resourceProperties,
+				this.serverProperties.getError(), this.applicationContext);
+		exceptionHandler.setViewResolvers(this.viewResolvers);
+		exceptionHandler.setMessageWriters(this.serverCodecConfigurer.getWriters());
+		exceptionHandler.setMessageReaders(this.serverCodecConfigurer.getReaders());
+		return exceptionHandler;
+	}
+}
+```
+
+自定义异常 Handler：
+
+```java
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.ErrorProperties;
+import org.springframework.boot.autoconfigure.web.ResourceProperties;
+import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
+import org.springframework.boot.web.reactive.error.ErrorAttributes;
+import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.*;
+import reactor.core.publisher.Mono;
+
+import java.util.Map;
+
+/**
+ * 自定义异常 Handler
+ *
+ * @author Leo
+ * @date 2020.02.17
+ */
+@Slf4j
+public class CustomErrorWebExceptionHandler extends DefaultErrorWebExceptionHandler {
+
+	@Autowired
+	private GateWayExceptionHandlerAdvice gateWayExceptionHandlerAdvice;
+
+	/**
+	 * Create a new {@code DefaultErrorWebExceptionHandler} instance.
+	 *
+	 * @param errorAttributes    the error attributes
+	 * @param resourceProperties the resources configuration properties
+	 * @param errorProperties    the error configuration properties
+	 * @param applicationContext the current application context
+	 */
+	public CustomErrorWebExceptionHandler(ErrorAttributes errorAttributes, ResourceProperties resourceProperties,
+										  ErrorProperties errorProperties, ApplicationContext applicationContext) {
+		super(errorAttributes, resourceProperties, errorProperties, applicationContext);
+	}
+
+	@Override
+	protected RouterFunction<ServerResponse> getRoutingFunction(ErrorAttributes errorAttributes) {
+		return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse);
+	}
+
+	@Override
+	protected Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
+		Map<String, Object> error = getErrorAttributes(request, isIncludeStackTrace(request, MediaType.ALL));
+		int errorStatus = getHttpStatus(error);
+		Throwable throwable = getError(request);
+		return ServerResponse.status(errorStatus)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.body(BodyInserters.fromObject(gateWayExceptionHandlerAdvice.handle(throwable)));
+		//.doOnNext((resp) -> logError(request, errorStatus));
+	}
+}
+```
+
+定义网关异常通知：
+
+```java
+import com.自定义.common.api.ApiResult;
+import com.自定义.common.api.ApiResultType;
+import com.自定义.common.exception.BusinessException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.netty.channel.ConnectTimeoutException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.gateway.support.NotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+/**
+ * 网关异常通知
+ *
+ * @author Leo
+ * @date 2020.02.17
+ */
+@Slf4j
+@Component
+public class GateWayExceptionHandlerAdvice {
+
+	@ExceptionHandler(value = {ResponseStatusException.class})
+	public ApiResult<?> handle(ResponseStatusException ex) {
+		log.error("response status exception:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.GATEWAY_ERROR.getCode());
+	}
+
+	@ExceptionHandler(value = {ConnectTimeoutException.class})
+	public ApiResult<?> handle(ConnectTimeoutException ex) {
+		log.error("connect timeout exception:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.GATEWAY_CONNECT_TIME_OUT.getCode());
+	}
+
+	@ExceptionHandler(value = {NotFoundException.class})
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ApiResult<?> handle(NotFoundException ex) {
+		log.error("not found exception:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.GATEWAY_NOT_FOUND_SERVICE.getCode());
+	}
+
+	@ExceptionHandler(value = {ExpiredJwtException.class})
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ApiResult<?> handle(ExpiredJwtException ex) {
+		log.error("ExpiredJwtException:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.INVALID_TOKEN.getCode());
+	}
+
+	@ExceptionHandler(value = {SignatureException.class})
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ApiResult<?> handle(SignatureException ex) {
+		log.error("SignatureException:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.INVALID_TOKEN.getCode());
+	}
+
+	@ExceptionHandler(value = {MalformedJwtException.class})
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ApiResult<?> handle(MalformedJwtException ex) {
+		log.error("MalformedJwtException:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.INVALID_TOKEN.getCode());
+	}
+
+	@ExceptionHandler(value = {BusinessException.class})
+	@ResponseStatus(HttpStatus.OK)
+	public ApiResult<?> handle(BusinessException ex) {
+		log.error("BusinessException exception:{}", ApiResultType.getMsgByCode(ex.getCode()));
+		return ApiResult.FAIL(ex.getCode());
+	}
+
+	@ExceptionHandler(value = {RuntimeException.class})
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ApiResult<?> handle(RuntimeException ex) {
+		log.error("runtime exception:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.SYS_ERROR.getCode());
+	}
+
+	@ExceptionHandler(value = {Exception.class})
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ApiResult<?> handle(Exception ex) {
+		log.error("exception:{}", ex.getMessage());
+		return ApiResult.FAIL(ApiResultType.SYS_ERROR.getCode());
+	}
+
+	@ExceptionHandler(value = {Throwable.class})
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ApiResult<?> handle(Throwable throwable) {
+		ApiResult<?> result = ApiResult.FAIL(ApiResultType.SYS_ERROR.getCode());
+		if (throwable instanceof ResponseStatusException) {
+			result = handle((ResponseStatusException) throwable);
+		} else if (throwable instanceof ConnectTimeoutException) {
+			result = handle((ConnectTimeoutException) throwable);
+		} else if (throwable instanceof NotFoundException) {
+			result = handle((NotFoundException) throwable);
+		} else if (throwable instanceof BusinessException) {
+			result = handle((BusinessException) throwable);
+		} else if (throwable instanceof RuntimeException) {
+			result = handle((RuntimeException) throwable);
+		} else if (throwable instanceof Exception) {
+			result = handle((Exception) throwable);
+		}
+		return result;
+	}
+}
 ```
 
 ## 问题
