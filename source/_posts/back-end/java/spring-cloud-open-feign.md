@@ -28,7 +28,7 @@ Requst Json 根据需要可以经过一些截获器做进一步处理，处理�
 ## 环境
 
 - JDK：1.8
-- Spring Boot：2.2.4 RELEASE
+- Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR1
 
 ## 创建一个 feign-service 模块

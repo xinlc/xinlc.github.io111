@@ -417,7 +417,7 @@ OAuth 令牌类型：
 ## 环境
 
 - JDK：1.8
-- Spring Boot：2.2.4 RELEASE
+- Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR
 
 ## 创建 oauth2-server 模块

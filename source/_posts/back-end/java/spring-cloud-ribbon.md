@@ -65,7 +65,7 @@ Ribbon 中的关键组件：
 ## 环境
 
 - JDK：1.8
-- Spring Boot：2.2.4 RELEASE
+- Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR1
 
 ## RestTemplate 的使用

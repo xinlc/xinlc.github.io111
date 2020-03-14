@@ -82,7 +82,7 @@ Spring Cloud Gateway 具有如下特性：
 ## 环境
 
 - JDK：1.8
-- Spring Boot：2.2.4 RELEASE
+- Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR1
 
 ## 集成 Gateway

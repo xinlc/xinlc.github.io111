@@ -119,7 +119,7 @@ Eureka 客户端在关机时向 Eureka 服务器发送一个取消请求。这�
 ## 环境
 
 - JDK：1.8
-- Spring Boot：2.2.4 RELEASE
+- Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR1
 
 ## 搭建 Eureka 注册中心

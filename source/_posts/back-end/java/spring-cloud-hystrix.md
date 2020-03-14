@@ -177,7 +177,7 @@ Hystrix Command 其实是 Hystrix 组件提供的一个基类，它实现了一�
 ## 环境
 
 - JDK：1.8
-- Spring Boot：2.2.4 RELEASE
+- Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR1
 
 ## 创建一个 hystrix-service 模块

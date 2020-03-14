@@ -152,7 +152,7 @@ Zuul 2.0 架构的变化主要是前端，1.0 是 Servlet，2.0 是 Netty Server
 ## 环境
 
 - JDK：1.8
-- Spring Boot：2.2.4 RELEASE
+- Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR1
 
 ## 创建一个 zuul-proxy 模块
