@@ -470,9 +470,9 @@ public class ProviderApplication {
 - https://github.com/alibaba/spring-cloud-alibaba/wiki/Nacos-config/
 - https://github.com/alibaba/nacos/
 - https://nacos.io/zh-cn/index.html
-- Sentinel 介绍 https://github.com/alibaba/Sentinel/wiki/%E4%BB%8B%E7%BB%8D/
-- Sentinel 如何使用 https://github.com/alibaba/Sentinel/wiki/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8
-- Sentinel 网关限流 https://github.com/alibaba/Sentinel/wiki/%E7%BD%91%E5%85%B3%E9%99%90%E6%B5%81/
+- [Sentinel 介绍](https://github.com/alibaba/Sentinel/wiki/%E4%BB%8B%E7%BB%8D/)
+- [Sentinel 如何使用](https://github.com/alibaba/Sentinel/wiki/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8/)
+- [Sentinel 网关限流](https://github.com/alibaba/Sentinel/wiki/%E7%BD%91%E5%85%B3%E9%99%90%E6%B5%81/)
 
 [1]: /images/java/spring-cloud-alibaba-sentinel/1.png
 [2]: /images/java/spring-cloud-alibaba-sentinel/2.jpg
