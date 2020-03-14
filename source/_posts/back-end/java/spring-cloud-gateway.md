@@ -1310,6 +1310,202 @@ public class GateWayExceptionHandlerAdvice {
 }
 ```
 
+### 网关聚合所有的 Swagger 微服务文档
+
+这里使用 [knife4j](https://gitee.com/xiaoym/knife4j/)，knife4j 是为 Java MVC 框架集成 Swagger 生成 Api 文档的增强解决方案。
+
+在 Spring Cloud 的微服务架构下,每个微服务其实并不需要引入前端的Ui资源,因此在每个微服务的Spring Boot项目下,引入knife4j提供的微服务starter
+
+```xml
+<dependency>
+    <groupId>com.github.xiaoymin</groupId>
+    <artifactId>knife4j-micro-spring-boot-starter</artifactId>
+    <version>${knife4j.version}</version>
+</dependency>
+```
+
+swagger的相关配置：
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+/**
+ * Swagger 配置
+ *
+ * @author Leo
+ * @date 2020.03.04
+ */
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+	@Bean(value = "authApi")
+  @Order(value = 1)
+	public Docket createRestApi() {
+		return new Docket(DocumentationType.SWAGGER_2)
+				.apiInfo(groupApiInfo())
+				.select()
+				.apis(RequestHandlerSelectors.basePackage("com.leo.auth.controller"))
+				.paths(PathSelectors.any())
+				.build();
+	}
+
+	private ApiInfo groupApiInfo() {
+		return new ApiInfoBuilder()
+				.title("auth 服务")
+				.description("<div style='font-size:14px;color:red;'>授权，认证服务</div>")
+				.contact("Leo")
+				.version("1.0")
+				.build();
+	}
+}
+
+```
+
+在网关聚合文档服务下,可以再把前端的ui资源引入
+
+```java
+<dependency>
+    <groupId>com.github.xiaoymin</groupId>
+    <artifactId>knife4j-spring-boot-starter</artifactId>
+    <version>${knife4j.version}</version>
+</dependency>
+```
+
+Swagger 资源配置：
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+import springfox.documentation.swagger.web.SwaggerResource;
+import springfox.documentation.swagger.web.SwaggerResourcesProvider;
+
+import java.util.ArrayList;
+import java.util.List;
+/**
+ * Swagger 聚合配置
+ *
+ * @author Leo
+ * @date 2020.03.02
+ */
+@Slf4j
+@Component
+@Primary
+@AllArgsConstructor
+public class SwaggerResourceConfig implements SwaggerResourcesProvider {
+
+    private final RouteLocator routeLocator;
+    private final GatewayProperties gatewayProperties;
+
+    @Override
+    public List<SwaggerResource> get() {
+        List<SwaggerResource> resources = new ArrayList<>();
+        List<String> routes = new ArrayList<>();
+        routeLocator.getRoutes().subscribe(route -> routes.add(route.getId()));
+        gatewayProperties.getRoutes().stream().filter(routeDefinition -> routes.contains(routeDefinition.getId())).forEach(route -> {
+            route.getPredicates().stream()
+                    .filter(predicateDefinition -> ("Path").equalsIgnoreCase(predicateDefinition.getName()))
+                    .forEach(predicateDefinition -> resources.add(swaggerResource(route.getId(),
+                            predicateDefinition.getArgs().get(NameUtils.GENERATED_NAME_PREFIX + "0")
+                                    .replace("**", "v2/api-docs"))));
+        });
+
+        return resources;
+    }
+
+    private SwaggerResource swaggerResource(String name, String location) {
+        log.info("name:{},location:{}",name,location);
+        SwaggerResource swaggerResource = new SwaggerResource();
+        swaggerResource.setName(name);
+        swaggerResource.setLocation(location);
+        swaggerResource.setSwaggerVersion("2.0");
+        return swaggerResource;
+    }
+}
+```
+
+Swagger 过滤器：
+
+```java
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+
+/**
+ * Swagger 过滤器添加 Header
+ * <p>
+ * 在 Swagger 中会根据 X-Forwarded-Prefix 这个 Header 来获取 BasePath，
+ * 而 Gateway 在做转发的时候并没有这个 Header 添加进 Request，所以发生接口调试的 404 错误，
+ *
+ * @author Leo
+ * @date 2020.03.02
+ */
+@Component
+public class SwaggerHeaderFilter extends AbstractGatewayFilterFactory<SwaggerHeaderFilter.Config> {
+
+	private static final String HEADER_NAME = "X-Forwarded-Prefix";
+
+	private static final String URI = "/v2/api-docs";
+
+	public SwaggerHeaderFilter() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		return (exchange, chain) -> {
+			ServerHttpRequest request = exchange.getRequest();
+			String path = request.getURI().getPath();
+			if (!StringUtils.endsWithIgnoreCase(path, URI)) {
+				return chain.filter(exchange);
+			}
+			String basePath = path.substring(0, path.lastIndexOf(URI));
+			ServerHttpRequest newRequest = request.mutate().header(HEADER_NAME, basePath).build();
+			ServerWebExchange newExchange = exchange.mutate().request(newRequest).build();
+			return chain.filter(newExchange);
+		};
+	}
+
+	public static class Config {
+		// Put the configuration properties for your filter here
+	}
+}
+```
+
+配置的网关属性，路由规则等，application.yml 配置文件如下：
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth_path_route
+          uri: http://localhost:8088/auth-api
+          predicates:
+            - Path=/auth-api/**
+          filters:
+            - SwaggerHeaderFilter
+```
+
+访问：http://网关ip:网关端口/doc.html
+
 ## 问题
 
 ### 引入 spring-boot-starter-web 无法启动
