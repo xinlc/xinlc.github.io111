@@ -1539,6 +1539,8 @@ spring:
 - https://juejin.im/post/5db6eed6518825644076d0b6/
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
+- 《从0开始学微服务》
+- 《微服务设计》
 
 [1]: /images/java/spring-cloud-gateway/reverse-proxy-vs-gateway.jpg
 [2]: /images/java/spring-cloud-gateway/gateway-deploy.jpg

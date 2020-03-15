@@ -779,6 +779,8 @@ public class HystrixRequestContextFilter implements Filter {
 - https://juejin.im/post/5d822d27e51d45621479ad92/
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
+- 《从0开始学微服务》
+- 《微服务设计》
 
 [1]: /images/java/spring-cloud-hystrix/1.jpg
 [2]: /images/java/spring-cloud-hystrix/2.jpg

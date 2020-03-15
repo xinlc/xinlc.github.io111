@@ -601,6 +601,8 @@ V4 和 V3 架构差不多，只是引入了开放平台 BFF 和开发平台网�
 - https://juejin.im/post/5d9f2dea6fb9a04e3e724067/
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
+- 《从0开始学微服务》
+- 《微服务设计》
 
 [1]: /images/java/spring-cloud-zuul/1.jpg
 [2]: /images/java/spring-cloud-zuul/2.jpg

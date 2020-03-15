@@ -639,11 +639,13 @@ Auth Service 在生成令牌的时候就可以问 RBAC Service 这个用户关�
 - https://tools.ieft.org/html/rfc7519.html
 - https://cloud.spring.io/spring-cloud-static/spring-cloud-security/2.2.1.RELEASE/reference/html/
 - https://juejin.im/post/5dc2bec6f265da4d4f65bebe/
-- 《微服务架构实战》
-- 《Spring Boot & Kubernetes 云原生微服务实践》
 - https://www.manning.com/books/oauth-2-in-action/
 - https://medium.com/@darutk/the-simplest-guide-to-oauth-2-0-8c71bd9a15bb/
 - http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html/
+- 《微服务架构实战》
+- 《Spring Boot & Kubernetes 云原生微服务实践》
+- 《从0开始学微服务》
+- 《微服务设计》
 
 [1]: /images/java/spring-cloud-jwt/1.jpg
 [2]: /images/java/spring-cloud-jwt/2.jpg

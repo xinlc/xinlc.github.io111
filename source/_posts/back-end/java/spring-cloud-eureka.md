@@ -454,6 +454,8 @@ Istio 是一个 Google 发起的组织，其实就是把 ServiceMesh 给产品�
 - https://juejin.im/post/5d78cd53f265da03d55e8351/
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
+- 《从0开始学微服务》
+- 《微服务设计》
 
 [1]: /images/java/spring-cloud-eureka/1.jpg
 [2]: /images/java/spring-cloud-eureka/2.jpg

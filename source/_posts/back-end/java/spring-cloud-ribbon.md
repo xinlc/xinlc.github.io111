@@ -431,6 +431,8 @@ user-service:
 - https://juejin.im/post/5d7f9006f265da03951a260c/
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
+- 《从0开始学微服务》
+- 《微服务设计》
 
 [1]: /images/java/spring-cloud-ribbon/1.gif
 [2]: /images/java/spring-cloud-ribbon/2.gif

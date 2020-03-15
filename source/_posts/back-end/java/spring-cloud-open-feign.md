@@ -654,6 +654,8 @@ public class FeignResponseDecoderConfig {
 - https://juejin.im/post/5d9c85c3e51d45782c23fab6/
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
+- 《从0开始学微服务》
+- 《微服务设计》
 
 [1]: /images/java/spring-cloud-open-feign/1.jpg
 [2]: /images/java/spring-cloud-open-feign/2.jpg
