@@ -296,6 +296,9 @@ spring:
     name: gateway-service
   cloud:
     nacos:
+      # Spring Cloud Alibaba 2.2.0 还未升级 nacos 1.2.0 权限，将会在下个版本升级。
+      # username: nacos
+      # password: nacos
       # 服务注册发现
       discovery:
         server-addr: localhost:8848 # Nacos地址

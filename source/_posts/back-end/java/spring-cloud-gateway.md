@@ -332,6 +332,23 @@ spring:
         - Weight=group1, 2
 ```
 
+### RewritePath Route Predicate
+
+重写路径，对于的请求路径/red/blue，在发出下游请求之前路径将会设置为/blue。由于YAML规范，$应将替换$\为。
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritepath_route
+        uri: https://example.org
+        predicates:
+        - Path=/foo/**
+        filters:
+        - RewritePath=/red(?<segment>/?.*), $\{segment}
+```
+
 ### 自定义 Route Predicate 工厂
 
 ```java
@@ -1094,7 +1111,6 @@ import java.util.List;
  * 异常处理配置类, 覆盖默认的异常处理
  *
  * @author Leo
- * @date 2020.02.17
  */
 @Configuration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
@@ -1160,7 +1176,6 @@ import java.util.Map;
  * 自定义异常 Handler
  *
  * @author Leo
- * @date 2020.02.17
  */
 @Slf4j
 public class CustomErrorWebExceptionHandler extends DefaultErrorWebExceptionHandler {
@@ -1221,7 +1236,6 @@ import org.springframework.web.server.ResponseStatusException;
  * 网关异常通知
  *
  * @author Leo
- * @date 2020.02.17
  */
 @Slf4j
 @Component
@@ -1324,7 +1338,8 @@ public class GateWayExceptionHandlerAdvice {
 </dependency>
 ```
 
-swagger的相关配置：
+swagger 的相关配置：
+
 ```java
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -1341,7 +1356,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
  * Swagger 配置
  *
  * @author Leo
- * @date 2020.03.04
  */
 @Configuration
 @EnableSwagger2
@@ -1370,9 +1384,9 @@ public class SwaggerConfig {
 
 ```
 
-在网关聚合文档服务下,可以再把前端的ui资源引入
+在网关聚合文档服务下, 可以再把前端的ui资源引入：
 
-```java
+```xml
 <dependency>
     <groupId>com.github.xiaoymin</groupId>
     <artifactId>knife4j-spring-boot-starter</artifactId>
@@ -1396,11 +1410,11 @@ import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * Swagger 聚合配置
  *
  * @author Leo
- * @date 2020.03.02
  */
 @Slf4j
 @Component
@@ -1455,7 +1469,6 @@ import org.springframework.web.server.ServerWebExchange;
  * 而 Gateway 在做转发的时候并没有这个 Header 添加进 Request，所以发生接口调试的 404 错误，
  *
  * @author Leo
- * @date 2020.03.02
  */
 @Component
 public class SwaggerHeaderFilter extends AbstractGatewayFilterFactory<SwaggerHeaderFilter.Config> {
@@ -1498,13 +1511,449 @@ spring:
       routes:
         - id: auth_path_route
           uri: http://localhost:8088/auth-api
+          order: 100
           predicates:
             - Path=/auth-api/**
+          filters:
+            - SwaggerHeaderFilter
+
+        - id: other_auth_path_route
+          uri: http://localhost:8088/auth-api
+          # uri: http://aid-auth-service/auth-api
+          order: 200
+          predicates:
+            # - Path=/*/auth-api/**
+            - Path=/user-api/auth-api/**,/pms-api/auth-api/**
+          filters:
+            - SwaggerHeaderFilter
+
+        - id: user_path_route
+          uri: http://localhost:8081/user-api
+          order: 500
+          predicates:
+            - Path=/user-api/**
           filters:
             - SwaggerHeaderFilter
 ```
 
 访问：http://网关ip:网关端口/doc.html
+
+### 实现动态路由
+
+Gateway 启动时，路由信息默认会加载内存中，路由信息被封装到 `RouteDefinition` 对象中，配置多个 `RouteDefinition` 组成 Gateway 的路由系统。
+
+Gateway 提供了 Endpoint 端点，暴露路由信息，源码在 **org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint** 中，想访问端点需引入 **spring-boot-starter-actuator** 依赖，并在配置文件中暴露端点 application.yml：
+
+```yaml
+# 暴露所有端点，生产环境不建议暴露
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+```
+
+访问端点查看路由信息：http://localhost:8000/actuator/gateway/routes
+
+#### 定义路由模型
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 路由模型
+ *
+ * @author Leo
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class GatewayRouteDefinition {
+	// 路由Id
+	private String id;
+
+	// 路由断言集合配置
+	private List<GatewayPredicateDefinition> predicates = new ArrayList<>();
+
+	// 路由过滤器集合配置
+	private List<GatewayFilterDefinition> filters = new ArrayList<>();
+
+	// 路由规则转发的目标 uri
+	private String uri;
+
+	// 路由执行的顺序
+	private int order = 0;
+}
+```
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * 路由断言模型
+ *
+ * @author Leo
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class GatewayPredicateDefinition {
+	// 断言对应的Name
+	private String name;
+
+	// 配置的断言规则
+	private Map<String, String> args = new LinkedHashMap<>();
+}
+```
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * 过滤器模型
+ *
+ * @author Leo
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class GatewayFilterDefinition {
+	// 过滤器 Name
+	private String name;
+
+	// 对应的路由规则
+	private Map<String, String> args = new LinkedHashMap<>();
+}
+```
+
+#### 动态路由服务实现
+
+编写动态路由实现类，需实现 ApplicationEventPublisherAware 接口：
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
+import org.springframework.cloud.gateway.support.NotFoundException;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
+/**
+ * 动态路由服务
+ *
+ * @author Leo
+ */
+@Service
+public class DynamicRouteService implements ApplicationEventPublisherAware {
+
+	@Autowired
+	private RouteDefinitionWriter routeDefinitionWriter;
+
+	private ApplicationEventPublisher publisher;
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.publisher = applicationEventPublisher;
+	}
+
+	/**
+	 * 增加路由
+	 */
+	public String add(RouteDefinition definition) {
+		routeDefinitionWriter.save(Mono.just(definition)).subscribe();
+		this.publisher.publishEvent(new RefreshRoutesEvent(this));
+		return "success";
+	}
+
+	/**
+	 * 更新路由
+	 */
+	public String update(RouteDefinition definition) {
+		try {
+			delete(definition.getId());
+		} catch (Exception e) {
+			return "update fail,not find route routeId: " + definition.getId();
+		}
+		try {
+			routeDefinitionWriter.save(Mono.just(definition)).subscribe();
+			this.publisher.publishEvent(new RefreshRoutesEvent(this));
+			return "success";
+		} catch (Exception e) {
+			return "update route fail";
+		}
+	}
+
+	/**
+	 * 删除路由
+	 */
+	public Mono<ResponseEntity<Object>> delete(String id) {
+		return this.routeDefinitionWriter.delete(Mono.just(id)).then(Mono.defer(() -> {
+			return Mono.just(ResponseEntity.ok().build());
+		})).onErrorResume((t) -> {
+			return t instanceof NotFoundException;
+		}, (t) -> {
+			return Mono.just(ResponseEntity.notFound().build());
+		});
+	}
+}
+```
+
+#### 编写 Rest 接口
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 动态路由控制器
+ *
+ * @author Leo
+ */
+@RestController
+@RequestMapping("/route")
+public class DynamicRouteController {
+	@Autowired
+	private DynamicRouteService dynamicRouteService;
+
+	@Autowired
+	private RouteDefinitionLocator routeDefinitionLocator;
+
+	/*
+	 * 获取网关所有的路由信息
+	 */
+	@RequestMapping("/routes")
+	public Flux<RouteDefinition> getRouteDefinitions() {
+		return routeDefinitionLocator.getRouteDefinitions();
+	}
+
+	/**
+	 * 增加路由
+	 */
+	@PostMapping("/add")
+	public String add(@RequestBody GatewayRouteDefinition gwdefinition) {
+		String flag = "fail";
+		try {
+			RouteDefinition definition = assembleRouteDefinition(gwdefinition);
+			flag = this.dynamicRouteService.add(definition);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return flag;
+	}
+
+	/**
+	 * 删除路由
+	 */
+	@DeleteMapping("/routes/{id}")
+	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
+		try {
+			return this.dynamicRouteService.delete(id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 更新路由
+	 */
+	@PostMapping("/update")
+	public String update(@RequestBody GatewayRouteDefinition gwdefinition) {
+		RouteDefinition definition = assembleRouteDefinition(gwdefinition);
+		return this.dynamicRouteService.update(definition);
+	}
+
+	/**
+	 * 把传递进来的参数转换成路由对象
+	 */
+	private RouteDefinition assembleRouteDefinition(GatewayRouteDefinition gwdefinition) {
+		RouteDefinition definition = new RouteDefinition();
+		definition.setId(gwdefinition.getId());
+		definition.setOrder(gwdefinition.getOrder());
+
+		// 设置断言
+		List<PredicateDefinition> pdList = new ArrayList<>();
+		List<GatewayPredicateDefinition> gatewayPredicateDefinitionList = gwdefinition.getPredicates();
+		for (GatewayPredicateDefinition gpDefinition : gatewayPredicateDefinitionList) {
+			PredicateDefinition predicate = new PredicateDefinition();
+			predicate.setArgs(gpDefinition.getArgs());
+			predicate.setName(gpDefinition.getName());
+			pdList.add(predicate);
+		}
+		definition.setPredicates(pdList);
+
+		// 设置过滤器
+		List<FilterDefinition> filters = new ArrayList();
+		List<GatewayFilterDefinition> gatewayFilters = gwdefinition.getFilters();
+		for (GatewayFilterDefinition filterDefinition : gatewayFilters) {
+			FilterDefinition filter = new FilterDefinition();
+			filter.setName(filterDefinition.getName());
+			filter.setArgs(filterDefinition.getArgs());
+			filters.add(filter);
+		}
+		definition.setFilters(filters);
+
+		URI uri = null;
+		if (gwdefinition.getUri().startsWith("http")) {
+			uri = UriComponentsBuilder.fromHttpUrl(gwdefinition.getUri()).build().toUri();
+		} else {
+			// uri 为 lb://consumer-service 时使用下面的方法
+			uri = URI.create(gwdefinition.getUri());
+		}
+		definition.setUri(uri);
+		return definition;
+	}
+}
+```
+
+#### 定时更新路由
+
+```java
+import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * 定时任务，拉取路由信息
+ *
+ * @author Leo
+ */
+@Component
+@Slf4j
+public class DynamicRouteScheduling {
+
+	@Autowired(required = false)
+	private RestTemplate restTemplate;
+
+	@Autowired
+	private DynamicRouteService dynamicRouteService;
+
+	private static final String dynamicRouteServerName = "dynamic-route-service";
+
+	// 发布路由信息的版本号
+	private static Long versionId = 0L;
+
+	/**
+	 * 每60秒中执行一次
+	 * 如果版本号不相等则获取最新路由信息并更新网关路由
+	 */
+	@Scheduled(cron = "*/60 * * * * ?")
+	public void getDynamicRouteInfo() {
+		try {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			log.info("拉取时间: {}", dateFormat.format(new Date()));
+			// 先拉取版本信息，如果版本号不想等则更新路由
+			Long resultVersionId = restTemplate.getForObject("http://" + dynamicRouteServerName + "/version/lastVersion", Long.class);
+			log.info("路由版本信息：本地版本号：{}，远程版本号：{}", versionId, resultVersionId);
+			if (resultVersionId != null && !versionId.equals(resultVersionId)) {
+				log.info("开始拉取路由信息......");
+				String resultRoutes = restTemplate.getForObject("http://" + dynamicRouteServerName + "/gateway-routes/routes", String.class);
+				log.info("路由信息为：{}", resultRoutes);
+				if (!StringUtils.isEmpty(resultRoutes)) {
+					List<GatewayRouteDefinition> list = JSON.parseArray(resultRoutes, GatewayRouteDefinition.class);
+					for (GatewayRouteDefinition definition : list) {
+						// 更新路由
+						RouteDefinition routeDefinition = assembleRouteDefinition(definition);
+						dynamicRouteService.update(routeDefinition);
+					}
+					versionId = resultVersionId;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 把前端传递的参数转换成路由对象
+	 */
+	private RouteDefinition assembleRouteDefinition(GatewayRouteDefinition gwdefinition) {
+		RouteDefinition definition = new RouteDefinition();
+		definition.setId(gwdefinition.getId());
+		definition.setOrder(gwdefinition.getOrder());
+
+		// 设置断言
+		List<PredicateDefinition> pdList = new ArrayList<>();
+		List<GatewayPredicateDefinition> gatewayPredicateDefinitionList = gwdefinition.getPredicates();
+		for (GatewayPredicateDefinition gpDefinition : gatewayPredicateDefinitionList) {
+			PredicateDefinition predicate = new PredicateDefinition();
+			predicate.setArgs(gpDefinition.getArgs());
+			predicate.setName(gpDefinition.getName());
+			pdList.add(predicate);
+		}
+		definition.setPredicates(pdList);
+
+		// 设置过滤器
+		List<FilterDefinition> filters = new ArrayList();
+		List<GatewayFilterDefinition> gatewayFilters = gwdefinition.getFilters();
+		for (GatewayFilterDefinition filterDefinition : gatewayFilters) {
+			FilterDefinition filter = new FilterDefinition();
+			filter.setName(filterDefinition.getName());
+			filter.setArgs(filterDefinition.getArgs());
+			filters.add(filter);
+		}
+		definition.setFilters(filters);
+
+		URI uri = null;
+		if (gwdefinition.getUri().startsWith("http")) {
+			uri = UriComponentsBuilder.fromHttpUrl(gwdefinition.getUri()).build().toUri();
+		} else {
+			uri = URI.create(gwdefinition.getUri());
+		}
+		definition.setUri(uri);
+		return definition;
+	}
+}
+```
 
 ## 问题
 

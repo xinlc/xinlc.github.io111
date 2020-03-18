@@ -59,7 +59,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * 访问日志全局过滤器
  *
  * @author Leo
- * @date 2020.03.02
  */
 //@Component
 @Configuration

@@ -238,9 +238,23 @@ $ docker service create \
 
 在动态的、大规模的分布式集群上，管理和分发配置文件也是很重要的工作。传统的配置文件分发方式（如配置文件放入镜像中，设置环境变量，volume 动态挂载等）都降低了镜像的通用性。
 
-在 Docker 17.06 以上版本中，Docker 新增了 docker config 子命令来管理集群中的配置信息，以后你无需将配置文件放入镜像或挂载到容器中就可实现对服务的配置。
+在 Docker 17.06 以上版本中，Docker 新增了 docker config 子命令来管理集群中的配置信息，以后你无需将配置文件放入镜像或挂载到容器中就可实现对服务的配置。config 仅能在 Swarm 集群中使用并且需 Swarm Manager 权限才能操作。
 
-> 注意：config 仅能在 Swarm 集群中使用。
+在 Swarm 中添加一个 Config 时，Docker 通过 TLS 连接把 Config 发送给 Swarm Manager。这个 Config 经过加密后，存储在 Raft 日志中，而且整个 Raft 日志会被复制到其他 Manager 中，确保 Config 的高可用性。
+
+在新创建的或正在运行的服务添加 Config 时，Config 将作为文件安装到容器中，文件路径默认为 linux 容器中的 `/<config-name>`。可以在任何时候通过更新服务的方式授权其他的 Config 或移除已有的 Config 访问权。
+
+如果节点是 Swarm Manager，或者正在运行服务任务已被授权访问这个 Config，那么这个节点才能访问这个配置。当容器任务停止运行时，共享给它的 Config 将从该容器的内存文件系统中卸载，并从节点的内存刷新。
+
+如果一个节点运行了一个带 Config 的任务容器，在它失去与 Swarm 的连接后，这个任务容器仍然可以访问其 Config，但只有在节点重新连接到 Swarm 时才能接收更新。
+
+正在运行的服务正在使用的 Config 不能删除。想要在不中断正在运行的服务的情况下删除配置可以参考 [《Rotate a config》](https://docs.docker.com/engine/swarm/configs/#example-rotate-a-config)。
+
+为了更容易地更新或回退 Config，可以考虑在 Config Name 中添加版本号或日期。
+
+如需更新 Stack ，可以更改 Compose file，然后重新运行 docker stack deploy -c `<new-compose-file> <stack-name>`。如果 Compose file 使用新的 Config ，那么 services 将开始使用这些配置。
+
+> 注意：配置是不可变的，所以无法更改现有服务的文件，可以创建一个新的 Config 来使用不同的文件。
 
 这里以在 Swarm 集群中部署 redis 服务为例。
 
@@ -264,6 +278,16 @@ $ docker service create \
      -p 6379:6380 \
      redis:latest \
      redis-server /redis.conf
+
+# 创建 ngxin 服务
+# $ docker service create \
+#      --name nginx \
+#      --secret site.key \
+#      --secret site.crt \
+#      --config source=site.conf,target=/etc/nginx/conf.d/site.conf,mode=0440 \
+#      --publish published=3000,target=443 \
+#      nginx:latest \
+#      sh -c "exec nginx -g 'daemon off;'"
 ```
 
 > 如果你没有在 target 中显式的指定路径时，默认的 redis.conf 以 tmpfs 文件系统挂载到容器的 /config.conf。
@@ -272,6 +296,23 @@ $ docker service create \
 
 - [compose-file-configs](https://docs.docker.com/compose/compose-file/#configs)
 - [swarm-configs](https://docs.docker.com/engine/swarm/configs/)
+
+```yaml
+version: "3.3"
+services:
+  redis:
+    image: redis:latest
+    deploy:
+      replicas: 1
+    configs:
+      - my_config
+      - my_other_config
+configs:
+  my_config:
+    file: ./my_config.txt
+  my_other_config:
+    external: true
+```
 
 ```yaml
 version: "3.7"
@@ -284,6 +325,7 @@ services:
     configs:
       - source: nginx_config
         target: /etc/nginx/nginx.conf
+        # 将模式设置为0440，以便该文件只能由其所有者和所有者的组读取，而不能由所有人读取。
         mode: 0440
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
@@ -310,7 +352,26 @@ services:
 configs:
   nginx_config:
     file: ./data/nginx/nginx.conf
+```
 
+**注意**：修改 nginx.conf 没有生效，需要 stack rm 重新 deploy。
+
+```bash
+docker stack rm nginx-router
+docker stack deploy -c docker-compose.yml nginx-router
+```
+
+或使用 Rotate 方式，创新的 conf 更新 service：
+
+```bash
+# 使用 site.conf 名为的新文件创建新的 Docker 配置 site-v2.conf。
+docker config create site-v2.conf site.conf
+
+# 更新nginx服务以使用新配置。
+docker service update \
+  --config-rm site.conf \
+  --config-add source=site-v2.conf,target=/etc/nginx/conf.d/site.conf,mode=0440 \
+  nginx
 ```
 
 ## Stack 多服务编排
@@ -396,6 +457,46 @@ services:
       options:
         max-size: "20m"
         max-file: "2"
+
+  xxx-service:
+    image: xxx-server:1.0.0-RELEASE
+    ports:
+      - "8800:8080"
+    env_file:
+      - ./mysql.env
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+```
+
+mysql.env：
+
+```env
+MYSQL_SERVICE_HOST=mysql
+MYSQL_SERVICE_DB_NAME=devtest
+MYSQL_SERVICE_PORT=3306
+MYSQL_SERVICE_USER=root
+MYSQL_SERVICE_PASSWORD=123456
 ```
 
 portainer 是 docker swarm 集群容器管理页面，可管理 Docker 容器、image、volume、network 等，当然我们还可以在其页面上添加多个 stack。
@@ -465,6 +566,7 @@ docker stack ps test-service
 - [docker practice](https://yeasy.gitbooks.io/docker_practice/content/swarm_mode/overview.html)
 - [docker compose file](https://docs.docker.com/compose/compose-file/)
 - [Docker Swarm - 服务发现和负载均衡原理](https://www.jianshu.com/p/dba9342071d8)
+- [Docker Swarm - 配置管理](https://www.jianshu.com/p/1e6828fd8947/)
 
 [1]: /images/docker/docker-swarm/1.png
 [2]: /images/docker/docker-swarm/2.png
