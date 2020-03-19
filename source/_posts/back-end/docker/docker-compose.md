@@ -82,15 +82,24 @@ docker-compose scale web=3                         # 执行运行服务的数量
 version: "3" # 使用docker-compose 第三版本语法
 
 services:
-  mysql: # 指定 service 名
+  mysql-master: # 指定 service 名
     image: mysql:5.7 # 指定使用的镜像，默认从 docker hub
     container_name: mysql # 指定启动后的容器名
     ports: # 指定开放的端口号，主机:容器
       - "3306:3306"
+    # networks: # 指定网络
+    #   - my-net
+    networks: # 指定网络
+      my-net:
+      db_net:
+        aliases: # 指定访问该容器的网络别名
+          - db1
+        ipv4_address: 172.16.238.13
+    env_file: # 加载环境变量文件
+      - ./env/mysql-common.env
+      - ./env/mysql-master.env
     environment: # 指定环境变量
       - MYSQL_ROOT_PASSWORD=root
-    networks: # 指定网络
-      - my-net
     volumes: # 定义数据卷所挂载路径设置 HOST:CONTAINER，ro 代表只读
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -118,10 +127,28 @@ services:
         max-size: "20m"
         max-file: "2"
 
+  mysql-slave:
+    container_name: mysql-slave
+    image: mysql:5.7
+    networks:
+      my-net:
+      db_net:
+        aliases: # 指定访问该容器的网络别名
+          - db2
+          - dbslave
+        ipv4_address: 172.16.238.14
+    env_file:
+      - ./env/mysql-common.env
+      - ./env/mysql-slave.env
+    ports:
+    - "3305:3306"
+    depends_on:
+      - mysql-master
+
   web:
     image: nginx:latest
     depends_on:
-      - mysql
+      - mysql-master
     ports:
       - "80:80"
     networks:
@@ -134,8 +161,18 @@ services:
       - ~/docker-data/web/www:/usr/share/nginx/html
       - ~/docker-data/web/logs:/var/log/nginx
 
+# networks:
+#   my-net:
+#     external: true
+#     name: my-net
 networks:
-    my-net:
+  my-net:
+  db_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.238.0/24
 ```
 
 [https://docs.docker.com/compose/compose-file/compose-versioning/#version-2x-to-3x](https://docs.docker.com/compose/compose-file/compose-versioning/#version-2x-to-3x)

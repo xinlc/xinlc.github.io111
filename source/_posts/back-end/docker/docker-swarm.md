@@ -462,6 +462,8 @@ services:
     image: xxx-server:1.0.0-RELEASE
     ports:
       - "8800:8080"
+    networks:
+      - backend
     env_file:
       - ./mysql.env
     volumes:
@@ -486,6 +488,9 @@ services:
       options:
         max-size: "20m"
         max-file: "2"
+
+networks:
+  backend:
 
 ```
 
