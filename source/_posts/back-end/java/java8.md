@@ -950,6 +950,23 @@ public static void fiterSexAndAge(){
             .collect(toList());
 
 }
+
+/**
+ * stream 根据对象字段去重
+ */
+private <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+    Set<Object> seen = ConcurrentHashMap.newKeySet();
+    return t -> seen.add(keyExtractor.apply(t));
+}
+
+/**
+ * stream 根据对象字段去重 Demo
+ */
+List<PersonModel> data = Data.getData();
+data.filter(distinctByKey(PersonModel::getId))
+    .forEach(person -> {
+        log.info("{}", person);
+    });
 ```
 
 ### Map

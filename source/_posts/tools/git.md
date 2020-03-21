@@ -887,8 +887,10 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 或者用 `git mergetool`
 
 ```bash
-git checkout --ours xxx/A.java # 抛弃甲的版本，保留乙的
-git checkout --theirs xxx/A.java # 抛弃乙的版本，完全采用甲的
+# current branch master
+git merge dev
+git checkout --ours xxx/A.java # 抛弃甲的版本，保留乙的, 抛弃 dev
+git checkout --theirs xxx/A.java # 抛弃乙的版本，完全采用甲的, 抛弃 master 完全采用dev
 git checkout --theirs . # 抛弃乙版本所有修改
 ```
 
