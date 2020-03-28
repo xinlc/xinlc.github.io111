@@ -4,5 +4,6 @@
 
 hexo clean
 # export HEXO_ALGOLIA_INDEXING_KEY=80a55499
+export HEXO_ALGOLIA_INDEXING_KEY=xxx
 hexo algolia
-hexo deploy
+# hexo deploy
