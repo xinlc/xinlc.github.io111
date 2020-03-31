@@ -199,6 +199,56 @@ feign:
 
 关闭两个 user-service 服务，重新启动 feign-service。调用 http://localhost:8701/user/1 进行测试，可以发现返回了服务降级信息。
 
+**FallbackFactory**
+
+除了 fallback 模式，还可以调用 fallbackFactory，这种可以记录远程调用失败的具体明细异常。建议采用此方案设置后备模式：
+
+FeignUserService.java
+
+```java
+@FeignClient(value = "user-service", fallbackFactory = UserFallbackServiceFactory.class)
+public interface FeignUserService {
+}
+```
+
+UserFallbackServiceFactory.java
+
+```java
+import feign.hystrix.FallbackFactory;
+import org.springframework.stereotype.Component;
+// 申明后备模式
+@Component
+public class UserFallbackServiceFactory implements FallbackFactory<FeignUserService> {
+    @Override
+    public FeignUserService create(Throwable throwable) {
+        FeignUserServiceFallbackImpl feignUserServiceFallbackImpl = new FeignUserServiceFallbackImpl();
+        feignUserServiceFallbackImpl.setCause(throwable);
+        return feignUserServiceFallbackImpl;
+    }
+}
+```
+
+UserFallbackServiceFactory.java
+
+```java
+import lombok.extern.slf4j.Slf4j;
+import lombok.Setter;
+@Slf4j
+@Component
+public class FeignUserServiceFallbackImpl implements FeignUserService {
+    @Setter
+    private Throwable cause;
+
+    @Override
+    public CommonResult create(User user) {
+        log.error("调用失败", cause);
+        User defaultUser = new User(-1L, "defaultUser", "123456");
+        return new CommonResult<>(defaultUser);
+    }
+    // 其他省略……
+}
+```
+
 ## 日志打印功能
 
 Feign 提供了日志打印功能，我们可以通过配置来调整日志级别，从而了解 Feign 中 Http 请求的细节。

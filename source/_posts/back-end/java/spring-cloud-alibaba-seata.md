@@ -969,12 +969,17 @@ public class DataSourceProxyConfig {
 
 > [TCC 模式 Demo](https://github.com/seata/seata-samples/tree/master/tcc)
 
+## 建议
+
+服务的边界划分应遵守 DDD(领域驱动设计) 原则，具有强一致性要求的一组业务概念，属于同一个聚合，不建议拆到不同服务中，从而尽可能避免分布式强事务一致性的处理。而可以拆分的服务边界，是在限界上下文或者聚合的粒度上，这样的事务一致性属于最终一致性。
+
 ## 其他开源框架
 
 - https://github.com/codingapi/tx-lcn/
 - https://github.com/QNJR-GROUP/EasyTransaction/
 - https://github.com/liuyangming/ByteTCC/
 - https://github.com/changmingxie/tcc-transaction/
+- https://github.com/Dromara/hmily/
 
 ## 参考
 
