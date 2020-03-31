@@ -487,7 +487,7 @@ Seata 会有 4 种分布式事务解决方案，分别是 AT 模式、TCC 模式
 
 ### Seata AT 模式
 
-AT 模式是一种无侵入的分布式事务解决方案。在 AT 模式下，用户只需关注自己的“业务 SQL”，用户的 “业务 SQL” 作为一阶段，Seata 框架会自动生成事务的二阶段提交和回滚操作。
+AT 模式(Automatic Transaction Mode)是一种无侵入的分布式事务解决方案。在 AT 模式下，用户只需关注自己的“业务 SQL”，用户的 “业务 SQL” 作为一阶段，Seata 框架会自动生成事务的二阶段提交和回滚操作。
 
 **与 XA 方案有什么不同？**
 
@@ -534,6 +534,8 @@ TM决议全局回滚：
 当 TM 决议回滚时，RM 收到 TC 发送的回滚请求，RM 通过 XID 找到对应的 undo log 回滚日志，然后利用本地事务 ACID 特性，执行回滚日志完成回滚操作并删除 undo log 日志，最后向 TC 进行回滚结果上报。
 
 业务对以上所有的流程都无感知，业务完全不关心全局事务的具体提交和回滚，而且最重要的一点是 Seata 将两段式提交的同步协调分解到各个分支事务中了，分支事务与普通的本地事务无任何差异，这意味着我们使用 Seata 后，分布式事务就像使用本地事务一样，完全将数据库层的事务协调机制交给了中间件层 Seata 去做了，这样虽然事务协调搬到应用层了，但是依然可以做到对业务的零侵入，从而剥离了分布式事务方案对数据库在协议支持上的要求，且 Seata 在分支事务完成之后直接释放资源，极大减少了分支事务对资源的锁定时间，完美避免了 XA 协议需要同步协调导致资源锁定时间过长的问题。
+
+> 查看官方最新的 [Seata AT 模式](https://seata.io/zh-cn/docs/dev/mode/at-mode.html) 文档。
 
 ### Seata TCC 模式
 
@@ -583,6 +585,33 @@ Cancel 接口设计时需要允许空回滚。在 Try 接口因为丢包时没�
 
 幂等性的意思是：对同一个系统，使用同样的条件，一次请求和重复的多次请求对系统资源的影响是一致的。因为网络抖动或拥堵可能会超时，事务管理器会对资源进行重试操作，所以很可能一个业务操作会被重复调用，为了不因为重复调用而多次占用资源，需要对服务设计时进行幂等控制，通常我们可以用事务 xid 或业务主键判重来控制。
 
+**TCC 和 AT 区别：**
+
+回顾总览中的描述：一个分布式的全局事务，整体是 两阶段提交 的模型。全局事务是由若干分支事务组成的，分支事务要满足 两阶段提交 的模型要求，即需要每个分支事务都具备自己的：
+
+- 一阶段 prepare 行为；
+- 二阶段 commit 或 rollback 行为；
+
+![36][36]
+
+根据两阶段行为模式的不同，我们将分支事务划分为 Automatic (Branch) Transaction Mode 和 TCC (Branch) Transaction Mode.
+
+AT 模式基于 支持本地 **ACID** 事务 的 **关系型数据库**：
+
+- 一阶段 prepare 行为：在本地事务中，一并提交业务数据更新和相应回滚日志记录；
+- 二阶段 commit 行为：马上成功结束，**自动** 异步批量清理回滚日志；
+- 二阶段 rollback 行为：通过回滚日志，**自动** 生成补偿操作，完成数据回滚；
+
+相应的，TCC 模式，不依赖于底层数据资源的事务支持：
+
+- 一阶段 prepare 行为：调用 **自定义** 的 prepare 逻辑；
+- 二阶段 commit 行为：调用 **自定义** 的 commit 逻辑；
+- 二阶段 rollback 行为：调用 **自定义** 的 rollback 逻辑；
+
+所谓 TCC 模式，是指支持把 **自定义** 的分支事务纳入到全局事务的管理中。
+
+> 查看官方最新的 [Seata TCC 模式](https://seata.io/zh-cn/docs/dev/mode/tcc-mode.html) 文档。
+
 ### Seata Saga 模式
 
 在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。
@@ -622,16 +651,323 @@ Saga 模式的优势是：
 
 该状态机引擎分成了三层架构的设计，最底层是“事件驱动”层，实现了 EventBus 和消费事件的线程池，是一个 Pub-Sub 的架构。第二层是“流程控制器”层，它实现了一个极简的流程引擎框架，它驱动一个“空”的流程执行，“空”的意思是指它不关心流程节点做什么事情，它只执行每个节点的 process 方法，然后执行 route 方法流转到下一个节点。这是一个通用框架，基于这两层，开发者可以实现任何流程引擎。最上层是“状态机引擎”层，它实现了每种状态节点的“行为”及“路由”逻辑代码，提供 API 和状态图仓库，同时还有一些其它组件，比如表达式语言、逻辑计算器、流水生成器、拦截器、配置管理、事务日志记录等。
 
+> 查看官方最新的 [Seata Saga 模式](https://seata.io/zh-cn/docs/dev/mode/saga-mode.html) 文档。
+
 ## 环境
 
 - JDK：1.8
 - Spring Boot：2.2.4.RELEASE
 - Spring Cloud：Hoxton.SR1
 - Spring Cloud Alibaba：2.2.0.RELEASE
+- Seata：1.1.0
 
 ## 集成 Seata
 
-...
+Seata分TC、TM和RM三个角色，TC（Server端）为单独服务端部署，TM和RM（Client端）由业务系统集成。
+
+- [部署脚本](https://github.com/seata/seata/tree/1.1.0/script)
+- [更多示例](https://github.com/seata/seata-samples/)
+- [参数配置](https://seata.io/zh-cn/docs/user/configurations.html)
+
+### 安装 seata-server
+
+我这里使用 Docker 部署，[参考官方部署指南](https://seata.io/zh-cn/docs/ops/deploy-guide-beginner.html)
+
+**使用 Docker-Compose 部署：**
+
+Server 端存储模式（store.mode）现有file、db两种（后续将引入raft），file 模式无需改动，直接启动即可，我这里使用 DB 模式。
+
+> 注：file模式为单机模式，全局事务会话信息内存中读写并持久化本地文件root.data，性能较高;db模式为高可用模式，全局事务会话信息通过db共享，相应性能差些。
+
+建表，全局事务会话信息由3块内容构成，全局事务-->分支事务-->全局锁，对应表global_table、branch_table、lock_table：
+
+```sql
+-- -------------------------------- The script used when storeMode is 'db' --------------------------------
+-- the table to store GlobalSession data
+CREATE TABLE IF NOT EXISTS `global_table`
+(
+    `xid`                       VARCHAR(128) NOT NULL,
+    `transaction_id`            BIGINT,
+    `status`                    TINYINT      NOT NULL,
+    `application_id`            VARCHAR(32),
+    `transaction_service_group` VARCHAR(32),
+    `transaction_name`          VARCHAR(128),
+    `timeout`                   INT,
+    `begin_time`                BIGINT,
+    `application_data`          VARCHAR(2000),
+    `gmt_create`                DATETIME,
+    `gmt_modified`              DATETIME,
+    PRIMARY KEY (`xid`),
+    KEY `idx_gmt_modified_status` (`gmt_modified`, `status`),
+    KEY `idx_transaction_id` (`transaction_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
+-- the table to store BranchSession data
+CREATE TABLE IF NOT EXISTS `branch_table`
+(
+    `branch_id`         BIGINT       NOT NULL,
+    `xid`               VARCHAR(128) NOT NULL,
+    `transaction_id`    BIGINT,
+    `resource_group_id` VARCHAR(32),
+    `resource_id`       VARCHAR(256),
+    `branch_type`       VARCHAR(8),
+    `status`            TINYINT,
+    `client_id`         VARCHAR(64),
+    `application_data`  VARCHAR(2000),
+    `gmt_create`        DATETIME(6),
+    `gmt_modified`      DATETIME(6),
+    PRIMARY KEY (`branch_id`),
+    KEY `idx_xid` (`xid`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
+-- the table to store lock data
+CREATE TABLE IF NOT EXISTS `lock_table`
+(
+    `row_key`        VARCHAR(128) NOT NULL,
+    `xid`            VARCHAR(96),
+    `transaction_id` BIGINT,
+    `branch_id`      BIGINT       NOT NULL,
+    `resource_id`    VARCHAR(256),
+    `table_name`     VARCHAR(32),
+    `pk`             VARCHAR(36),
+    `gmt_create`     DATETIME,
+    `gmt_modified`   DATETIME,
+    PRIMARY KEY (`row_key`),
+    KEY `idx_branch_id` (`branch_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+```
+
+~/seata/file.conf 配置文件，主要修改自定义事务组名称，事务日志存储模式为db及数据库连接信息：
+
+```conf
+service {
+  #vgroup->rgroup
+  vgroupMapping.leo_tx_group = "default" # 事务组名称为：leo_tx_group，和客户端自定义的名称对应
+}
+
+store {
+  ## store mode: file...db
+  mode = "db"
+
+  ## database store property
+  db {
+    ## the implement of javax.sql.DataSource, such as DruidDataSource(druid)/BasicDataSource(dbcp) etc.
+    datasource = "dbcp"
+    ## mysql/oracle/h2/oceanbase etc.
+    dbType = "mysql"
+    driverClassName = "com.mysql.jdbc.Driver"
+    url = "jdbc:mysql://127.0.0.1:3306/seata"
+    user = "mysql"
+    password = "mysql"
+    minConn = 1
+    maxConn = 10
+    globalTable = "global_table"
+    branchTable = "branch_table"
+    lockTable = "lock_table"
+    queryLimit = 100
+  }
+}
+```
+
+docker-compose.yaml：
+
+```yaml
+version: "3"
+services:
+  seata-server:
+    image: seataio/seata-server:1.1.0
+    hostname: seata-server
+    ports:
+      - "8091:8091"
+    environment:
+      - SEATA_PORT=8091
+      - STORE_MODE=db
+    volumes:
+      - ~/seata/file.conf:/seata-server/resources/file.conf
+      # 可以配置注册中心和配置中心
+      # - ~/seata/registry.conf:/seata-server/resources/registry.conf
+```
+
+### 客户端集成 Spring Cloud Alibaba Seata
+
+在 parent pom.xml 引入 Spring Cloud Alibaba 依赖：
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+            <version>2.2.0.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+微服务项目 pom.xml 加入 Seata 依赖：
+
+```xml
+<dependency>
+  <groupId>com.alibaba.cloud</groupId>
+  <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+  <exclusions>
+    <exclusion>
+      <groupId>io.seata</groupId>
+      <artifactId>seata-spring-boot-starter</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+<dependency>
+  <groupId>io.seata</groupId>
+  <artifactId>seata-spring-boot-starter</artifactId>
+  <version>1.1.0</version>
+</dependency>
+```
+
+> 由于 Spring Cloud Alibaba 2.2.0 内嵌 seata-spring-boot-starter 1.0.0，我在集成 1.0.0 的时候遇到很多坑，就不排雷了直接升级到 1.1.0
+
+创建日志回滚表：
+
+```sql
+-- for AT mode you must to init this sql for you business database. the seata server not need it.
+CREATE TABLE IF NOT EXISTS `undo_log`
+(
+    `id`            BIGINT(20)   NOT NULL AUTO_INCREMENT COMMENT 'increment id',
+    `branch_id`     BIGINT(20)   NOT NULL COMMENT 'branch transaction id',
+    `xid`           VARCHAR(100) NOT NULL COMMENT 'global transaction id',
+    `context`       VARCHAR(128) NOT NULL COMMENT 'undo_log context,such as serialization',
+    `rollback_info` LONGBLOB     NOT NULL COMMENT 'rollback info',
+    `log_status`    INT(11)      NOT NULL COMMENT '0:normal status,1:defense status',
+    `log_created`   DATETIME     NOT NULL COMMENT 'create datetime',
+    `log_modified`  DATETIME     NOT NULL COMMENT 'modify datetime',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `ux_undo_log` (`xid`, `branch_id`)
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 1
+  DEFAULT CHARSET = utf8 COMMENT ='AT transaction mode undo table';
+```
+
+客户端支持 file.conf 和 registry.conf 文件配置，我这里使用 Spring yaml 配置。
+
+修改 application.yml 文件：
+
+```yaml
+# spring:
+#   cloud:
+#     alibaba:
+#       seata:
+#         tx-service-group: leo_tx_group #自定义事务组名称需要与seata-server中的对应
+seata:
+  enabled: true
+  application-id: applicationName
+  tx-service-group: leo_tx_group
+  enable-auto-data-source-proxy: true
+  use-jdk-proxy: false
+  client:
+    undo:
+      data-validation: true
+      log-serialization: jackson
+      log-table: undo_log
+    log:
+      exceptionRate: 100
+  service:
+    vgroup-mapping:
+      leo_tx_group: default
+    grouplist:
+      default: 127.0.0.1:8091
+    enable-degrade: false
+    disable-global-transaction: false
+  config:
+    type: file
+    nacos:
+      namespace:
+      serverAddr: localhost
+      group: SEATA_GROUP
+  registry:
+    type: file
+    nacos:
+      cluster: default
+      server-addr: localhost
+      namespace:
+```
+
+0.9.0版本开始seata支持自动代理数据源，默认开启自动代理。
+
+手动配置可参考下面的配置：
+
+在启动类中取消数据源的自动创建：
+
+```java
+@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+@EnableFeignClients
+public class SeataOrderServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(SeataOrderServiceApplication.class, args);
+    }
+}
+```
+
+创建配置使用Seata对数据源进行代理：
+
+```java
+/**
+ * 使用Seata对数据源进行代理
+ */
+@Configuration
+public class DataSourceProxyConfig {
+
+//	@Bean
+//	@ConfigurationProperties(prefix = "spring.datasource")
+//	public DataSource dataSource() {
+//		return new DruidDataSource();
+//	}
+
+	// Seata 是通过代理数据源实现事务分支，所以需要先配置一个数据源的代理,.需要将 DataSourceProxy 设置为主数据源，否则事务无法回滚
+//	@Bean
+//	public DataSourceProxy dataSourceProxy(DataSource dataSource) {
+//		return new DataSourceProxy(dataSource);
+//	}
+
+//	@Bean
+//	@Primary
+//	public DataSourceProxy dataSourceProxy(DataSource dataSource) {
+//		return new DataSourceProxy(dataSource);
+//	}
+
+	@Bean
+	public MybatisSqlSessionFactoryBean sqlSessionFactoryBean(DataSource dataSourceProxy) {
+		// 这里用 MybatisSqlSessionFactoryBean 代替了 SqlSessionFactoryBean，否则 MyBatisPlus 不会生效
+		MybatisSqlSessionFactoryBean mybatisSqlSessionFactoryBean = new MybatisSqlSessionFactoryBean();
+		mybatisSqlSessionFactoryBean.setDataSource(dataSourceProxy);
+		return mybatisSqlSessionFactoryBean;
+	}
+}
+```
+
+**AT 模式伪代码：**
+
+可以在多个项目开启 GlobalTransactional 用 RPC 测试分布式事务。
+
+```java
+  @GlobalTransactional(rollbackFor = Exception.class) // 开启全局事务
+  @Override
+  public void testAT() {
+    log.info("globalTransactional begin, Xid:{}", RootContext.getXID());
+
+    // 数据库操作……
+
+    // OpenFeign 调用……
+
+    throw new RuntimeException("Test AT Rollback");
+  }
+```
+
+> [TCC 模式 Demo](https://github.com/seata/seata-samples/tree/master/tcc)
 
 ## 其他开源框架
 
@@ -649,6 +985,7 @@ Saga 模式的优势是：
 - https://juejin.im/post/5aa3c7736fb9a028bb189bca/
 - http://www.ruanyifeng.com/blog/2018/07/cap.html
 - https://github.com/alibaba/spring-cloud-alibaba/
+- https://github.com/seata/seata-samples/
 
 [1]: /images/java/spring-cloud-alibaba-seata/1.jpg
 [2]: /images/java/spring-cloud-alibaba-seata/2.jpg
@@ -685,3 +1022,4 @@ Saga 模式的优势是：
 [33]: /images/java/spring-cloud-alibaba-seata/33.jpg
 [34]: /images/java/spring-cloud-alibaba-seata/34.jpg
 [35]: /images/java/spring-cloud-alibaba-seata/35.jpg
+[36]: /images/java/spring-cloud-alibaba-seata/36.jpg

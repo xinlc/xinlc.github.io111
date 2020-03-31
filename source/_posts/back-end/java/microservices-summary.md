@@ -248,9 +248,11 @@ Dubbo和Spring Cloud 仅仅解决了微服务基础设施的部分问题，K8s �
 - 尽量不要混搭，保持体系一致性；
 - 个人倾向 K8s + Spring Boot；
 
-### 微服务通用架构图
+### 微服务参考架构图
 
 ![5][5]
+
+![7][7]
 
 ## 技术中台到底讲什么？
 
@@ -328,3 +330,4 @@ Dubbo和Spring Cloud 仅仅解决了微服务基础设施的部分问题，K8s �
 [4]: /images/java/microservices-summary/4.jpg
 [5]: /images/java/microservices-summary/5.jpg
 [6]: /images/java/microservices-summary/6.jpg
+[7]: /images/java/microservices-summary/7.jpg
