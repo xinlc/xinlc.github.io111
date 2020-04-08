@@ -259,12 +259,20 @@ ze        # 视图移动到最右侧
 :split     # 水平切割窗口(或者直接输入   :sp  也可以)
 :vsplit    # 垂直切割( 也可以  :vs  )
 :only      # 关闭其它分屏窗口
+:exit      # 关闭分屏
+:edit .    # 显示目录树
 :Explore   # 文件浏览
 :Sexplore! # 当前窗口 垂直分割打开文件浏览
+:Vexplore # 当前窗口 垂直分割
+:Sexplore # 当前窗口 水平分割
 :ls        # 显示缓冲区列表
+:!ls       # 调用 shell 命令，显示当前目录文件
+:!python3 % # 调用 shell 命令，使用 python3 命令运行当前文件，% 代表当前文件
 ctrl + ww  # 移动到下一个窗口
 ctrl + wj  # 移动到下方的窗口
 ctrl + wk  # 移动到上方的窗口
+ctrl + wh  # 移动到左方的窗口
+ctrl + wl  # 移动到右方的窗口
 ```
 
 ## Tab 操作
@@ -483,6 +491,7 @@ ctrl + a  # Normal模式下，数字+1
 ctrl + x  # Normal模式下，数字-1
 ctrl + [  # 退出insert mode
 ctrl + c  # 退出insert mode
+# command + 1 # 建议将vscode Explorer 或 Idea Project 调成该快捷键，可以切换目录树和编辑区光标，以便用键盘来选择文件快速打开。
 ```
 
 ## 注释与反注释

@@ -1,6 +1,6 @@
 ---
 title: Maven 简要说明
-date: 2020-03-24 13:43:00
+date: 2020-04-02 11:45:00
 categories: Java
 tags:
   - Java
@@ -49,6 +49,12 @@ Maven 项目管理所依赖的 jar 包不需要手动向工程中添加 jar 包�
 - clean：Maven 工程的清理命令，执行会删除 target 目录下的内容；
 - package：Maven 工程的打包命令，对于 Java 工程执行 package 会打成 jar 包，Web 工程会打成 war 包；
 - install：Maven 工程的安装命令，执行会把 Maven 打成 jar 或 war 包发布到本地仓库；
+
+## Maven 常用命令
+
+- 构建测试包：`mvn clean install -Dmaven.test.skip=true -Pdev`
+- 多模块仅构建order和依赖的模块：`mvn clean install -Dmaven.test.skip=true -pl :order-svc -am -Pdev`
+- 多模块构建指定模块：`mvn clean install -Dmaven.test.skip=true -pl com.test:order-svc,com.test:order-api -am -Pdev`
 
 ## Maven 生命周期
 
@@ -146,6 +152,12 @@ Maven 包含了一个项目对象模型(Project Object Model)，一组标准集�
 
 - 第一声明者优先原则：在 pom.xml 文件定义依赖，先声明的依赖为准；
 - 路径近者优先原则：A依赖XXX，A依赖B依赖XXX，则XXX优先被依赖在A中；
+
+## 聚合&继承
+
+**注意：**
+
+- 继承：子项目不要写 `groupId`, `version`
 
 ## Maven Pom 配置
 
