@@ -670,6 +670,822 @@ public class FeignOkHttpConfig {
 }
 ```
 
+### 使用 fastjson 作为默认序列化
+
+pom.xml 添加依赖：
+
+```xml
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>fastjson</artifactId>
+    <version>1.2.68</version>
+</dependency>
+```
+
+**注意：懒的抽离了，直接把我用到的 Feign 配置所有文件贴上**
+
+修改 FeignConfig 配置类：
+
+```java
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson.support.config.FastJsonConfig;
+import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
+import com.alibaba.fastjson.support.springfox.SwaggerJsonSerializer;
+import com.leo.common.interceptor.FeignRequestHeaderInterceptor;
+import com.leo.common.interceptor.OkHttpLogInterceptor;
+import com.leo.common.logger.OkHttpSlf4jLogger;
+import com.leo.common.ssl.DisableValidationTrustManager;
+import com.leo.common.ssl.TrustAllHostNames;
+import com.leo.common.utils.Holder;
+import feign.Client;
+import feign.Feign;
+import feign.Logger;
+import feign.RequestInterceptor;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
+import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
+import org.springframework.cloud.openfeign.support.SpringDecoder;
+import org.springframework.cloud.openfeign.support.SpringEncoder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 配置 Feign
+ *
+ * @author Leo
+ * @date 2020.02.17
+ */
+@Configuration
+@ConditionalOnClass(Feign.class)
+@AutoConfigureAfter(FeignAutoConfiguration.class)
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+@Import(value = {OkHttpProps.class})
+@Slf4j
+public class FeignOkHttpConfig {
+
+	@Autowired
+	private OkHttpProps okHttpProps;
+
+	/**
+	 * 根据实际情况选择合适的日志 level
+	 *
+	 * @return
+	 */
+	@Bean
+	Logger.Level feignLoggerLevel() {
+		return Logger.Level.FULL;
+	}
+
+//	/**
+//	 * 自定义反序列化解析器
+//	 *
+//	 * @return
+//	 */
+//	@Bean
+//	public Decoder feignDecoder() {
+//
+//		ObjectFactory<HttpMessageConverters> messageConverters = () -> {
+//			HttpMessageConverters converters = new HttpMessageConverters();
+//			return converters;
+//		};
+//		return new SpringDecoder(messageConverters);
+//	}
+//
+	@Bean
+	public Encoder feignEncoder() {
+		return new SpringEncoder(feignHttpMessageConverter());
+	}
+
+	@Bean
+	public Decoder feignDecoder() {
+		return new SpringDecoder(feignHttpMessageConverter());
+	}
+
+//	@Bean
+//	public SpringEncoder feignEncoder() {
+//		return new SpringEncoder(feignHttpMessageConverter());
+//	}
+//
+//	@Bean
+//	public ResponseEntityDecoder feignDecoder() {
+//		return new ResponseEntityDecoder(new SpringDecoder(feignHttpMessageConverter()));
+//	}
+
+	/**
+	 * 设置解码器为 fastjson
+	 *
+	 * @return
+	 */
+	private ObjectFactory<HttpMessageConverters> feignHttpMessageConverter() {
+		final HttpMessageConverters httpMessageConverters = new HttpMessageConverters(this.getFastJsonConverter());
+		return () -> httpMessageConverters;
+	}
+
+	private FastJsonHttpMessageConverter getFastJsonConverter() {
+		// 创建fastJson消息转换器
+		FastJsonHttpMessageConverter converter = new FastJsonHttpMessageConverter();
+
+		List<MediaType> supportedMediaTypes = new ArrayList<>();
+		supportedMediaTypes.add(MediaType.APPLICATION_JSON);
+		supportedMediaTypes.add(MediaType.APPLICATION_JSON_UTF8);
+//		supportedMediaTypes.add(MediaType.APPLICATION_ATOM_XML);
+//		supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);
+//		supportedMediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
+//		supportedMediaTypes.add(MediaType.APPLICATION_PDF);
+//		supportedMediaTypes.add(MediaType.APPLICATION_RSS_XML);
+//		supportedMediaTypes.add(MediaType.APPLICATION_XHTML_XML);
+//		supportedMediaTypes.add(MediaType.APPLICATION_XML);
+//		supportedMediaTypes.add(MediaType.IMAGE_GIF);
+//		supportedMediaTypes.add(MediaType.IMAGE_JPEG);
+//		supportedMediaTypes.add(MediaType.IMAGE_PNG);
+//		supportedMediaTypes.add(MediaType.TEXT_EVENT_STREAM);
+//		supportedMediaTypes.add(MediaType.TEXT_HTML);
+//		supportedMediaTypes.add(MediaType.TEXT_MARKDOWN);
+//		supportedMediaTypes.add(MediaType.TEXT_PLAIN);
+//		supportedMediaTypes.add(MediaType.TEXT_XML);
+		converter.setSupportedMediaTypes(supportedMediaTypes);
+
+		// 创建配置类
+		FastJsonConfig fastJsonConfig = new FastJsonConfig();
+		// 修改配置返回内容的过滤
+		// WriteNullListAsEmpty：List 字段如果为 null, 输出为 [], 而非 null
+		// WriteNullStringAsEmpty： 字符类型字段如果为 null, 输出为 "", 而非 null
+		// DisableCircularReferenceDetect：消除对同一对象循环引用的问题，默认为 false（如果不配置有可能会进入死循环）
+		// WriteNullBooleanAsFalse：Boolean 字段如果为 null, 输出为 false, 而非 null
+		// WriteMapNullValue：是否输出值为 null 的字段,默认为 false
+		// WriteDateUseDateFormat：时期格式格式化为 yyyy-MM-dd HH:mm:ss
+		fastJsonConfig.getSerializeConfig().put(JSON.class, new SwaggerJsonSerializer());
+		fastJsonConfig.setSerializerFeatures(
+			  // 禁用循环引用
+				SerializerFeature.DisableCircularReferenceDetect,
+				SerializerFeature.WriteDateUseDateFormat,
+				SerializerFeature.WriteMapNullValue,
+				SerializerFeature.WriteNullNumberAsZero
+		);
+
+		converter.setFastJsonConfig(fastJsonConfig);
+		return converter;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean({Client.class})
+	public Client feignClient(OkHttpClient client) {
+		return new feign.okhttp.OkHttpClient(client);
+	}
+
+	/**
+	 * 日志拦截器
+	 *
+	 * @return
+	 */
+	public OkHttpLogInterceptor loggingInterceptor() {
+		OkHttpLogInterceptor interceptor = new OkHttpLogInterceptor(new OkHttpSlf4jLogger());
+		interceptor.setLevel(okHttpProps.getLevel());
+		return interceptor;
+	}
+
+	/**
+	 * 配置 OkHttp3
+	 *
+	 * @return
+	 */
+	@Bean
+	public OkHttpClient okHttpClient() {
+		int maxTotalConnections = okHttpProps.getMaxConnections();
+		long timeToLive = okHttpProps.getTimeToLive();
+		TimeUnit ttlUnit = okHttpProps.getTimeUnit();
+		ConnectionPool connectionPool = new ConnectionPool(maxTotalConnections, timeToLive, ttlUnit);
+
+		return createBuilder(okHttpProps.isDisableSslValidation())
+				// 设置连接超时
+				.connectTimeout(okHttpProps.getConnectionTimeout(), ttlUnit)
+				// 设置读超时
+				.readTimeout(okHttpProps.getReadTimeout(), ttlUnit)
+				// 设置写超时
+				.writeTimeout(okHttpProps.getWriteTimeout(), ttlUnit)
+				// 是否支持重定向
+				.followRedirects(okHttpProps.isFollowRedirects())
+				// 错误重连
+				.retryOnConnectionFailure(okHttpProps.isRetryOnConnectionFailure())
+				// 连接池
+				.connectionPool(connectionPool)
+				// 拦截器
+				.addInterceptor(loggingInterceptor())
+				.build();
+	}
+
+
+	/**
+	 * 构建 SSL
+	 *
+	 * @param disableSslValidation
+	 * @return
+	 */
+	private OkHttpClient.Builder createBuilder(boolean disableSslValidation) {
+		OkHttpClient.Builder builder = new OkHttpClient.Builder();
+		if (disableSslValidation) {
+			try {
+				X509TrustManager disabledTrustManager = DisableValidationTrustManager.INSTANCE;
+				TrustManager[] trustManagers = new TrustManager[]{disabledTrustManager};
+				SSLContext sslContext = SSLContext.getInstance("SSL");
+				sslContext.init(null, trustManagers, Holder.SECURE_RANDOM);
+				SSLSocketFactory disabledSslSocketFactory = sslContext.getSocketFactory();
+				builder.sslSocketFactory(disabledSslSocketFactory, disabledTrustManager);
+				builder.hostnameVerifier(TrustAllHostNames.INSTANCE);
+			} catch (NoSuchAlgorithmException | KeyManagementException e) {
+				log.warn("Error setting SSLSocketFactory in OKHttpClient", e);
+			}
+		}
+		return builder;
+	}
+
+	/**
+	 * 定义 Feign 拦截器，添加请求头
+	 *
+	 * @return
+	 */
+	@Bean
+	public RequestInterceptor feignRequestInterceptor() {
+		return new FeignRequestHeaderInterceptor();
+	}
+
+}
+```
+
+FeignRequestHeaderInterceptor.java：
+
+```java
+import com.alibaba.fastjson.JSON;
+import com.leo.common.context.AuthContext;
+import com.leo.common.bo.UserInfoBo;
+import com.leo.common.constant.AuthConstant;
+import com.leo.common.utils.OkHttpUtil;
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Enumeration;
+
+/**
+ * Feign 请求拦截器（设置请求头，传递请求参数）
+ * <p>
+ * 服务间进行 Feign 调用时，不会传递请求头信息。通过实现 RequestInterceptor 接口，完成对所有的 Feign 请求，传递请求头和请求参数。
+ *
+ * @author Leo
+ * @date 2020.02.19
+ */
+public class FeignRequestHeaderInterceptor implements RequestInterceptor {
+
+	@Override
+	public void apply(RequestTemplate requestTemplate) {
+
+		// Feign 请求拦截器（设置请求头，传递请求参数）
+		ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		HttpServletRequest request = attributes.getRequest();
+		Enumeration<String> headerNames = request.getHeaderNames();
+		if (headerNames != null) {
+			while (headerNames.hasMoreElements()) {
+				String name = headerNames.nextElement();
+				String values = request.getHeader(name);
+				requestTemplate.header(name, values);
+			}
+		}
+
+		// 传递上下文中的用户信息
+		UserInfoBo userInfoBo = AuthContext.getUser();
+		if (null != userInfoBo) {
+			requestTemplate.header(AuthConstant.CURRENT_USER_HEADER, OkHttpUtil.getValueEncoded(JSON.toJSONString(userInfoBo)));
+		}
+	}
+}
+```
+
+OkHttpUtil.java：
+
+```java
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
+/**
+ * @author Leo
+ * @date 2020.02.28
+ */
+public final class OkHttpUtil {
+
+	/**
+	 * 由于 OkHttp header 中的 value 不支持 null, \n 和 中文这样的特殊字符,所以这里
+	 * 会首先替换 \n ,然后使用 OkHttp 的校验方式,校验不通过的话,就返回 encode 后的字符串
+	 *
+	 * @param value
+	 * @return
+	 */
+	public static String getValueEncoded(String value) {
+		if (value == null) return "null";
+		String newValue = value.replace("\n", "");
+		for (int i = 0, length = newValue.length(); i < length; i++) {
+			char c = newValue.charAt(i);
+			if (c <= '\u001f' || c >= '\u007f') {
+				try {
+					return URLEncoder.encode(newValue, "UTF-8");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return newValue;
+	}
+
+	/**
+	 * 由于 OkHttp header 中的 value 不支持 null, \n 和 中文这样的特殊字符
+	 * 上游传输时进行了编码，获取需要解码
+	 *
+	 * @param value
+	 * @return
+	 */
+	public static String getValueDecode(String value) {
+		if ("null".equals(value)) return null;
+		try {
+			return URLDecoder.decode(value, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+}
+```
+
+OkHttpLogInterceptor.java：
+
+```java
+import com.leo.common.emum.OkHttpLogLevelEnum;
+import okhttp3.*;
+import okhttp3.internal.http.HttpHeaders;
+import okio.Buffer;
+import okio.BufferedSource;
+import okio.GzipSource;
+
+import java.io.EOFException;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * OkHttp log
+ *
+ * @author Leo
+ * @date 2020.02.28
+ */
+public final class OkHttpLogInterceptor implements Interceptor {
+	private static final Charset UTF8 = StandardCharsets.UTF_8;
+	private final Logger logger;
+	private volatile OkHttpLogLevelEnum level = OkHttpLogLevelEnum.NONE;
+
+	public interface Logger {
+		/**
+		 * log
+		 *
+		 * @param message message
+		 */
+		void log(String message);
+	}
+
+	public OkHttpLogInterceptor(Logger logger) {
+		this.logger = logger;
+	}
+
+	/**
+	 * Change the level at which this interceptor logs.
+	 *
+	 * @param level log Level
+	 * @return HttpLoggingInterceptor
+	 */
+	public OkHttpLogInterceptor setLevel(OkHttpLogLevelEnum level) {
+		Objects.requireNonNull(level, "level == null. Use Level.NONE instead.");
+		this.level = level;
+		return this;
+	}
+
+	public OkHttpLogLevelEnum getLevel() {
+		return level;
+	}
+
+	@Override
+	public Response intercept(Chain chain) throws IOException {
+		OkHttpLogLevelEnum level = this.level;
+
+		Request request = chain.request();
+		if (level == OkHttpLogLevelEnum.NONE) {
+			return chain.proceed(request);
+		}
+
+		boolean logBody = level == OkHttpLogLevelEnum.BODY;
+		boolean logHeaders = logBody || level == OkHttpLogLevelEnum.HEADERS;
+
+		RequestBody requestBody = request.body();
+		boolean hasRequestBody = requestBody != null;
+
+		Connection connection = chain.connection();
+		String requestStartMessage = "--> "
+				+ request.method()
+				+ ' ' + request.url()
+				+ (connection != null ? " " + connection.protocol() : "");
+		if (!logHeaders && hasRequestBody) {
+			requestStartMessage += " (" + requestBody.contentLength() + "-byte body)";
+		}
+		logger.log(requestStartMessage);
+
+		if (logHeaders) {
+			if (hasRequestBody) {
+				// Request body headers are only present when installed as a network interceptor. Force
+				// them to be included (when available) so there values are known.
+				if (requestBody.contentType() != null) {
+					logger.log("Content-Type: " + requestBody.contentType());
+				}
+				if (requestBody.contentLength() != -1) {
+					logger.log("Content-Length: " + requestBody.contentLength());
+				}
+			}
+
+			Headers headers = request.headers();
+			for (int i = 0, count = headers.size(); i < count; i++) {
+				String name = headers.name(i);
+				// Skip headers from the request body as they are explicitly logged above.
+				if (!"Content-Type".equalsIgnoreCase(name) && !"Content-Length".equalsIgnoreCase(name)) {
+					logger.log(name + ": " + headers.value(i));
+				}
+			}
+
+			if (!logBody || !hasRequestBody) {
+				logger.log("--> END " + request.method());
+			} else if (bodyHasUnknownEncoding(request.headers())) {
+				logger.log("--> END " + request.method() + " (encoded body omitted)");
+			} else {
+				Buffer buffer = new Buffer();
+				requestBody.writeTo(buffer);
+
+				Charset charset = UTF8;
+				MediaType contentType = requestBody.contentType();
+				if (contentType != null) {
+					charset = contentType.charset(UTF8);
+				}
+
+				logger.log("");
+				if (isPlaintext(buffer)) {
+					logger.log(buffer.readString(charset));
+					logger.log("--> END " + request.method()
+							+ " (" + requestBody.contentLength() + "-byte body)");
+				} else {
+					logger.log("--> END " + request.method() + " (binary "
+							+ requestBody.contentLength() + "-byte body omitted)");
+				}
+			}
+		}
+
+		long startNs = System.nanoTime();
+		Response response;
+		try {
+			response = chain.proceed(request);
+		} catch (Exception e) {
+			logger.log("<-- HTTP FAILED: " + e);
+			throw e;
+		}
+		long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+
+		ResponseBody responseBody = response.body();
+		long contentLength = responseBody.contentLength();
+		String bodySize = contentLength != -1 ? contentLength + "-byte" : "unknown-length";
+		logger.log("<-- "
+				+ response.code()
+				+ (response.message().isEmpty() ? "" : ' ' + response.message())
+				+ ' ' + response.request().url()
+				+ " (" + tookMs + "ms" + (!logHeaders ? ", " + bodySize + " body" : "") + ')');
+
+		if (logHeaders) {
+			Headers headers = response.headers();
+			int count = headers.size();
+			for (int i = 0; i < count; i++) {
+				logger.log(headers.name(i) + ": " + headers.value(i));
+			}
+
+			if (!logBody || !HttpHeaders.hasBody(response)) {
+				logger.log("<-- END HTTP");
+			} else if (bodyHasUnknownEncoding(response.headers())) {
+				logger.log("<-- END HTTP (encoded body omitted)");
+			} else {
+				BufferedSource source = responseBody.source();
+				// Buffer the entire body.
+				source.request(Long.MAX_VALUE);
+				Buffer buffer = source.buffer();
+
+				Long gzippedLength = null;
+				if ("gzip".equalsIgnoreCase(headers.get("Content-Encoding"))) {
+					gzippedLength = buffer.size();
+					GzipSource gzippedResponseBody = null;
+					try {
+						gzippedResponseBody = new GzipSource(buffer.clone());
+						buffer = new Buffer();
+						buffer.writeAll(gzippedResponseBody);
+					} finally {
+						if (gzippedResponseBody != null) {
+							gzippedResponseBody.close();
+						}
+					}
+				}
+
+				Charset charset = UTF8;
+				MediaType contentType = responseBody.contentType();
+				if (contentType != null) {
+					charset = contentType.charset(UTF8);
+				}
+
+				if (!isPlaintext(buffer)) {
+					logger.log("");
+					logger.log("<-- END HTTP (binary " + buffer.size() + "-byte body omitted)");
+					return response;
+				}
+
+				if (contentLength != 0) {
+					logger.log("");
+					logger.log(buffer.clone().readString(charset));
+				}
+
+				if (gzippedLength != null) {
+					logger.log("<-- END HTTP (" + buffer.size() + "-byte, "
+							+ gzippedLength + "-gzipped-byte body)");
+				} else {
+					logger.log("<-- END HTTP (" + buffer.size() + "-byte body)");
+				}
+			}
+		}
+
+		return response;
+	}
+
+	/**
+	 * Returns true if the body in question probably contains human readable text. Uses a small sample
+	 * of code points to detect unicode control characters commonly used in binary file signatures.
+	 */
+	private static boolean isPlaintext(Buffer buffer) {
+		try {
+			Buffer prefix = new Buffer();
+			long byteCount = buffer.size() < 64 ? buffer.size() : 64;
+			buffer.copyTo(prefix, 0, byteCount);
+			for (int i = 0; i < 16; i++) {
+				if (prefix.exhausted()) {
+					break;
+				}
+				int codePoint = prefix.readUtf8CodePoint();
+				if (Character.isISOControl(codePoint) && !Character.isWhitespace(codePoint)) {
+					return false;
+				}
+			}
+			return true;
+		} catch (EOFException e) {
+			// Truncated UTF-8 sequence.
+			return false;
+		}
+	}
+
+	private boolean bodyHasUnknownEncoding(Headers headers) {
+		String contentEncoding = headers.get("Content-Encoding");
+		return contentEncoding != null
+				&& !"identity".equalsIgnoreCase(contentEncoding)
+				&& !"gzip".equalsIgnoreCase(contentEncoding);
+	}
+}
+```
+
+OkHttpLogLevelEnum.java：
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * OkHttp 请求日志级别
+ *
+ * @author Leo
+ * @date 2020.02.28
+ */
+@Getter
+@AllArgsConstructor
+public enum OkHttpLogLevelEnum {
+	/**
+	 * No logs.
+	 */
+	NONE(0),
+
+	/**
+	 * Logs request and response lines.
+	 *
+	 * <p>Example:
+	 * <pre>{@code
+	 * --> POST /greeting http/1.1 (3-byte body)
+	 *
+	 * <-- 200 OK (22ms, 6-byte body)
+	 * }</pre>
+	 */
+	BASIC(1),
+
+	/**
+	 * Logs request and response lines and their respective headers.
+	 *
+	 * <p>Example:
+	 * <pre>{@code
+	 * --> POST /greeting http/1.1
+	 * Host: example.com
+	 * Content-Type: plain/text
+	 * Content-Length: 3
+	 * --> END POST
+	 *
+	 * <-- 200 OK (22ms)
+	 * Content-Type: plain/text
+	 * Content-Length: 6
+	 * <-- END HTTP
+	 * }</pre>
+	 */
+	HEADERS(2),
+
+	/**
+	 * Logs request and response lines and their respective headers and bodies (if present).
+	 *
+	 * <p>Example:
+	 * <pre>{@code
+	 * --> POST /greeting http/1.1
+	 * Host: example.com
+	 * Content-Type: plain/text
+	 * Content-Length: 3
+	 *
+	 * Hi?
+	 * --> END POST
+	 *
+	 * <-- 200 OK (22ms)
+	 * Content-Type: plain/text
+	 * Content-Length: 6
+	 *
+	 * Hello!
+	 * <-- END HTTP
+	 * }</pre>
+	 */
+	BODY(3);
+
+	/**
+	 * 请求日志配置前缀
+	 */
+	public static final String REQ_LOG_PROPS_PREFIX = "okhttp.log.request";
+
+	/**
+	 * 控制台日志是否启用
+	 */
+	public static final String CONSOLE_LOG_ENABLED_PROP = "okhttp.log.console.enabled";
+
+	/**
+	 * 级别
+	 */
+	private int level;
+
+	/**
+	 * 当前版本 小于和等于 比较的版本
+	 *
+	 * @param level LogLevel
+	 * @return 是否小于和等于
+	 */
+	public boolean lte(OkHttpLogLevelEnum level) {
+		return this.level <= level.level;
+	}
+}
+```
+
+OkHttpSlf4jLogger.java：
+
+```java
+import com.leo.common.interceptor.OkHttpLogInterceptor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * OkHttp Slf4j logger
+ *
+ * @author Leo
+ * @date 2020.02.28
+ */
+@Slf4j
+public class OkHttpSlf4jLogger implements OkHttpLogInterceptor.Logger {
+	@Override
+	public void log(String message) {
+		log.info(message);
+	}
+}
+```
+
+DisableValidationTrustManager.java：
+
+```java
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+/**
+ * 不进行证书校验
+ *
+ * @author Leo
+ * @date 2020.02.28
+ */
+public class DisableValidationTrustManager implements X509TrustManager {
+
+	public static final X509TrustManager INSTANCE = new DisableValidationTrustManager();
+
+	@Override
+	public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+	}
+
+	@Override
+	public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+	}
+
+	@Override
+	public X509Certificate[] getAcceptedIssuers() {
+		return new X509Certificate[0];
+	}
+}
+```
+
+TrustAllHostNames.java：
+
+```java
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+
+/**
+ * 信任所有 host name
+ *
+ * @author Leo
+ * @date 2020.02.28
+ */
+public class TrustAllHostNames implements HostnameVerifier {
+	public static final TrustAllHostNames INSTANCE = new TrustAllHostNames();
+
+	@Override
+	public boolean verify(String s, SSLSession sslSession) {
+		return true;
+	}
+}
+```
+
+Holder.java：
+
+```java
+import java.security.SecureRandom;
+import java.util.Random;
+
+/**
+ * 一些常用的单例对象
+ *
+ * @author Leo
+ * @date 2020.02.28
+ */
+public class Holder {
+
+	/**
+	 * RANDOM
+	 */
+	public final static Random RANDOM = new Random();
+
+	/**
+	 * SECURE_RANDOM
+	 */
+	public final static SecureRandom SECURE_RANDOM = new SecureRandom();
+}
+```
+
 ## 问题
 
 ### 与 Spring Cloud Gateway 整合问题
