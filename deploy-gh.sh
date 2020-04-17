@@ -4,4 +4,5 @@ cd ./public
 git init
 git add .
 git commit -m "Update docs"
-git push --force --quiet https://github.com/xinlc/xinlc.github.io.git master:master
+# git push --force --quiet https://github.com/xinlc/xinlc.github.io.git master:master
+git push --force https://github.com/xinlc/xinlc.github.io.git master:master
