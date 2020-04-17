@@ -682,7 +682,7 @@ pom.xml 添加依赖：
 </dependency>
 ```
 
-**注意：懒的抽离了，直接把我用到的 Feign 配置所有文件贴上**
+**注意：想要使 SerializerFeature 配置生效，Client 接口(FeignUserService)的返回值要是 Object 或者 JSONObject，返回 Bean 是不生效的。懒的抽离了，直接把我用到的 Feign 配置所有文件贴上。**
 
 修改 FeignConfig 配置类：
 
