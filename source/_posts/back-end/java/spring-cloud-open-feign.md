@@ -1513,6 +1513,10 @@ public class FeignResponseDecoderConfig {
 
 > https://github.com/spring-cloud/spring-cloud-openfeign/issues/235
 
+### @RequestParam 无法获取参数
+
+Client 接口中用 @RequestParam 是无法绑定参数的，必须写 name，@RequestParam("paramName")。@RequestBody 可以正常获取。
+
 ## 参考
 
 - https://github.com/OpenFeign/feign/
