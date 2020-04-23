@@ -206,19 +206,19 @@ feign:
 FeignUserService.java
 
 ```java
-@FeignClient(value = "user-service", fallbackFactory = UserFallbackServiceFactory.class)
+@FeignClient(value = "user-service", fallbackFactory = UserServiceFallbackFactory.class)
 public interface FeignUserService {
 }
 ```
 
-UserFallbackServiceFactory.java
+UserServiceFallbackFactory.java
 
 ```java
 import feign.hystrix.FallbackFactory;
 import org.springframework.stereotype.Component;
 // 申明后备模式
 @Component
-public class UserFallbackServiceFactory implements FallbackFactory<FeignUserService> {
+public class UserServiceFallbackFactory implements FallbackFactory<FeignUserService> {
     @Override
     public FeignUserService create(Throwable throwable) {
         FeignUserServiceFallbackImpl feignUserServiceFallbackImpl = new FeignUserServiceFallbackImpl();
@@ -228,7 +228,7 @@ public class UserFallbackServiceFactory implements FallbackFactory<FeignUserServ
 }
 ```
 
-UserFallbackServiceFactory.java
+FeignUserServiceFallbackImpl.java
 
 ```java
 import lombok.extern.slf4j.Slf4j;
@@ -692,6 +692,8 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import com.alibaba.fastjson.support.springfox.SwaggerJsonSerializer;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.netflix.hystrix.exception.HystrixBadRequestException;
 import com.leo.common.interceptor.FeignRequestHeaderInterceptor;
 import com.leo.common.interceptor.OkHttpLogInterceptor;
 import com.leo.common.logger.OkHttpSlf4jLogger;
@@ -702,8 +704,10 @@ import feign.Client;
 import feign.Feign;
 import feign.Logger;
 import feign.RequestInterceptor;
+import feign.Response;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import feign.codec.ErrorDecoder;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
@@ -727,6 +731,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -933,6 +938,36 @@ public class FeignOkHttpConfig {
 		return new FeignRequestHeaderInterceptor();
 	}
 
+		/**
+	 * 自定义错误
+	 */
+//	@Bean
+//	public ErrorDecoder errorDecoder() {
+//		return new UserErrorDecoder();
+//	}
+
+	/**
+	 * 自定义错误
+	 */
+//	public class UserErrorDecoder implements ErrorDecoder {
+//		private Logger logger = LoggerFactory.getLogger(getClass());
+//		@Override
+//		public Exception decode(String methodKey, Response response) {
+//			Exception exception = null;
+//			try {
+//				String json = Util.toString(response.body().asReader());
+//				exception = new RuntimeException(json);
+//				Result result = JsonMapper.nonEmptyMapper().fromJson(json, Result.class);
+//				// 业务异常包装成 HystrixBadRequestException，不进入熔断逻辑
+//				if (!result.isSuccess()) {
+//					exception = new HystrixBadRequestException(result.getMessage());
+//				}
+//			} catch (IOException ex) {
+//				logger.error(ex.getMessage(), ex);
+//			}
+//			return exception;
+//		}
+//	}
 }
 ```
 
@@ -967,13 +1002,15 @@ public class FeignRequestHeaderInterceptor implements RequestInterceptor {
 
 		// Feign 请求拦截器（设置请求头，传递请求参数）
 		ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-		HttpServletRequest request = attributes.getRequest();
-		Enumeration<String> headerNames = request.getHeaderNames();
-		if (headerNames != null) {
-			while (headerNames.hasMoreElements()) {
-				String name = headerNames.nextElement();
-				String values = request.getHeader(name);
-				requestTemplate.header(name, values);
+		if (null != attributes) {
+			HttpServletRequest request = attributes.getRequest();
+			Enumeration<String> headerNames = request.getHeaderNames();
+			if (headerNames != null) {
+				while (headerNames.hasMoreElements()) {
+					String name = headerNames.nextElement();
+					String values = request.getHeader(name);
+					requestTemplate.header(name, values);
+				}
 			}
 		}
 
