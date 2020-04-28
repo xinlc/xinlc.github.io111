@@ -104,7 +104,7 @@ services:
         aliases:
           - confluence
     environment:
-      - CATALINA_OPTS= -Xms1024m -Xmx2g
+      - CATALINA_OPTS= -Xms4096m -Xmx8192
     volumes:
       - data_confluence_vol:/home/confluence_data
       - data_confluence_opt:/opt/atlassian/confluence

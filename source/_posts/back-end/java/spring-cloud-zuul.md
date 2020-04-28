@@ -589,10 +589,12 @@ V4 和 V3 架构差不多，只是引入了开放平台 BFF 和开发平台网�
 
 ### 其它开源网关产品
 
+- APISIX(Apache 孵化中) https://github.com/apache/incubator-apisix
 - Kong(核心开源) https://github.com/Kong/kong
 - Tyk(核心开源) https://github.com/TykTechnologies/tyk
 - 悟空API网关(部分开源+商业支持) https://github.com/eolinker/GoKu-API-Gateway
 - 小豹API网关(商业) http://www.xbgateway.com/
+- Soul (开源，还有其他产品：事务框架和消息框架）https://github.com/Dromara/soul
 
 ## 参考
 

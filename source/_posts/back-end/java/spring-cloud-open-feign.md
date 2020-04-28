@@ -83,7 +83,7 @@ public class FeignServiceApplication {
 添加 FeignUserService 接口完成对 user-service 服务的接口绑定，通过 @FeignClient 注解实现了一个 Feign 客户端，其中的 value 为 user-service 表示这是对 user-service 服务的接口调用客户端，这里其实就是 user-service 中的 UserController，只是改成了接口：
 
 ```java
-@FeignClient(value = "user-service")
+@FeignClient(value = "user-service", qualifier = "user-service")
 // @FeignClient(name = "user-service", path = "/v1/userInfo", url = "${user.user-service-endpoint}")
 // @Validated
 public interface FeignUserService {
@@ -110,6 +110,8 @@ public interface FeignUserService {
 @RestController
 @RequestMapping("/user")
 public class UserFeignController {
+
+		@Qualifier("user-service")
     @Autowired
     private FeignUserService userService;
 

@@ -210,6 +210,132 @@ spring:
 
 > **注意**：控制台有可能没有显示接入的客户端，原因是 Sentinel 采用的是懒加载方式，需要访问几次网关，让网关产生流量，这是刷新控制台就可以了。还不行就查看 [FAQ](https://github.com/alibaba/Sentinel/wiki/FAQ/)
 
+手动加载网关规则：
+
+```java
+import com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayConstants;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiDefinition;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPathPredicateItem;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPredicateItem;
+import com.alibaba.csp.sentinel.adapter.gateway.common.api.GatewayApiDefinitionManager;
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayParamFlowItem;
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayRuleManager;
+import com.alibaba.csp.sentinel.adapter.gateway.sc.SentinelGatewayFilter;
+import com.alibaba.csp.sentinel.adapter.gateway.sc.exception.SentinelGatewayBlockExceptionHandler;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.web.reactive.result.view.ViewResolver;
+
+import javax.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * 限流规则配置类
+ */
+@Configuration
+public class SentinelConfig {
+	private final List<ViewResolver> viewResolvers;
+	private final ServerCodecConfigurer serverCodecConfigurer;
+
+	/**
+	 * 构造器
+	 *
+	 * @param viewResolversProvider
+	 * @param serverCodecConfigurer
+	 */
+	public SentinelConfig(ObjectProvider<List<ViewResolver>> viewResolversProvider,
+						  ServerCodecConfigurer serverCodecConfigurer) {
+		this.viewResolvers = viewResolversProvider.getIfAvailable(Collections::emptyList);
+		this.serverCodecConfigurer = serverCodecConfigurer;
+	}
+
+	/**
+	 * 限流异常处理器
+	 *
+	 * @return
+	 */
+	@Bean
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	public SentinelGatewayBlockExceptionHandler sentinelGatewayBlockExceptionHandler() {
+		// Register the block exception handler for Spring Cloud Gateway.
+		return new SentinelGatewayBlockExceptionHandler(viewResolvers, serverCodecConfigurer);
+	}
+
+	/**
+	 * 限流过滤器
+	 *
+	 * @return
+	 */
+	@Bean
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	public GlobalFilter sentinelGatewayFilter() {
+		return new SentinelGatewayFilter();
+	}
+
+	/**
+	 * Spring 容器初始化的时候执行该方法
+	 */
+	@PostConstruct
+	public void doInit() {
+		// 加载API
+		initCustomizedApis();
+		// 加载网关限流规则
+		initGatewayRules();
+	}
+
+	/**
+	 * apis
+	 */
+	private void initCustomizedApis() {
+		Set<ApiDefinition> definitions = new HashSet<>();
+		ApiDefinition api1 = new ApiDefinition("some_customized_api")
+				.setPredicateItems(new HashSet<ApiPredicateItem>() {{
+					add(new ApiPathPredicateItem().setPattern("/ahas"));
+					add(new ApiPathPredicateItem().setPattern("/product/**")
+							.setMatchStrategy(SentinelGatewayConstants.URL_MATCH_STRATEGY_PREFIX));
+				}});
+		definitions.add(api1);
+		GatewayApiDefinitionManager.loadApiDefinitions(definitions);
+	}
+
+	/**
+	 * 网关限流规则
+	 */
+	private void initGatewayRules() {
+		Set<GatewayFlowRule> rules = new HashSet<>();
+        /*
+            resource：资源名称，可以是网关中的 route 名称或者用户自定义的 API 分组名称
+            count：限流阈值
+            intervalSec：统计时间窗口，单位是秒，默认是 1 秒
+         */
+		rules.add(new GatewayFlowRule("order-service")
+				.setCount(3) // 限流阈值
+				.setIntervalSec(60)); // 统计时间窗口，单位是秒，默认是 1 秒
+
+		rules.add(new GatewayFlowRule("some_customized_api")
+				.setResourceMode(SentinelGatewayConstants.RESOURCE_MODE_CUSTOM_API_NAME)
+				.setCount(5)
+				.setIntervalSec(1)
+				.setParamItem(new GatewayParamFlowItem()
+						.setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_URL_PARAM)
+						.setFieldName("pn")
+				)
+		);
+		// 加载网关限流规则
+		GatewayRuleManager.loadRules(rules);
+	}
+}
+```
+
 ## 使用 Nacos 存储规则，实现动态数据源
 
 默认情况下，当我们在 Sentinel 控制台中配置规则时，控制台推送规则方式是通过 API 将规则推送至客户端并直接更新到内存中。一旦我们重启应用，规则将消失。生产中规则信息都是保存数据库持久化或者配置中心里。
@@ -478,6 +604,20 @@ public class ProviderApplication {
 ```
 
 或者查看 `~/logs/csp` 目录下的 sentinel 日志文件。
+
+## 问题
+
+### 发现限流并未起作用
+
+单机阈值设置为0，依然可以访问到页面。
+
+可以在resources资源目录下新建SPI文件，
+文件名：META-INF/services/com.alibaba.csp.sentinel.slotchain.SlotChainBuilder
+文件内容：com.alibaba.csp.sentinel.adapter.gateway.common.slot.GatewaySlotChainBuilder
+
+### 基于 Alibaba 2.2.0.RELEASE 配置 Nacos 身份验证
+
+https://github.com/alibaba/spring-cloud-alibaba/issues/1305
 
 ## 扩展
 

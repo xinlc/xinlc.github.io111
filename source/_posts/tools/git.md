@@ -84,6 +84,7 @@ git log --stat           # 查看提交统计信息
 git log <file>           # 查看该文件每次提交记录
 git log -p               # 查看每次详细修改内容的diff
 git log --pretty=oneline # 显示成一行， 其他参数：short，full 和 fuller
+git log <commit>...<commit> # 显示两个commit之间的所有记录
 git reflog               # 显示操作记录（commit，reset等）
 git show $id             # 显示某次提交的内容
 git reset <file>         # 从暂存区恢复到工作文件
@@ -877,7 +878,21 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 ## 解决冲突
 
 `git status` 可以告诉我们冲突的文件。
-打开冲突文件我们会看到 Git 用<<<<<<<，=======，>>>>>>>标记出不同分支的内容，我们修改后提交：
+打开冲突文件我们会看到 Git 用<<<<<<<，=======，>>>>>>>标记出不同分支的内容：
+
+```java
+<<<<<<<< HEAD (Current Change)
+
+这个是你修改的，如果不是 HEAD 可以用 log 看是哪个 commit
+
+=======
+
+这里是远程的，用 git log --all 才能看到这个 commit
+
+>>>>>>>> 33aabbccxxxx (Incoming Change)
+```
+
+我们修改后提交：
 
 - `git add [file]`；
 - `git commit -m "conflict fixed"`；
