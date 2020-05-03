@@ -289,3 +289,265 @@ select @@tx_isolation;
 set session transaction isolation level read uncommitted;
 start transaction;
 ```
+
+## 将编码由utf8改为utf8mb4
+
+查看数据库编码：
+
+```sql
+show variables like 'character%';
+```
+
+```sql
+show variables like '%colla%';
+```
+
+修改配置文件 my.ini：
+
+```bash
+[client]
+default-character-set = utf8mb4
+
+[mysql]
+default-character-set = utf8mb4
+
+[mysqld]
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+init_connect='SET NAMES utf8mb4'
+```
+
+> 重启 mysql
+
+## Innodb 行格式
+
+表的行格式决定了它的每行数据是怎么物理存储的，其对查询和DML操作也是有影响。每个磁盘页存的行数越多，查询和索引的查找就越快，缓冲池需要的内存也越少，同时也能减少更新数据的I/O。
+
+每个表的数据都被分成多个页，这些页都存在一个叫B-树索引的树数据结构中。表数据和非主键索引都用这种数据结构。保存了整个表数据的B-树索引叫做聚簇索引，它是根据表的主键来进行组织的。聚簇索引树的节点保存了一行的所有列的值，非主键索引的节点只包含索引列和主键列的值。
+
+变长列在B-树索引节点的存储策略不太一样，如果长度超过了B-树页的长度，则它们会保存在单独申请的磁盘页中，即溢出页。这些列也叫做off-page列。off-page列的值保存在多个溢出页中，这些溢出页使用单独的链表连接在一起，每个列都有它自己的溢出页链表。为了避免浪费空间或者读取额外的页数据，当列长度超过B-树页大小时，会将变长列的部分前缀串保存在B-树种。
+
+InnoDB存储引擎支持的行格式： REDUNDANT, COMPACT, DYNAMIC, COMPRESSED，FIXED。
+
+Version 5.6 已经默认使用 Compact，Version 5.7 默认使用Dynamic，Redundant 是比较老的数据格式，Compressed 不能应用在System data，所以Compact和Dynamic应用较广泛。
+
+### REDUNDANT 行格式
+
+REDUNDANT兼容MySQL的旧版本。
+表存储变长列(varchar,varbinary,blob,text)的前768个字节在B-树的索引节点中，剩下的保存在溢出页中。固定长度列大小大于等于768字节时，会被当做变长列处理，保存在off-page中。比如，当列的字符集使用的是utf8mb4时，char(255)的列有可能超过768字节，因为utf8mb4字符的最大字符字节长度为4字节，255*4 = 1020 > 768。
+
+如果列大小不超过768字节，则不会用到溢出页，这样就能节省一点I/O消耗。这对于相对较短的blob列来说，不会有很大影响，但有可能导致B-树节点空间被这些数据占满，这样节点可存放的索引量较少，影响性能。一个表，有太多blob列的话，就会导致B-树节点太满，能保存的行数更少，索引效率也就更低了。
+
+REDUNDANT 存储特性：
+
+- 每个索引节点包含6字节头信息，用来连接其他的行以及行锁时用；
+- 聚集索引包含所有的数据列，因此也包含了6字节的事务ID和7字节的回滚指针id；
+- 如果没有定义表主键的话，每个聚集索引的节点会自动添加一个6字节的row ID；
+- 每个辅助索引记录包含所有的主键列
+- 每个记录包含一个指向每个字段的指针，如果所有字段的总长度小于128字节，指针是一个字节大小；否则，为2字节大小。指针数组被叫做记录目录。指针所指向的区域为记录的数据部分；
+- 在系统内部，固定长度的字符列，如char(10)是以固定长度存储的，尾部空格不会被截断；
+- 大于等于768字节的固定长度列会被编码成变长列，可以存储在溢出中。如，char(255)，当使用字符编码位utf8mb4时，它长度就可能超过768字节，因为utf8mb4字符最大的字节长度为4字节；
+- 可NULL值的列需要在记录目录预留一到两个字节。如果列是变成的话，NULL值在记录的数据部分是不需要存储空间的。对于固定长列，数据部分是要预留固定长度空间的。预留固定长度给NULL值得列使得当列值从NULL变为非NULL时，不会引起索引页锁片；
+
+### COMPACT 行格式
+
+compact行格式可以比redundant行格式较少20%的行存储空间，但是某些操作会增加cpu使用负担。如果服务器受限于缓存命中率和磁盘速度的话，compact格式可能会更快。如果受限于cpu速度的话，compact可能会更慢。
+
+使用compact格式的表存储变长列(varchar, varbinary, blob, text)的开头的768字节在索引记录结点,剩下的存储在溢出页中。大于等于768字节的固定长度列会被编码成变长列，可以存储在off-page中。比如，varchar(255), 当使用utfbmb4编码时，就可能超过768字节了。
+
+如果列大小不超过768字节，则不会使用溢出页，这样就能节省一些I/O开销，因为值直接在B-tree结点就可以获取了。这个对于短的blob列也是有好处的，但是这样会导致B-tree索引节点都被数据填充了（每页存储的行记录就更少了，页是数据库存储的基本单位），而存储的键值更少了，降低了效率。如果一个表有很多blob列，就会导致B-tree索引节点太满，存储的行数太少，使得整个索引的效率就大大降低了。
+
+COMPACT 行格式存储特性：
+
+- 每个索引记录包含5字节头信息，可能用来处理变长字段的信息。用来连接相连的记录及行锁；
+- 记录的变长部分头信息，包含一个位向量用来标记可为NULL值的列的值是否为NULL。如果可为NULL值的列数量为N，位向量的大小为ceiling（N/8）字节（向上取整）。(比如，如果有15个列可为NULL，则位向量的大小就为2字节)。NULL值的列除了位向量的空间外，就不需要其他的存储空间了。变长部分头信息同样也包含了每个变长列的长度，每个长度需要1或者2字节，取决于列的最大长度。（比如，varchar(100)只需要1字节，varchar（256）则需要两字节）。如果索引上所有的都是NOT NULL并且是固定长度的，则记录头信息就没有变长部分；
+- 对于每个非NULL的变长列，记录头包含1到2字节来记录列的长度。只有当列存储到外部溢出页或者列最大长度超过255字节或者实际长度超过127字节时才使用2个字节。对于外部存储列，2字节长度包含的是内部存储部分长度外加20个字节的指针长度，用来指向外部存储部分的地址。内部存储是768字节，所以长度是768+20字节。20字节里包含了列的实际长度；
+- 记录头信息后紧跟着是非NULL列的数据部分；
+- 聚集索引的记录包含了用户定义的所有列，同时有额外的6字节用来存储事务ID和7字节回滚指针；
+- 如果没有定义主键的话，每个聚集索引记录还会包含6字节的行ID记录；
+- 每个辅助索引记录包含所有的主键列，如果主键列有变长的话，每个辅助索引的记录头会有一个变长部分用来记录他们的长度，即使辅助索引是建立在固定长的列上的；
+- 系统内，对于非变长编码的字符集来说，固定长字符列如char(10)是以固定长度保存的，尾部空格也不会从变长列截断；
+- 系统内，对于变长字符集如utf8mb3/utf8mb4，InnoDB试图将char(N)存储为N字节，对于尾部的空格会过滤掉。如果char(N)列的字节超过了N字节，尾部空格被调整为列值的最小字节长度。char(N)的最大长度为字符最大字节长度xN。char(N)预留最少N字节，大多数情况下都可以使列能够在原地更新而不会导致索引页碎片。对于redundant格式来说，char(N)需要预留字符最大长度xN字节的空间。大于等于768字节的固定长列被编码成变长列，可以存储在off-page中。如varchar(255)，当使用utf8mb4时，最大长度就超过了768字节；
+
+### DYNAMIC 行格式
+
+DYNAMIC格式和compact格式的存储特性是一样的，不一样的是它增强了对于较长变长列的存储能力及支持更大的索引前缀。
+
+DYNAMIC格式的表，可以将较长的变长列（varchar、varbinary、blob、text）全部存储在off-page中，而聚集索引记录里只需要保存20字节长度的指针指向溢出页。大于等于768字节的固定长度列被编码为变长列。。如varchar(255)，当使用utf8mb4时，最大长度就超过了768字节。
+
+列是否存储在off-page，取决于页大小和行的总大小。当一行太长时，最长的那些列被选择为存到off-page直到聚集索引记录页大小足够存下此列。不超过40字节的text和blob存储在一行。
+
+DYNAMIC格式存储整行数据在索引节点，保持了效率（redundant和compact也是如此），但是DYNAMIC格式避免了B-tree节点都被长字段数据填充带来的低效。DYNAMIC格式是基于，通常情况下，将整个字段保存在off-page比部分数据存储在off-page更有效。DYNAMIC格式中，较短的列更有可能保存在B-tree索引节点，最小化行需要的溢出页数量。
+
+DYNAMIC格式支持最大的3072字节的索引前缀。
+
+DYNAMIC格式的表可以存储在system tablespace, file-per-table，tablespaces, 及general tablespaces中。可以通过禁用 innodb_file_per_table 或者使用create table、alter table的tablespace[=] innodb_system选项设置。innodb_file_per_table变量不可用于
+general tablespaces和当使用TABLESPACE [=] innodb_system表选项将DYNAMIC表存储在系统表空间中。
+
+DYNAMIC格式是compact格式的变种，存储特性和COMPACT格式一样。
+
+### COMPRESSED 行格式
+
+COMPRESSED格式和DYNAMIC存储特性一样，同时提供了表和索引数据的压缩处理。
+
+COMPRESSED格式使用和 DYNAMIC的类似的内部细节来处理off-page存储，且基于存储和性能的考虑，压缩表和索引数据，从而使用更小的页大小。COMPRESSED中，KEY_BLOCK_SIZE选项控制多少列数据存储在聚集索引上及多少存放在溢出页中。更多COMPRESSED格式的内容，[请参考文章15.9 InnoDB Table and Page Compression](https://dev.mysql.com/doc/refman/8.0/en/innodb-compression.html)
+
+COMPRESSED格式支持最大前缀长度为3072字节。
+
+COMPRESSED格式的表可以创建在 file-per-table tablespaces 和 general tablespaces中。system tablespaces不支持COMPRESSED格式。如果要将COMPRESSED格式表存储在 file-per-table tablespaces，则必须启用innodb_file_per_table 变量。innodb_file_per_table 变量不能用于general tablespaces。General tablespaces支持所有的行格式，当压缩表和非压缩表同时在General tablespaces时，会有一条告警。更多内容，[请参考15.6.3.3 General Tablespaces](https://dev.mysql.com/doc/refman/8.0/en/general-tablespaces.html)
+
+COMPRESSED格式是compact格式的变种，存储特性和COMPACT格式一样。
+
+### FIXED 行格式
+
+固定格式，当表不包含变长字段时使用，如varchar，blob，text。因为该行是固定的，所以存取速度相对来说比较快，但是比较占存储空间.
+
+### 定义表的行格式
+
+InnoDB表的默认行格式，可以通过innodb_default_row_format变量设置，默认值为DYNAMIC。当建表时没有指定ROW_FORMAT时或者指定ROW_FORMAT=DEFAULT时，就会使用系统默认的行格式。
+
+表的行格式可以通过建表或者修改语句显式指定，如下：
+
+```sql
+CREATE TABLE t1 (c1 INT) ROW_FORMAT=DYNAMIC;
+```
+
+显式指定的ROW_FORMAT会覆盖默认的行格式设置。使用ROW_FORMAT=DEFAULT效果与隐式设置一样。
+innodb_default_row_format变量可以动态配置
+
+```sql
+mysql> SET GLOBAL innodb_default_row_format=DYNAMIC;
+```
+
+innodb_default_row_format变量的有效值包括DYNAMIC、COMPACT、REDUNDANT。COMPRESSED 不支持system tablespaces表空间，不能设置为默认的行格式。COMPRESSED 只能显式的在create table或者alter table语句中指定。将innodb_default_row_format设置为COMPRESSED 会导致如下错误：
+
+```sql
+mysql> SET GLOBAL innodb_default_row_format=COMPRESSED;
+ERROR 1231 (42000): Variable 'innodb_default_row_format'
+can't be set to the value of 'COMPRESSED'
+```
+
+新建的表如果没有指定ROW_FORMAT或者ROW_FORMAT=DEFAULT时，将使用 innodb_default_row_format指定的行格式。如下：
+
+```sql
+CREATE TABLE t1 (c1 INT);
+```
+
+```sql
+CREATE TABLE t2 (c1 INT) ROW_FORMAT=DEFAULT;
+```
+
+当ROW_FORMAT 没有显式指定或者ROW_FORMAT =DEFAULT时，重建表的操作会将表的行格式变成 innodb_default_row_format 指定的格式。
+
+表重建操作包括使用 ALGORITHM=COPY 或者 ALGORITHM=INPLACE选项的alter table操作。更多内容[参考15.12.1 Online DDL Operations](https://dev.mysql.com/doc/refman/8.0/en/innodb-online-ddl-operations.html)，OPTIMIZE TABLE也是表重建操作。
+
+下面的例子展示了表重建操作是如何静默修改那些建表时没有显式定义行格式的表的行格式的：
+
+```sql
+mysql> SELECT @@innodb_default_row_format;
++-----------------------------+
+| @@innodb_default_row_format |
++-----------------------------+
+| dynamic                     |
++-----------------------------+
+
+mysql> CREATE TABLE t1 (c1 INT);
+
+mysql> SELECT * FROM INFORMATION_SCHEMA.INNODB_TABLES WHERE NAME LIKE 'test/t1' \G
+*************************** 1. row ***************************
+     TABLE_ID: 54
+         NAME: test/t1
+         FLAG: 33
+       N_COLS: 4
+        SPACE: 35
+   ROW_FORMAT: Dynamic
+ZIP_PAGE_SIZE: 0
+   SPACE_TYPE: Single
+
+mysql> SET GLOBAL innodb_default_row_format=COMPACT;
+
+mysql> ALTER TABLE t1 ADD COLUMN (c2 INT);
+
+mysql> SELECT * FROM INFORMATION_SCHEMA.INNODB_TABLES WHERE NAME LIKE 'test/t1' \G
+*************************** 1. row ***************************
+     TABLE_ID: 55
+         NAME: test/t1
+         FLAG: 1
+       N_COLS: 5
+        SPACE: 36
+   ROW_FORMAT: Compact
+ZIP_PAGE_SIZE: 0
+   SPACE_TYPE: Single
+```
+
+考虑如下从REDUNDANT或者COMPACT转成DYNAMIC时的潜在问题。
+
+REDUNDANT和COMPACT行格式支持最大索引前缀为767字节，而DYNAMIC和COMPRESSED支持3072字节。在一个主从环境中，如果innodb_default_row_format 变量在master上设置为DYNAMIC, 在从库上设置为COMPACT，则如下没有显式指定行格式的DDL语句，在master上将成功，在slave上执行失败：
+
+```sql
+CREATE TABLE t1 (c1 INT PRIMARY KEY, c2 VARCHAR(5000), KEY i1(c2(3070)));
+```
+
+相关内容[参考15.22 InnoDB Limits](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html)
+
+导入一个没有显式定义行格式的表将导致表shema不匹配错误，如果源server的innodb_default_row_format和目标server的innodb_default_row_format不一致。更多内容[参考15.6.1.3 Importing InnoDB Tables](https://dev.mysql.com/doc/refman/8.0/en/innodb-table-import.html)
+
+修改行格式：
+
+```sql
+ALTER TABLE `t1` ROW_FORMAT = Compact;
+```
+
+```sql
+ALTER TABLE `t1` ROW_FORMAT = Dynamic;
+```
+
+```sql
+SHOW TABLE STATUS;
+```
+
+> 如果要修改现有表的行模式为compressed或dynamic，必须先将文件格式设置成Barracuda：set global innodb_file_format=Barracuda;，再用ALTER TABLE tablename ROW_FORMAT=COMPRESSED;去修改才能生效。
+
+### 查看一个表的行格式
+
+使用 SHOW TABLE STATUS命令可以查看一个表的行格式：
+
+```sql
+mysql> SHOW TABLE STATUS LIKE "test%"\G
+```
+
+```sql
+mysql> SHOW TABLE STATUS IN test1\G
+```
+
+也可以通过查询 INFORMATION_SCHEMA.INNODB_TABLES 表来看：
+
+```sql
+mysql> SELECT NAME, ROW_FORMAT FROM INFORMATION_SCHEMA.INNODB_TABLES WHERE NAME='test1/t1';
+```
+
+```sql
+show variables like "innodb_file_format";
+```
+
+## 问题
+
+### MySQL server has gone away 错误的解决办法
+
+在我们使用mysql导入大文件sql时可能会报MySQL server has gone away错误，该问题是max_allowed_packet配置的默认值设置太小，只需要相应调大该项的值之后再次导入便能成功。该项的作用是限制mysql服务端接收到的包的大小，因此如果导入的文件过大则可能会超过该项设置的值从而导致导入不成功！下面我们来看一下如何查看以及设置该项的值。
+
+```bash
+# 查看 max_allowed_packet 的值
+show global variables like 'max_allowed_packet';
+# +--------------------+---------+
+# | Variable_name      | Value   |
+# +--------------------+---------+
+# | max_allowed_packet | 4194304 |
+# +--------------------+---------+
+
+# 可以看到默认情况下该项的大小只有4M，接下来将该值设置成150M(1024*1024*150)
+set global max_allowed_packet=157286400;
+```
+
+通过调大该值，一般来说再次导入数据量大的sql应该就能成功了，如果任然报错，则继续再调大一些就行，请注意通过在命令行中进行设置只对当前有效，重启mysql服务之后则恢复默认值，但可以通过修改配置文件（可以在配置文件my.cnf中添加max_allowed_packet=150M即可）来达到永久有效的目的，可其实我们并不是经常有这种大量数据的导入操作，所以个人觉得通过命令行使得当前配置生效即可，没有必要修改配置文件。

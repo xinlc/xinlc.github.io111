@@ -650,9 +650,31 @@ System.out.println(month);          // DECEMBER
 long minuteOfDay = sylvester.getLong(ChronoField.MINUTE_OF_DAY);
 System.out.println(minuteOfDay);    // 1439
 
-// 时间戳转换成 LocalDateTime
+// 获取秒数
+Long second = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
+
+// 获取毫秒数
 Long timestamp = LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli();
-LocalDateTime time =LocalDateTime.ofEpochSecond(timestamp/1000, 0, ZoneOffset.ofHours(8));
+
+// 时间戳转换成 LocalDateTime
+LocalDateTime time = LocalDateTime.ofEpochSecond(timestamp/1000, 0, ZoneOffset.ofHours(8));
+
+// 时间转字符串格式化
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+String dateTime = LocalDateTime.now(ZoneOffset.of("+8")).format(formatter);
+
+// 字符串转时间
+String dateTimeStr = "2020-05-01 17:10:10";
+DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, df)
+
+// 将java.util.Date 转换为 java.time.LocalDateTime, 默认时区为东8区
+// dateConvertToLocalDateTime
+date.toInstant().atOffset(ZoneOffset.of("+8")).toLocalDateTime();
+
+// 将 java.time.LocalDateTime 转换为 java.util.Date, 默认时区为东8区
+// localDateTimeConvertToDate
+Date.from(localDateTime.toInstant(ZoneOffset.of("+8")))
 ```
 
 上文中提及的 Instant 也可以用来将时间根据时区转化：
