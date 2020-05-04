@@ -766,3 +766,89 @@ Maven 包含了一个项目对象模型(Project Object Model)，一组标准集�
     <properties/>
 </project>
 ```
+
+## Maven中使用本地JAR包
+
+### 使用system scope
+
+```xml
+<dependency>
+  <groupId>org.richard</groupId>
+  <artifactId>my-jar</artifactId>
+  <version>1.0</version>
+  <scope>system</scope>
+  <systemPath>${project.basedir}/lib/my-jar.jar</systemPath>
+</dependency>
+```
+
+system scope引入的包，在使用jar-with-dependencies打包时将不会被包含，可以使用resources将本地包打进jar-with-dependencies
+
+```xml
+<build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <finalName>xxx-jar-with-dependencies</finalName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+     <resources>
+      <resource>
+        <targetPath>lib/</targetPath>
+        <directory>lib/</directory>
+        <includes>
+          <include>**/my-jar.jar</include>
+        </includes>
+      </resource>
+    </resources>
+</build>
+```
+
+生成的xxx-jar-with-dependencies.jar中，将会包含lib目录以及my-jar.jar，并且能够被在执行的时候被找到。
+
+有的时候这种方法会实效，比如JDBCDriver在声明的时候Class.forName("xxx.Driver")就会说找不到类，用下面两种方法就可以。
+
+```bash
+mvn install:install-file -Dfile=my-jar.jar -DgroupId=org.richard -DartifactId=my-jar -Dversion=1.0 -Dpackaging=jar
+```
+
+### 将jar包安装到本地repository中
+
+```bash
+# 注意：不要换行，要用空格放在一行执行命令
+mvn install:install-file  
+-Dfile=jar包的绝对位置  
+-DgroupId=pom文件依赖的groupId  
+-DartifactId=pom文件依赖的artifactId  
+-Dversion=pom文件依赖的version  
+-Dpackaging=jar
+-DgeneratePom=true
+
+# 例如：执行后 jar包在 .m2 仓库中
+mvn install:install-file -Dfile=/Users/leo/workspace/maven/similarity-1.1.3.jar -DgroupId=io.github.shibing624 -DartifactId=similarity -Dversion=1.1.3 -Dpackaging=jar -DgeneratePom=true
+
+```
+
+配置依赖：
+
+```xml
+<dependency>
+  <groupId>io.github.shibing624</groupId>
+  <artifactId>similarity</artifactId>
+  <version>1.1.3</version>
+</dependency>
+```
