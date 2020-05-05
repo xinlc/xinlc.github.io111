@@ -156,6 +156,11 @@ docker exec -it <容器名> bash # 登录到容器中
 docker help          # 终极命令
 docker-compose up -d # 通过 compose 启动
 
+
+# 执行docker cp执行将本地主机的index.html复制到docker容器中
+docker cp 本地主机文件路径 nginx容器id://usr/share/nginx/html
+docker cp nginx容器id://usr/share/nginx/html/index.html 本地主机文件路径
+
 # 登录aliyun镜像仓库
 sudo docker login --username=xxx registry.cn-hangzhou.aliyuncs.com
 sudo docker login -u xxx -p xxx registry.cn-hangzhou.aliyuncs.com

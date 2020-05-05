@@ -87,6 +87,8 @@ services:
     container_name: mysql # 指定启动后的容器名
     ports: # 指定开放的端口号，主机:容器
       - "3306:3306"
+    # expose:  # 不公开端口（不跟主机绑定），指定内部端口（用于容器互联访问）
+    #   - "3306"
     # networks: # 指定网络
     #   - my-net
     networks: # 指定网络
@@ -173,6 +175,17 @@ networks:
       driver: default
       config:
       - subnet: 172.16.238.0/24
+```
+
+环境变量文件，env/mysql-common.env
+
+```bash
+# mysql
+MYSQL_SERVICE_HOST=xxx
+MYSQL_SERVICE_PORT=3306
+MYSQL_SERVICE_DB_NAME=xxx
+MYSQL_SERVICE_USER=root
+MYSQL_SERVICE_PASSWORD=123456
 ```
 
 [https://docs.docker.com/compose/compose-file/compose-versioning/#version-2x-to-3x](https://docs.docker.com/compose/compose-file/compose-versioning/#version-2x-to-3x)

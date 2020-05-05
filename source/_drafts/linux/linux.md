@@ -75,3 +75,13 @@ mysql_cmd = "mysql -h60.28.200.78 -uroot -pyeelion -A LogStat_RT  -e \"load data
 print(mysql_cmd)
 os.system(mysql_cmd)
 ```
+
+## 传文件
+
+```bash
+# 上传文件
+scp ./aa.txt root@remoteIP:/data/
+
+# 下载文件
+scp root@remoteIP:/data/aa.txt .
+```

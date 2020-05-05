@@ -880,6 +880,148 @@ services:
 curl -H "Host: whoami.local" localhost
 ```
 
+## [sharding-proxy](https://github.com/apache/shardingsphere)
+
+[Sharding-Proxy](https://shardingsphere.apache.org/document/current/cn/manual/sharding-proxy/)是[ShardingSphere](https://shardingsphere.apache.org/)的第二个产品。 它定位为透明化的数据库代理端，提供封装了数据库二进制协议的服务端版本，用于完成对异构语言的支持。 目前先提供MySQL/PostgreSQL版本，它可以使用任何兼容MySQL/PostgreSQL协议的访问客户端(如：MySQL Command Client, MySQL Workbench, Navicat等)操作数据，对DBA更加友好。
+
+在/${your_work_dir}/conf/创建server.yaml和config-xxx.yaml文件，进行服务器和分片规则配置。 配置规则，请参考[配置手册](https://shardingsphere.apache.org/document/current/cn/manual/sharding-proxy/configuration/)。 配置模板，请参考[配置模板](https://github.com/apache/shardingsphere/tree/master/sharding-proxy/sharding-proxy-bootstrap/src/main/resources/conf)
+
+```yaml
+version: '3'
+
+services:
+  sharding-proxy:
+    image: apache/sharding-proxy:4.0.1
+    container_name: sharding-proxy
+    restart: unless-stopped
+    ports:
+      - 13308:3308 # 13308表示宿主机端口:docker容器端口(PORT=3308)
+    environment:
+      - PORT=3308 # docker容器端口
+      - JVM_OPTS= -Djava.awt.headless=true
+    volumes:
+      - /mnt/docker-data/sharding-proxy/conf:/opt/sharding-proxy/conf
+      - /mnt/docker-data/sharding-proxy/ext-lib:/opt/sharding-proxy/ext-lib
+```
+
+代理配置：server.yaml
+
+```yaml
+# 权限验证
+authentication:
+ users:
+   root: # 自定义用户名
+     password: root
+   sharding: # 自定义用户名
+     password: sharding
+     authorizedSchemas: sharding_db # 该用户授权可访问的数据库，多个用逗号分隔。缺省将拥有root权限，可访问全部数据库。
+
+props:
+ max.connections.size.per.query: 1
+ acceptor.size: 16  # #用于设置接收客户端请求的工作线程个数，默认为CPU核数*2
+ executor.size: 16  # Infinite by default.
+ proxy.frontend.flush.threshold: 128  # 对于单个大查询,每多少个网络包返回一次
+ proxy.transaction.type: LOCAL # 默认为LOCAL事务，允许LOCAL，XA，BASE三个值，XA采用Atomikos作为事务管理器，BASE类型需要拷贝实现ShardingTransactionManager的接口的jar包至lib目录中
+ proxy.opentracing.enabled: false # 是否开启链路追踪功能，默认为不开启。详情请参见[链路追踪](/cn/features/orchestration/apm/)
+ proxy.hint.enabled: false # 是否启用 hint 语句
+ query.with.cipher.column: true # 是否使用密文列查询
+ sql.show: false
+ allow.range.query.with.inline.sharding: false
+```
+
+数据分片配置：config-sharding.yaml
+
+```yaml
+schemaName: sharding_db
+
+dataSources:
+  ds0: 
+    url: jdbc:postgresql://localhost:5432/ds0
+    username: root
+    password: 123456
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 65
+  ds1:
+    url: jdbc:postgresql://localhost:5432/ds1
+    username: root
+    password: 123456
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 65
+
+shardingRule:
+  tables:
+    t_order:
+      actualDataNodes: ds${0..1}.t_order${0..1}
+      databaseStrategy:
+        inline:
+          shardingColumn: user_id
+          algorithmExpression: ds${user_id % 2}
+      tableStrategy: 
+        inline:
+          shardingColumn: order_id
+          algorithmExpression: t_order${order_id % 2}
+      keyGenerator:
+        type: SNOWFLAKE
+        column: order_id
+    t_order_item:
+      actualDataNodes: ds${0..1}.t_order_item${0..1}
+      databaseStrategy:
+        inline:
+          shardingColumn: user_id
+          algorithmExpression: ds${user_id % 2}
+      tableStrategy:
+        inline:
+          shardingColumn: order_id
+          algorithmExpression: t_order_item${order_id % 2}
+      keyGenerator:
+        type: SNOWFLAKE
+        column: order_item_id
+  bindingTables:
+    - t_order,t_order_item
+  defaultTableStrategy:
+    none:
+```
+
+```bash
+# 防火墙开放端口
+firewall-cmd --zone=public --add-port=13308/tcp --permanent
+firewall-cmd --reload
+
+## 连接PostgreSQL
+psql -U ${your_user_name} -h ${your_host} -p 13308
+
+# 连接 mysql，注意：需要 将mysql-connector.jar所在目录挂载到/opt/sharding-proxy/ext-lib。
+# wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar
+# 如果还提示 Cannot load JDBC driver class 'com.mysql.jdbc.Driver'，就进入容器把驱动copy到 opt/sharding-proxy/lib
+mycli -u sharding -h 1921.68.0.20 -P 13308 -D sharding_db
+
+# 或者
+mysql -u sharding -h 1921.68.0.20 -P 13308 -p
+```
+
+### FAQ
+
+- 问题1：I/O exception (java.io.IOException) caught when processing request to {}->unix://localhost:80: Connection refused？
+- 回答：在构建镜像前，请确保docker daemon进程已经运行。
+- 问题2：启动时报无法连接到数据库错误？
+- 回答：请确保/${your_work_dir}/conf/config-xxx.yaml配置文件中指定的PostgreSQL数据库的IP可以被Docker容器内部访问到。
+- 问题3：如何使用后端数据库为MySQL的ShardingProxy？
+- 回答：将mysql-connector.jar所在目录挂载到/opt/sharding-proxy/ext-lib。
+- 问题4：如何使用自定义分片算法？
+- 回答：实现对应的分片算法接口，将编译出的分片算法jar所在目录挂载到/opt/sharding-proxy/ext-lib。
+
+> [更多参考](https://shardingsphere.apache.org/document/current/cn/manual/sharding-proxy/docker/)
+
+### Yaml语法说明
+
+- `!!` 表示实例化该类
+- `-` 表示可以包含一个或多个
+- `[]` 表示数组，可以与减号相互替换使用
+
 ## 参考
 
 - [docker docs](https://docs.docker.com)
