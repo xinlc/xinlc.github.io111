@@ -85,3 +85,34 @@ scp ./aa.txt root@remoteIP:/data/
 # 下载文件
 scp root@remoteIP:/data/aa.txt .
 ```
+
+## curl
+
+```bash
+# get 请求
+curl --location --request GET 'http://localhost:8080/v1/user/info?searchKey=11' \
+--header 'Content-Type: application/json' \
+--header 'x-authorization: cetRcUGyuqs9GGjPLo5Q795GyicSkIcLFV51F9sQRs06qiFOw' \
+--data-raw ''
+
+# post 请求
+curl --location --request POST 'http://localhost:8080/v1/userAuth/login' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer 323423' \
+--header 'Content-Type: text/plain' \
+--data-raw '{
+  "userName": "leo",
+  "password": "123456"
+}'
+
+# 请求 websocket
+curl --include \
+     --no-buffer \
+     --header "Connection: Upgrade" \
+     --header "Upgrade: websocket" \
+     --header "Host: example.com:80" \
+     --header "Origin: http://example.com:80" \
+     --header "Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==" \
+     --header "Sec-WebSocket-Version: 13" \
+     http://example.com:80/
+```
