@@ -518,6 +518,9 @@ docker stack deploy --with-registry-auth -c docker-compose.yml test-service
 # 查看
 docker stack ls
 docker stack ps test-service
+
+# 如果部署失败可以用 ps 查看错误
+docker stack ps test-service --format "table {{.ID}}\t{{.Name}}\t{{.Error}}" --no-trunc
 ```
 
 访问 http://192.168.99.101:9000/ 查看管理服务。  

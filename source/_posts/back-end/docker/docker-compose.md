@@ -97,6 +97,9 @@ services:
         aliases: # 指定访问该容器的网络别名
           - db1
         ipv4_address: 172.16.238.13
+    extra_hosts: # 添加 hosts,会自动扩展到 /etc/hosts 中
+      - "somehost:162.242.195.82"
+      - "otherhost:50.31.209.229"
     env_file: # 加载环境变量文件
       - ./env/mysql-common.env
       - ./env/mysql-master.env

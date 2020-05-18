@@ -233,6 +233,64 @@ ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-Dserver.port=${
 
 创建流水线->选择 git 仓库，完成后会自动扫描项目下的 `Jenkinsfile` 文件
 
+## Pipeline scrip 方式
+
+```groovy
+pipeline {
+    agent any
+    environment {
+        SERVICE_NAME = 'order'
+        MODULE_NAME = 'order-svc'
+        PROJECT_ID = 9
+        GITLAB_URL = 'http://192.168.2.202:11080'
+    }
+    stages {
+        stage('Build') {
+             steps {
+                git branch: 'dev', credentialsId: 'gitlab_jenkins', url: "${GITLAB_URL}/root/parent.git"
+                // sh 'mvn clean package -Dmaven.test.skip=true -Ptest'
+                sh 'mvn clean install -Dmaven.test.skip=true -pl :${MODULE_NAME} -am -Ptest'
+             }
+        }
+      
+        stage('Build docker') {
+            environment {
+                ACCESS_DOCKER = credentials('docker-register')
+            }
+            steps {
+                sh 'docker login -u ${ACCESS_DOCKER_USR} -p ${ACCESS_DOCKER_PSW} registry-vpc.cn-beijing.aliyuncs.com'
+                sh './jenkins-deploy-test.sh ${PROJECT_ID}'
+                
+            }
+        }
+        
+        stage('Deploy') {
+          environment {
+            ACCESS_DOCKER = credentials('docker-register')
+          }
+          steps {
+            script {
+              withCredentials([usernamePassword(credentialsId: 'sshUser202', passwordVariable: 'userPwd', usernameVariable: 'userName')]) {
+                def remote = [:]
+                remote.name = 'dev_202'
+                remote.host = '192.168.2.202'
+                remote.user = 'root'
+                remote.port = 22080
+                remote.user = userName
+                remote.password = userPwd
+                remote.allowAnyHosts = true
+                stage('Deploy SSH Steps') {
+                  sshCommand remote: remote, command: "cd ~/dev-docker/service; docker-compose stop ${env.SERVICE_NAME}-service; docker-compose pull ${env.SERVICE_NAME}-service; docker-compose up -d ${env.SERVICE_NAME}-service"
+                  sshCommand remote: remote, command: 'docker image prune -f'
+                }
+              }
+            }
+          }
+        }
+    }
+}
+```
+
 ## 参考
 
 - [jenkins](https://jenkins.io/zh/doc/)
