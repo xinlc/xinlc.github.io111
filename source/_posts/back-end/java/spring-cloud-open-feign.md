@@ -1556,11 +1556,237 @@ public class FeignResponseDecoderConfig {
 
 Client 接口中用 @RequestParam 是无法绑定参数的，必须写 name，@RequestParam("paramName")。@RequestBody 可以正常获取。
 
+### 启用 hystrix 后 RequestContextHolder.getRequestAttributes(); 返回 null
+
+hystrix 默认使用多线程管理请求连接池，从主线程到发送基于hystrix的feign请求线程已不在同一个线程内，而RequestContextHolder是基于ThreadLocal实现的，这就使得线程之间数据断链，需要通过线程之间的数据传递使得ThreadLocal中存储的currentRequestAttributes接上。
+
+**解决方案一：调整隔离策略**
+
+将隔离策略设为SEMAPHORE即可：
+
+```yaml
+hystrix.command.default.execution.isolation.strategy: SEMAPHORE
+```
+
+这样配置后，Feign可以正常工作。但该方案不是特别好。原因是Hystrix官方强烈建议使用THREAD作为隔离策略！
+>Thread or Semaphore
+>
+>The default, and the recommended setting, is to run HystrixCommands using thread isolation (THREAD) and HystrixObservableCommands using semaphore isolation (SEMAPHORE).
+>
+>Commands executed in threads have an extra layer of protection against latencies beyond what network timeouts can offer.
+>
+>Generally the only time you should use semaphore isolation for HystrixCommands is when the call is so high volume (hundreds per second, per instance) that the overhead of separate threads is too high; this typically only applies to non-network calls.
+
+**解决方案二：自定义并发策略**
+
+既然Hystrix不太建议使用SEMAPHORE作为隔离策略，那么是否有其他方案呢？答案是自定义并发策略，目前，Spring Cloud Sleuth以及Spring Security都通过该方式传递 ThreadLocal 对象。
+
+下面我们来编写自定义的并发策略。
+
+```java
+@Component
+public class RequestAttributeHystrixConcurrencyStrategy extends HystrixConcurrencyStrategy {
+    private static final Log log = LogFactory.getLog(RequestHystrixConcurrencyStrategy.class);
+
+    public RequestHystrixConcurrencyStrategy() {
+        HystrixPlugins.reset();
+        HystrixPlugins.getInstance().registerConcurrencyStrategy(this);
+    }
+
+    @Override
+    public <T> Callable<T> wrapCallable(Callable<T> callable) {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        return new WrappedCallable<>(callable, requestAttributes);
+    }
+
+    static class WrappedCallable<T> implements Callable<T> {
+
+        private final Callable<T> target;
+        private final RequestAttributes requestAttributes;
+
+        public WrappedCallable(Callable<T> target, RequestAttributes requestAttributes) {
+            this.target = target;
+            this.requestAttributes = requestAttributes;
+        }
+
+        @Override
+        public T call() throws Exception {
+            try {
+                RequestContextHolder.setRequestAttributes(requestAttributes);
+                return target.call();
+            } finally {
+                RequestContextHolder.resetRequestAttributes();
+            }
+        }
+    }
+}
+```
+
+如代码所示，我们编写了一个RequestHystrixConcurrencyStrategy ，在其中：
+- wrapCallable 方法拿到 `RequestContextHolder.getRequestAttributes()` ，也就是我们想传播的对象；
+- 在 WrappedCallable 类中，我们将要传播的对象作为成员变量，并在其中的call方法中，为静态方法设值。
+- 这样，在Hystrix包裹的方法中，就可以使用`RequestContextHolder.getRequestAttributes()` 获取到相关属性——也就是说，可以拿到RequestContextHolder 中的ThreadLocal 属性。
+
+经过测试，代码能正常工作。
+
+**新的问题**
+
+至此，我们已经实现了ThreadLocal 属性的传递，然而Hystrix只允许有一个并发策略！这意味着——如果不做任何处理，Sleuth、Spring Security将无法正常拿到上下文！（上文说过，目前Sleuth、Spring Security都是通过自定义并发策略的方式来传递ThreadLocal对象的。）
+
+如何解决这个问题呢？
+
+我们知道，Spring Cloud中，Spring Cloud Security与Spring Cloud Sleuth是可以共存的！我们不妨参考下Sleuth以及Spring Security的实现：
+
+- Sleuth:`org.springframework.cloud.sleuth.instrument.hystrix.SleuthHystrixConcurrencyStrategy`
+- SpringSecurity:`org.springframework.cloud.netflix.hystrix.security.SecurityContextConcurrencyStrategy`
+
+阅读完后，你将恍然大悟——于是，我们可以模仿它们的写法，改写上文编写的并发策略：
+
+```java
+import com.netflix.hystrix.HystrixThreadPoolKey;
+import com.netflix.hystrix.HystrixThreadPoolProperties;
+import com.netflix.hystrix.strategy.HystrixPlugins;
+import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy;
+import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariable;
+import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariableLifecycle;
+import com.netflix.hystrix.strategy.eventnotifier.HystrixEventNotifier;
+import com.netflix.hystrix.strategy.executionhook.HystrixCommandExecutionHook;
+import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisher;
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesStrategy;
+import com.netflix.hystrix.strategy.properties.HystrixProperty;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 自定义隔离策略 解决RequestContextHolder.getRequestAttributes()问题 为null
+ **/
+@Component
+@Primary
+@Slf4j
+public class CustomFeignHystrixConcurrencyStrategy extends HystrixConcurrencyStrategy {
+
+	private HystrixConcurrencyStrategy hystrixConcurrencyStrategy;
+
+	public CustomFeignHystrixConcurrencyStrategy() {
+		try {
+			this.hystrixConcurrencyStrategy = HystrixPlugins.getInstance().getConcurrencyStrategy();
+			if (this.hystrixConcurrencyStrategy instanceof CustomFeignHystrixConcurrencyStrategy) {
+				// Welcome to singleton hell...
+				return;
+			}
+			HystrixCommandExecutionHook commandExecutionHook =
+					HystrixPlugins.getInstance().getCommandExecutionHook();
+			HystrixEventNotifier eventNotifier = HystrixPlugins.getInstance().getEventNotifier();
+			HystrixMetricsPublisher metricsPublisher = HystrixPlugins.getInstance().getMetricsPublisher();
+			HystrixPropertiesStrategy propertiesStrategy =
+					HystrixPlugins.getInstance().getPropertiesStrategy();
+			this.logCurrentStateOfHystrixPlugins(eventNotifier, metricsPublisher, propertiesStrategy);
+			HystrixPlugins.reset();
+			HystrixPlugins.getInstance().registerConcurrencyStrategy(this);
+			HystrixPlugins.getInstance().registerCommandExecutionHook(commandExecutionHook);
+			HystrixPlugins.getInstance().registerEventNotifier(eventNotifier);
+			HystrixPlugins.getInstance().registerMetricsPublisher(metricsPublisher);
+			HystrixPlugins.getInstance().registerPropertiesStrategy(propertiesStrategy);
+		} catch (Exception e) {
+			log.error("Failed to register Sleuth Hystrix Concurrency Strategy", e);
+		}
+	}
+
+	private void logCurrentStateOfHystrixPlugins(HystrixEventNotifier eventNotifier,
+												 HystrixMetricsPublisher metricsPublisher, HystrixPropertiesStrategy propertiesStrategy) {
+		if (log.isDebugEnabled()) {
+			log.debug("Current Hystrix plugins configuration is [" + "concurrencyStrategy ["
+					+ this.hystrixConcurrencyStrategy + "]," + "eventNotifier [" + eventNotifier + "]," + "metricPublisher ["
+					+ metricsPublisher + "]," + "propertiesStrategy [" + propertiesStrategy + "]," + "]");
+			log.debug("Registering Sleuth Hystrix Concurrency Strategy.");
+		}
+	}
+
+	@Override
+	public <T> Callable<T> wrapCallable(Callable<T> callable) {
+		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+		return new WrappedCallable<>(callable, requestAttributes);
+	}
+
+	@Override
+	public ThreadPoolExecutor getThreadPool(HystrixThreadPoolKey threadPoolKey,
+											HystrixProperty<Integer> corePoolSize, HystrixProperty<Integer> maximumPoolSize,
+											HystrixProperty<Integer> keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+		return this.hystrixConcurrencyStrategy.getThreadPool(threadPoolKey, corePoolSize, maximumPoolSize, keepAliveTime,
+				unit, workQueue);
+	}
+
+	@Override
+	public ThreadPoolExecutor getThreadPool(HystrixThreadPoolKey threadPoolKey,
+											HystrixThreadPoolProperties threadPoolProperties) {
+		return this.hystrixConcurrencyStrategy.getThreadPool(threadPoolKey, threadPoolProperties);
+	}
+
+	@Override
+	public BlockingQueue<Runnable> getBlockingQueue(int maxQueueSize) {
+		return this.hystrixConcurrencyStrategy.getBlockingQueue(maxQueueSize);
+	}
+
+	@Override
+	public <T> HystrixRequestVariable<T> getRequestVariable(HystrixRequestVariableLifecycle<T> rv) {
+		return this.hystrixConcurrencyStrategy.getRequestVariable(rv);
+	}
+
+	static class WrappedCallable<T> implements Callable<T> {
+		private final Callable<T> target;
+		private final RequestAttributes requestAttributes;
+
+		public WrappedCallable(Callable<T> target, RequestAttributes requestAttributes) {
+			this.target = target;
+			this.requestAttributes = requestAttributes;
+		}
+
+		@Override
+		public T call() throws Exception {
+			try {
+				RequestContextHolder.setRequestAttributes(requestAttributes);
+				return target.call();
+			} finally {
+				RequestContextHolder.resetRequestAttributes();
+			}
+		}
+	}
+}
+```
+
+简单讲解下：
+
+- 将现有的并发策略作为新并发策略的成员变量
+- 在新并发策略中，返回现有并发策略的线程池、Queue。
+
+hystrix 配置：
+
+```yaml
+# hystrix配置
+hystrix:
+  shareSecurityContext: true
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000
+```
+
 ## 参考
 
 - https://github.com/OpenFeign/feign/
 - https://cloud.spring.io/spring-cloud-openfeign/reference/html/
 - https://juejin.im/post/5d9c85c3e51d45782c23fab6/
+- http://www.itmuch.com/spring-cloud-sum/hystrix-threadlocal/
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 - 《从0开始学微服务》
