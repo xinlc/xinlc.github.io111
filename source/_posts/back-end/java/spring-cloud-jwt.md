@@ -534,6 +534,60 @@ public class UserController {
 
 ## 扩展
 
+### SSO和CAS
+
+单点登录（Single Sign On），简称为 SSO，是目前比较流行的企业业务整合的解决方案之一。SSO的定义是在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。为了解决第一个问题，即实现各信息系统之间的全面整合，集团公司引进了企业信息门户(EIP)，即将各种应用系统(诸如ERP、BPM、HR、OA、企业邮局等)、数据资源和互联网资源统一集到企业信息门户之下,根据每个用户使用特点和角色的不同,形成个性化的应用界面，并通过对事件和消息的处理、传输把用户有机地联系在一起。
+
+CAS是Central Authentication Service的首字母缩写，Apereo CAS 是由耶鲁大学实验室2002年出的一个开源的统一认证服务。
+
+刚开始名字叫Yale CAS。Yale CAS 1.0的目标只是一个单点登录的系统，随着慢慢用开，功能就越来越多了，2.0就提供了多种认证的方式。目前版本为6.0
+
+2004年12月，CAS转成JASIG(Java Administration Special Interesting Group)的一个项目，项目也随着改名为 JASIG CAS，这就是为什么现在有些CAS的链接还是有jasig的字样。
+
+2012年，JASIG跟Sakai基金会合并，改名为Apereo基金会，所有CAS也随着改名为Apereo CAS.
+
+CAS Enterprise Single Sign-On：
+
+- Spring Webflow/Spring Boot Java server component.
+- 可拔插认证支持 (LDAP, Database, X.509, SPNEGO, JAAS, JWT, RADIUS, MongoDb, etc)
+- 多种协议支持 (CAS, SAML, WS-Federation, OAuth2, OpenID, OpenID Connect, REST)
+- 通过各种提供商支持多因素身份验证 (Duo Security, FIDO U2F, YubiKey, Google Authenticator, Microsoft Azure, Authy etc)
+- 支持外部提供者的委托认证，例如： ADFS, Facebook, Twitter, SAML2 IdPs, etc.
+- Built-in support for password management, notifications, terms of use and impersonation.
+- Support for attribute release including user consent.
+- 实时监控和跟踪应用程序行为，统计信息和日志。
+- 用特定的认证策略管理和注册客户端应用程序和服务。
+- 跨平台的客户端支持 (Java, .Net, PHP, Perl, Apache, etc).
+- Integrations with InCommon, Box, Office365, ServiceNow, Salesforce, Workday, WebAdvisor, Drupal, Blackboard, Moodle, Google Apps, etc.
+
+从结构上看，CAS 包含两个部分： CAS Server 和 CAS Client。CAS Server 需要独立部署，主要负责对用户的认证工作（登录）；CAS Client 负责处理对客户端受保护资源的访问请求，需要登录时，重定向到 CAS Server。
+
+SSO 仅仅是一种架构，一种设计，而 CAS 则是实现 SSO 的一种手段。两者是抽象与具体的关系。当然，除了 CAS 之外，实现 SSO 还有其他手段，比如简单的 cookie 、JWT等。
+
+- https://github.com/apereo/cas
+
+### CAS的单点登录和OAuth2的最大区别
+
+CAS的单点登录时保障客户端的用户资源的安全  
+oauth2则是保障服务端的用户资源的安全  
+
+CAS客户端要获取的最终信息是，这个用户到底有没有权限访问我（CAS客户端）的资源。  
+oauth2获取的最终信息是，我（oauth2服务提供方）的用户的资源到底能不能让你（oauth2的客户端）访问  
+
+CAS的单点登录，资源都在客户端这边，不在CAS的服务器那一方。  
+用户在给CAS服务端提供了用户名密码后，作为CAS客户端并不知道这件事。  
+随便给客户端个ST，那么客户端是不能确定这个ST是用户伪造还是真的有效，所以要拿着这个ST去服务端再问一下，这个用户给我的是有效的ST还是无效的ST，是有效的我才能让这个用户访问。  
+
+oauth2认证，资源都在oauth2服务提供者那一方，客户端是想索取用户的资源。  
+所以在最安全的模式下，用户授权之后，服务端并不能直接返回token，通过重定向送给客户端，因为这个token有可能被黑客截获，如果黑客截获了这个token，那用户的资源也就暴露在这个黑客之下了。  
+于是聪明的服务端发送了一个认证code给客户端（通过重定向），客户端在后台，通过https的方式，用这个code，以及另一串客户端和服务端预先商量好的密码，才能获取到token和刷新token，这个过程是非常安全的。  
+如果黑客截获了code，他没有那串预先商量好的密码，他也是无法获取token的。这样oauth2就能保证请求资源这件事，是用户同意的，客户端也是被认可的，可以放心的把资源发给这个客户端了。  
+
+所以cas登录和oauth2在流程上的最大区别就是，通过ST或者code去认证的时候，需不需要预先商量好的密码。
+
+- OAuth2: 解决的是不同的企业之间的登录，本质是授权（当然它也能实现SSO，不需要资源服务器就可以了）。  
+- SSO: 是解决企业内部的一系列产品登录问题。
+
 ### 网站安全认证架构演进
 
 这里以假想的 MyStore 互联网公司来介绍网站安全认证架构是如何演进的，以及面向微服务安全认证是如何演进的。
