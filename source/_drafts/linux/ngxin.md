@@ -116,16 +116,16 @@ server {
     server_name         abc.com;
     access_log  "pipe:rollback /data/log/nginx/access.log interval=1d baknum=7 maxsize=1G"  main;
 
-    location ^~/user/ {
+    location ^~ /user/ {
         proxy_set_header Host $host;
         proxy_set_header  X-Real-IP        $remote_addr;
         proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
         proxy_set_header X-NginX-Proxy true;
 
-        proxy_pass http://user/;
+        proxy_pass http://user-test/;
     }
 
-    location ^~/order/ {
+    location ^~ /order/ {
         proxy_set_header Host $host;
         proxy_set_header  X-Real-IP        $remote_addr;
         proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
@@ -373,3 +373,218 @@ echo '$_SERVER[REQUEST_URI]:' . $_SERVER['REQUEST_URI'];
 情形E通过变量($request_uri, 也可以是其他变量)，对后端的request_uri进行改写。
 情形F和情形G通过rewrite配合break标志,对url进行改写，并改写后端的request_uri。需要注意，proxy_pass地址的URI部分在情形G中无效，不管如何设置，都会被忽略。
 
+## 隐藏版本号
+
+第一种：
+
+```conf
+# vim /usr/local/nginx/conf/nginx.conf
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    server_tokens off; # 隐藏版本号显示
+}
+```
+
+第二种基于源代码（变更版本号和版本名使其更具有迷惑效果）：
+
+```bash
+vim /opt/nginx-1.12.0/src/core/nginx.h     //修改源码文件
+define nginx_version      1012000
+define NGINX_VERSION      "1.1.5"
+define NGINX_VER          "IIS/" NGINX_VERSION
+# 更改版本号，注意不用取消井号！
+cd /opt/nginx-1.12.0/
+./configure --prefix=/usr/local/nginx --user=nginx --group=nginx --with-http_stub_status_module && make && make install
+# 编译安装
+vim /usr/local/nginx/conf/nginx.conf     # 把之前的server_tokens off;改成on
+service nginx reload              # 重启服务
+curl -I http://192.168.116.133   # 检测结果
+```
+
+## 转发IP
+
+```conf
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+```
+
+**X-Forwarded-For和相关几个头部的理解：**
+
+- $remote_addr
+
+是nginx与客户端进行TCP连接过程中，获得的客户端真实地址. Remote Address 无法伪造，因为建立 TCP 连接需要三次握手，如果伪造了源 IP，无法建立 TCP 连接，更不会有后面的 HTTP 请求
+
+- X-Real-IP
+
+是一个自定义头。X-Real-Ip 通常被 HTTP 代理用来表示与它产生 TCP 连接的设备 IP，这个设备可能是其他代理，也可能是真正的请求端。需要注意的是，X-Real-Ip 目前并不属于任何标准，代理和 Web 应用之间可以约定用任何自定义头来传递这个信息
+
+- X-Forwarded-For
+
+X-Forwarded-For 是一个扩展头。HTTP/1.1（RFC 2616）协议并没有对它的定义，它最开始是由 Squid 这个缓存代理软件引入，用来表示 HTTP 请求端真实 IP，现在已经成为事实上的标准，被各大 HTTP 代理、负载均衡等转发服务广泛使用，并被写入 RFC 7239（Forwarded HTTP Extension）标准之中.
+
+X-Forwarded-For请求头格式非常简单，就这样：
+
+```bash
+X-Forwarded-For:client, proxy1, proxy2
+```
+
+可以看到，XFF 的内容由「英文逗号 + 空格」隔开的多个部分组成，最开始的是离服务端最远的设备 IP，然后是每一级代理设备的 IP。
+
+如果一个 HTTP 请求到达服务器之前，经过了三个代理 Proxy1、Proxy2、Proxy3，IP 分别为 IP1、IP2、IP3，用户真实 IP 为 IP0，那么按照 XFF 标准，服务端最终会收到以下信息：
+
+```bash
+X-Forwarded-For: IP0, IP1, IP2
+```
+
+Proxy3 直连服务器，它会给 XFF 追加 IP2，表示它是在帮 Proxy2 转发请求。列表中并没有 IP3，IP3 可以在服务端通过 remote_address 来自 TCP 连接，表示与服务端建立 TCP 连接的设备 IP，在这个例子里就是 IP3。
+
+详细分析一下，这样的结果是经过这样的流程而形成的：
+
+1. 用户IP0---> 代理Proxy1（IP1），Proxy1记录用户IP0，并将请求转发个Proxy2时，带上一个Http Header
+X-Forwarded-For: IP0
+2. Proxy2收到请求后读取到请求有 X-Forwarded-For: IP0，然后proxy2 继续把链接上来的proxy1 ip追加到 X-Forwarded-For 上面，构造出X-Forwarded-For: IP0, IP1，继续转发请求给Proxy 3
+3. 同理，Proxy3 按照第二部构造出 X-Forwarded-For: IP0, IP1, IP2,转发给真正的服务器，比如NGINX，nginx收到了http请求，里面就是 X-Forwarded-For: IP0, IP1, IP2 这样的结果。所以Proxy 3 的IP3，不会出现在这里。
+4. nginx 获取proxy3的IP 能通过remote_address就是真正建立TCP链接的IP，这个不能伪造，是直接产生链接的IP。$remote_address 无法伪造，因为建立 TCP 连接需要三次握手，如果伪造了源 IP，无法建立 TCP 连接，更不会有后面的 HTTP 请求。
+
+**x-forwarded-for 实践研究：**
+
+1. uwsgi_pass的情况下，nginx 没有设置proxy_pass x-forwarded-for: $proxy_add_x_forwarded_for;
+如果请求头传了XFF，在flask里面能正常读取请求头里面的XFF,就是当是一个普通的头读出；如果header不传这个XFF的话，就读不到
+
+2. proxy_pass 情况下
+
+- 没有传 # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for 的话，跟上面的uwsgi_pass 一样，都是在没有设置header XFF情况下，读不到。
+- 如果传了 proxy_set_header X-Forwarded-For remote_address），因为这句proxy_set_header 会让nginx追加一个$remote_address到XFF。
+- header 传xff的话， 程序里面可以读到Xff 头： X-Forwarded-For: 188.103.19.120, 10.0.2.2 （第一个是我自己编的，第二个是proxy_add_x_forwarded_for 这句而追加$remote_addr到XFF。
+
+总结：
+
+1. 只要nginx前端（例如lvs， varnish）转发请求给nginx的时候，带了x-forwarded-for ,那么程序就一定能读到这个字段，如果nginx还设置了proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for， 那么程序能读到XFF是：ip0, ip1 (客户端Ip，lvs或者varnishIP)。 如果nginx没有设置，那么nginx还是会原样把http头传给程序，也就是说程序也能读到XFF，而且XFF就是ip0 客户端IP。
+2. proxy_pass 设置这个头 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 是站在一个作为代理的角度把。能继续传输多级代理的头。
+3. nginx的日志格式写了$http_x_forwared_for 说明前端（lvs）确实传了这个头过来。所以是程序是读取到的
+4. uwsgi_pass 不能设置 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 这个头，是因为这个头是对http代理来说，用来传递IP的，uwsgi 不可能充当一个代理。
+5. nginx->程序，这里其实有两个链接过程，其他IP与nginx的TCP链接， nginx与程序的TCP链接。所以$remote_addr都是对各自来说的。
+程序的remote_addr: remote_addr 127.0.0.1 (跟它链接的是nginx 内网127.0.0.1)
+nginx的remote_addr : X-Real-Ip: 10.0.2.2 （跟它链接的是我的电脑，IP 10.0.2.2）
+6. 对程序来说，读取的request.remote_addr 也永远是直接跟他链接的ip， 也就是反向代理nginx
+7. The access_route attribute uses the X-Forwarded-For header, falling back to the REMOTE_ADDRWSGI variable; 也就是说access_route默认读取XFF头，如果没有，降级读取WSGI的REMOTE_ADDR变量,这个 WSGI的REMOTE_ADDR变量 就是 $remote_addr
+8. request.envron 是WSGI的变量，都是wsgi server转过来的，普通的头都是加了HTTP_前缀的 ，包括proxy_set_header Host  proxy_add_x_forwarded_for;
+添加的头都会出现在处理，因为他们就是普通的http头
+9. LVS->nginx的情况下， 请求的时候主动加XFF，程序读取的时候没显示。因为LVS设置XFF的时候，直接把直连的IP赋值给LVS，忽略掉所有本来有的XFF，要从LVS这里开始。 所以程序读到的XFF是 ：XFF headers 218.107.55.254, 10.120.214.252
+前面的是我的IP， 后面的是LVS的IP
+
+```json
+{
+  "wsgi.multiprocess": "False",
+  "SERVER_SOFTWARE": "Werkzeug/0.11.10",
+  "SCRIPT_NAME": "",
+  "REQUEST_METHOD": "GET",
+  "PATH_INFO": "/api/get_agreement_url/",
+  "SERVER_PROTOCOL": "HTTP/1.0",
+  "QUERY_STRING": "",
+  "werkzeug.server.shutdown": "<function shutdown_server at 0x7f4a2f4e5488>",
+  "CONTENT_LENGTH": "",
+  "SERVER_NAME": "127.0.0.1",
+  "REMOTE_PORT": 58284,
+  "werkzeug.request": "",
+  "wsgi.url_scheme": "http",
+  "SERVER_PORT": "6000",
+  "HTTP_POSTMAN_TOKEN": "666cfd97-585b-c342-f0bd-5c785dfff27d",
+  "wsgi.input": "",
+  "wsgi.multithread": "False",
+  "HTTP_CACHE_CONTROL": "no-cache",
+  "HTTP_ACCEPT": "*/*",
+  "wsgi.version": "(1, 0)",
+  "wsgi.run_once": "False",
+  "wsgi.errors": "",
+  "CONTENT_TYPE": "",
+  "REMOTE_ADDR": "127.0.0.1",
+
+  "HTTP_CONNECTION": "close",
+  "HTTP_USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+  "HTTP_ACCEPT_LANGUAGE": "zh-CN,zh;q=0.8,en;q=0.6",
+  "HTTP_X_FORWARDED_FOR": "10.0.2.2",
+  "HTTP_ACCEPT_ENCODING": "gzip, deflate, sdch",
+  "HTTP_HOST": "[test.mumu.nie.netease.com:8000](http://test.mumu.nie.netease.com:8000/)",
+}
+```
+
+proxy_add_x_forwarded_for; nginx的这个变量含义就是，每次都追加remote_address 到 xff头，如果xff头不存在，那么xff就被设置成跟$remote_address 一样了。如果本来就存在，就追加了 ip1, ip2这样的形式
+
+## 设置IP黑白名单
+
+**方式一：**
+
+```conf
+server {
+    # include allow_deny_ip.conf
+    deny  192.168.1.1;
+    allow 192.168.1.0/24;
+    allow 10.1.1.0/16;
+    allow 2001:0db8::/32;
+    deny  all;
+}
+```
+
+**方式二：**
+
+只允许11.1.12.222访问
+
+```conf
+server {
+    listen       80;
+    server_name  leo.com;
+
+    resolver 8.8.8.8;
+    location / {
+        proxy_pass $scheme://$host$request_uri;
+        if ( $remote_addr !~* "11.1.12.222") {
+            return 403;
+        }
+        root   /usr/local/nginx/html;
+    }
+}
+```
+
+**方式三：**
+
+有个需求，需要特定的2个ip才能访问指定域名，但是使用私有云的slb负载后透过的ip，指向nginx反向代理后，使用nginx的ip限制无法控制ip访问。使用下面方式可以：
+
+```conf
+server {
+    listen       80;
+    server_name   xxx.xxx.xxx;
+
+    set $x $remote_addr;
+    if ($http_ali_cdn_real_ip) {
+        set $x $http_ali_cdn_real_ip;
+    }
+    # cms
+    location ^~ /cms {
+        proxy_pass http://pool_yyyy_8000/;
+        proxy_set_header  Host  $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header REMOTE-HOST $remote_addr;
+        client_max_body_size    100m;
+        set $allow true;
+        if ($http_x_forwarded_for !~ "xxx.xxx.xxx.xxx|yyy.yyy.yyy.yyy") {
+            set $allow false;
+        }
+        if ($allow = false) {
+            return 403;
+        }
+    }
+}
+```
+
+## 禁止ip访问，只能域名访问
+
+```conf
+server{
+    listen 80 default_server;
+    server_name _;
+    return 500;
+}
+```

@@ -116,3 +116,94 @@ curl --include \
      --header "Sec-WebSocket-Version: 13" \
      http://example.com:80/
 ```
+
+## shell 数组(含"map")操作
+
+字符 | 含义 | 举例
+---|---|---
+| # | 个数相关 | $#：shell的参数个数, ${#̲array[@]}/{#array[*]}: 数组个数 | 
+| @、* | 所有元素 | $@ $: shell的所有参数列表 array[@]/{array[@]}/array[@]/array[]: 数组的所有元素 |
+
+数组操作命令 | 含义
+---|---
+`${#array[@]}` | 取数组元素的个数
+`${#array[*]}` | 取数组元素的个数
+`${array[*]}` | 取所有数组的元素
+`${array[@]}` | 取所有数组的元素
+`${!array[@]}` | 取数组下标的值
+`${array[@]:n:m}` | 从数组n位置开始取m个元素
+`array_new=(${array1[@]} ${array2[@]})` | 数组合并:将array1和array2合并然后赋值给array_new
+`array=($(echo ${ayyary[@]} | sed ‘s/ /\n/g’ |sort )) | uniq` | 对数组进行去重排序，详细解释
+`if echo “${array[@]}” | grep -w “item_1” &>/dev/null; then echo "Found" fi`| 判断item_1是否在array中
+
+示例：
+
+```bash
+#!/bin/bash
+array1=(6 5 4 3)
+array2=(3 2 1)
+# 合并数组
+array3=(${array1[@]} ${array2[@]})
+# 排序去重
+array4=($(echo ${array3[@]} | sed 's/ /\n/g'| sort | uniq))
+
+echo "array1 size: "${#array1[@]}
+echo "array2 size: "${#array2[@]}
+echo "array1 all element is: "${array1[*]}
+echo "array2 all element is: "${array2[@]}
+echo "array1 all index is: "${!array1[*]}
+echo "array2 all index is: "${!array2[*]}
+echo "array1 2-4 element is: "${array1[@]:2:4}
+echo "array1 && array2 union is: "${array3[@]}
+echo "array && array2 union sort && uniq is: "${array4[@]}
+```
+
+运行结果：
+
+```bash
+array1 size: 4
+array2 size: 3
+array1 all element is: 6 5 4 3
+array2 all element is: 3 2 1
+array1 all index is: 0 1 2 3
+array2 all index is: 0 1 2
+array1 2-4 element is: 4 3
+array1 && array2 union is: 6 5 4 3 3 2 1
+array && array2 union sort && uniq is: 1 2 3 4 5 6
+```
+
+shell中的关联数组，也就是类似的“MAP”
+
+由于shell的的数组只支持一维数组,并且并没有map这种数据结构也。我们使用关联数组来模拟map的效果。
+
+首先定义关联数组(可以以字符串为下标): delcare -A xxx (注意：bash版本需要 >= 4)
+
+delcare 的使用：
+
+选项 | 含义
+---|---
+`-a name` | 声明变量为普通数组。
+`-A name` | 声明变量为关联数组（支持索引下标为字符串）。
+`-f [name]` | 列出之前由用户在脚本中定义的函数名称和函数体。
+`-F [name]` | 仅列出自定义函数名称。
+`-g name` | 在 Shell 函数内部创建全局变量。
+`-p [name]` | 显示指定变量的属性和值。
+`-i name` | 将变量定义为整数型。
+`-r name[=value]` | 将变量定义为只读（不可修改和删除），等价于 readonly name。
+`-x name[=value]` | 将变量设置为环境变量，等价于 export name[=value]。
+
+示例:
+
+```bash
+#!/bin/bash
+declare -A map
+
+map["key1"]="value1"
+map["key2"]="value2"
+map["key3"]="value3"
+
+# 遍历map,此map其实就是数组，其相关操作同上面数组的操作
+for key in ${!map[@]};do
+    echo "key: "${key}" value:"${map[${key}]}
+done
+```
