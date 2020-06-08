@@ -588,3 +588,36 @@ server{
     return 500;
 }
 ```
+
+## 关于Nginx反向代理DDNS的DNS缓存问题
+
+在使用nginx做反向代理的，将请求发送到一个动态DDNS域名的时候，该动态DDNS域名对应的IP是A ，刚开始运行一切正常，但是当运行了一段时间以后，该动态DDNS域名对应的IP变了之后(例如对应的IP由A变为B)，nginx的转发仍然还在向原先的IP A发送请求，导致反向代理中断，此时reload nginx后才会重新恢复正常，且日志显示数据转发到新的IP B了，请问如何让nginx自动去重新解析域名，而不用每次出现问题了人工去reload？
+
+造成这个问题的主要原因是，在Nginx启动的时候会做域名解析，然后把IP缓存起来以后会一直使用解析到的IP并且不会再更改，除非重新启动Nginx，Nginx才会重新解析域名。
+
+利用nginx的resolver：
+
+1. 默认nginx会通过操作系统设置的DNS服务器(/etc/resolv.conf)去解析域名
+2. 其实nginx还可以通过自身设置DNS服务器，而不用去找操作系统的DNS
+3. 下面来讲一个这个resolver示例配置如下：
+
+```conf
+server {
+    listen 8080;
+    server_name localhost;
+    resolver 114.114.114.114 223.5.5.5 valid=3600s;
+    resolver_timeout 3s;
+    location / {
+    proxy_pass http://mydomain.com;
+    }
+}
+```
+
+参数说明：
+
+- resolver 可以在http全局设定，也可在server里面设定
+- resolver 后面指定DNS服务器，可以指定多个，空格隔开
+- valid设置DNS缓存失效时间，自己根据情况判断，建议600以上
+- resolver_timeout 指定解析域名时，DNS服务器的超时时间，建议3秒左右
+
+> 注意：当resolver 后面跟多个DNS服务器时，一定要保证这些DNS服务器都是有效的，因为这种是负载均衡模式的，当DNS记录失效了(超过valid时间)，首先由第一个DNS服务器(114.114.114.114)去解析，下一次继续失效时由第二个DNS服务器(223.5.5.5)去解析，亲自测试的，如有任何一个DNS服务器是坏的，那么这一次的解析会一直持续到resolver_timeout ，然后解析失败，且日志报错解析不了域名，通过页面抛出502错误。

@@ -314,6 +314,9 @@ git log remotes/origin/master
 # 查看 experiment 分支中还有哪些提交尚未被合并入 master 分支
 git log master..experiment
 
+# 查看属于mater或者experiment但是不属于他们公共分支的变化(注意是三个点)
+git log master...experiment
+
 # 显示每个提交到底处于哪一侧的分支。 这会让输出数据更加清晰
 git log --left-right master...experiment
 
@@ -390,10 +393,22 @@ git diff --cached
 git diff --stat
 
 # 打补丁
-git diff > patch
+# Git 提供了两种补丁方案，一是用git diff生成的UNIX标准补丁.diff文件，二是git format-patch生成的Git专用.patch 文件。
+# .diff文件只是记录文件改变的内容，不带有commit记录信息,多个commit可以合并成一个diff文件。
+# .patch文件带有记录文件改变的内容，也带有commit记录信息,每个commit对应一个patch文件。
+
+git format-patch <commit>..<commit>
+
+git diff <commit> <commit> > patch.diff
+
+# 检查patch/diff是否能正常打入:
+git apply --check <path/to/xxx.patch>
+git apply --check <path/to/xxx.diff>
 
 # 应用补丁
-git apply patch
+git apply patch.diff
+# 或者
+git am <path/to/xxx.patch>
 
 # difftool 命令来用 Araxis ，emerge 或 vimdiff 等软件输出 diff 分析结果。
 git difftool
