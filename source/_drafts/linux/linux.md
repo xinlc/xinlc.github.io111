@@ -88,7 +88,129 @@ scp root@remoteIP:/data/aa.txt .
 
 ## curl
 
+参考阮一峰老师 curl 的用法指南：http://www.ruanyifeng.com/blog/2019/09/curl-reference.html
+
+curl 是常用的命令行工具，用来请求 Web 服务器。它的名字就是客户端（client）的 URL 工具的意思。它的功能非常强大，命令行参数多达几十种。如果熟练的话，完全可以取代 Postman 这一类的图形界面工具。
+
 ```bash
+
+# -A参数指定客户端的用户代理标头，即User-Agent。curl 的默认用户代理字符串是curl/[version]。
+# 将User-Agent改成 Chrome 浏览器。
+curl -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36' https://google.com
+
+# -b参数用来向服务器发送 Cookie。
+# 生成一个标头Cookie: foo=bar，向服务器发送一个名为foo、值为bar的 Cookie。
+curl -b 'foo=bar' https://google.com
+
+# 发送两个 Cookie。
+curl -b 'foo1=bar;foo2=bar2' https://google.com
+
+# 读取本地文件cookies.txt，里面是服务器设置的 Cookie（参见-c参数），将其发送到服务器。
+curl -b cookies.txt https://www.google.com
+
+# -c参数将服务器设置的 Cookie 写入一个文件。
+# 将服务器的 HTTP 回应所设置 Cookie 写入文本文件cookies.txt。
+curl -c cookies.txt https://www.google.com
+
+# -d参数用于发送 POST 请求的数据体。
+curl -d'login=emma＆password=123'-X POST https://google.com/login
+# 或者
+curl -d 'login=emma' -d 'password=123' -X POST  https://google.com/login
+
+# 使用-d参数以后，HTTP 请求会自动加上标头Content-Type : application/x-www-form-urlencoded。并且会自动将请求转为 POST 方法，因此可以省略-X POST。
+# -d参数可以读取本地文本文件的数据，向服务器发送。读取data.txt文件的内容，作为数据体向服务器发送。
+curl -d '@data.txt' https://google.com/login
+
+# --data-urlencode参数等同于-d，发送 POST 请求的数据体，区别在于会自动将发送的数据进行 URL 编码。
+# 发送的数据hello world之间有一个空格，需要进行 URL 编码。
+curl --data-urlencode 'comment=hello world' https://google.com/login
+
+# -e参数用来设置 HTTP 的标头Referer，表示请求的来源。
+# 将Referer标头设为https://google.com?q=example。
+curl -e 'https://google.com?q=example' https://www.example.com
+
+# -H参数可以通过直接添加标头Referer，达到同样效果。
+curl -H 'Referer: https://google.com?q=example' https://www.example.com
+
+# -F参数用来向服务器上传二进制文件。给 HTTP 请求加上标头Content-Type: multipart/form-data，然后将文件photo.png作为file字段上传。
+curl -F 'file=@photo.png' https://google.com/profile
+
+# -F参数可以指定 MIME 类型。指定 MIME 类型为image/png，否则 curl 会把 MIME 类型设为application/octet-stream。
+curl -F 'file=@photo.png;type=image/png' https://google.com/profile
+
+# -F参数也可以指定文件名。原始文件名为photo.png，但是服务器接收到的文件名为me.png。
+curl -F 'file=@photo.png;filename=me.png' https://google.com/profile
+
+# -G参数用来构造 URL 的查询字符串。发出一个 GET 请求，实际请求的 URL 为https://google.com/search?q=kitties&count=20。如果省略--G，会发出一个 POST 请求。
+curl -G -d 'q=kitties' -d 'count=20' https://google.com/search
+
+# 如果数据需要 URL 编码，可以结合--data--urlencode参数。
+curl -G --data-urlencode 'comment=hello world' https://www.example.com
+
+# -H参数添加 HTTP 请求的标头。
+curl -H 'Accept-Language: en-US' https://google.com
+
+# 添加两个 HTTP 标头。
+curl -H 'Accept-Language: en-US' -H 'Secret-Message: xyzzy' https://google.com
+
+# 添加 HTTP 请求的标头是Content-Type: application/json，然后用-d参数发送 JSON 数据。
+curl -d '{"login": "emma", "pass": "123"}' -H 'Content-Type: application/json' https://google.com/login
+
+# -i参数打印出服务器回应的 HTTP 标头。收到服务器回应后，先输出服务器回应的标头，然后空一行，再输出网页的源码。
+curl -i https://www.example.com
+
+# -I参数向服务器发出 HEAD 请求，然会将服务器返回的 HTTP 标头打印出来。
+# 输出服务器对 HEAD 请求的回应。--head参数等同于-I。
+curl -I https://www.example.com
+
+# -k参数指定跳过 SSL 检测。
+curl -k https://www.example.com
+
+# -L参数会让 HTTP 请求跟随服务器的重定向。curl 默认不跟随重定向。
+curl -L -d 'tweet=hi' https://api.twitter.com/tweet
+
+# --limit-rate用来限制 HTTP 请求和回应的带宽，模拟慢网速的环境。将带宽限制在每秒 200K 字节。
+curl --limit-rate 200k https://google.com
+
+# -o参数将服务器的回应保存成文件，等同于wget命令。将www.example.com保存成example.html。
+curl -o example.html https://www.example.com
+
+# -O参数将服务器回应保存成文件，并将 URL 的最后部分当作文件名。将服务器回应保存成文件，文件名为bar.html。
+curl -O https://www.example.com/foo/bar.html
+
+# -s参数将不输出错误和进度信息。一旦发生错误，不会显示错误信息。不发生错误的话，会正常显示运行结果。
+curl -s https://www.example.com
+
+# 如果想让 curl 不产生任何输出，可以使用下面的命令。
+curl -s -o /dev/null https://google.com
+
+# -S参数指定只输出错误信息，通常与-s一起使用。命令没有任何输出，除非发生错误。
+curl -s -o /dev/null https://google.com
+
+# -u参数用来设置服务器认证的用户名和密码。只设置了用户名，执行后，curl 会提示用户输入密码。
+curl -u 'bob:12345' https://google.com/login
+
+# curl 能够识别 URL 里面的用户名和密码。识别 URL 里面的用户名和密码，将其转为上个例子里面的 HTTP 标头。
+curl https://bob:12345@google.com/login
+
+# 只设置了用户名，执行后，curl 会提示用户输入密码。
+curl -u 'bob' https://google.com/login
+
+# -v参数输出通信的整个过程，用于调试。
+curl -v https://www.example.com
+
+# --trace参数也可以用于调试，还会输出原始的二进制数据。
+curl --trace - https://www.example.com
+
+# -x参数指定 HTTP 请求的代理。指定 HTTP 请求通过myproxy.com:8080的 socks5 代理发出。
+curl -x socks5://james:cats@myproxy.com:8080 https://www.example.com
+
+# 如果没有指定代理协议，默认为 HTTP。请求的代理使用 HTTP 协议。
+curl -x james:cats@myproxy.com:8080 https://www.example.com
+
+# -X参数指定 HTTP 请求的方法。 对https://www.example.com发出 POST 请求。
+curl -X POST https://www.example.com
+
 # get 请求
 curl --location --request GET 'http://localhost:8080/v1/user/info?searchKey=11' \
 --header 'Content-Type: application/json' \
@@ -206,4 +328,92 @@ map["key3"]="value3"
 for key in ${!map[@]};do
     echo "key: "${key}" value:"${map[${key}]}
 done
+```
+
+## 生成随机码
+
+```bash
+# 生成16位随机token
+head -c 16 /dev/urandom | od -An -t x | tr -d ' '
+
+# 使用SHA算法来加密日期，并输出结果的前10个字符
+date +%s | sha256sum | base64 | head -c 10 ;echo
+
+# tr参数
+# -c或——complerment：取代所有不属于第一字符集的字符；
+# -d或——delete：删除所有属于第一字符集的字符；
+# 生成10个小写字母
+< /dev/urandom tr -dc a-z|head -c ${1:-10};echo
+
+# 生成10个大写字母
+< /dev/urandom tr -dc A-Z|head -c ${1:-10};echo
+
+# 生成10个数字
+< /dev/urandom tr -dc 0-9|head -c ${1:-10};echo
+
+# 生成10个数字和大写字母的组合字符串
+< /dev/urandom tr -dc 0-9-A-Z|head -c ${1:-10};echo
+
+# 生成10个随机字符（包含数字，大写字母，小写字母）
+< /dev/urandom tr -dc 0-9-A-Z-a-z|head -c ${1:-10};echo
+
+# 生成10个随机字符（包含数字，大写字母，小写字母）
+< /dev/urandom tr -dc 0-9-A-Z-a-z-|head -c ${1:-10};echo
+
+# 生成10个随机字符（包含数字，大写字母，小写字母，特殊字符）
+< /dev/urandom tr -dc 0-9-A-Z-a-z-/|head -c ${1:-10};echo
+
+# 使用openssl的随机函数
+openssl rand -base64 10
+openssl rand -base64 10|tr A-Z a-z
+openssl rand -base64 32|tr A-Z a-z|cut -c 1-10
+
+# 这种方法类似于之前的urandom，但它是反向工作的。
+tr -cd '[:alnum:]' </dev/urandom |fold -w32|head -n1         ##-w32表示生成32个字符的宽度字符
+tr -cd '[:alnum:]' </dev/urandom |fold -w10|head -n1
+
+# 使用string命令，它从一个文件中输出可打印的字符串
+strings /dev/urandom | grep -o '[[:alnum:]]' | head -n 32 | tr -d '\n'; echo
+
+# 这是使用urandom的一个更简单的版本
+</dev/urandom tr -dc _A-Z-a-z-0-9|head -c32;echo
+</dev/urandom tr -dc a-z-0-9|head -c32;echo
+</dev/urandom tr -dc a-z-0-9|head -c10;echo
+
+# 使用非常有用的dd命令
+dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev
+dd if=/dev/urandom bs=1 count=10 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev
+
+# 你甚至可以生成一个只用左手便可以输入的密码
+</dev/urandom tr -dc '12345!@#$%qwertQWERTasdfgASDFGzxcvbZXCVB' | head -c32; echo
+</dev/urandom tr -dc '12345!@#$%qwertQWERTasdfgASDFGzxcvbZXCVB' | head -c10; echo
+```
+
+## linux环境下nohup的执行jar
+
+```bash
+
+# 命令结尾没有 “&” ，则变成 “java -jar XXX.jar ” ，表示在当前ssh窗口，可按CTRL + C打断程序运行，或者直接关闭窗口，则程序直接退出
+# 命令结尾添加 “&” ，则变成 “java -jar XXX.jar &” ，表示在当窗口关闭时，程序才会中止运行。&代表让该命令在后台执行。
+java -jar XXX.jar &
+
+# 命令 "nohup java -jar XXX.jar &" 部分，表示不挂断运行命令,当账户退出或终端关闭时,程序仍然运行。注意，该作业的所有输出被重定向到nohup.out的文件中。
+# 命令 "nohup java -jar XXX.jar > Log.log &" 部分，表示不挂断运行命令,当账户退出或终端关闭时,程序仍然运行，并且该作业的所有输出被重定向到Log.log的文件中。“ > Log.log ” 该命令就是指定日志输出的文件。
+# ">>"表示将输出以追加的方式重定向到Log.log中。
+nohup java -jar XXX.jar > Log.log &
+# 或者
+nohup java -jar XXX.jar >> Log.log &
+
+# 标准输入文件(stdin)：stdin的文件描述符为0，Unix程序默认从stdin读取数据。
+# 标准输出文件(stdout)：stdout 的文件描述符为1，Unix程序默认向stdout输出数据。
+# 标准错误文件(stderr)：stderr的文件描述符为2，Unix程序会向stderr流中写入错误信息。
+# 屏蔽输出，起到禁止输出作用：/dev/null 是一个特殊的文件，写入到它的内容都会被丢弃；如果尝试从该文件读取内容，那么什么也读不到。但是 /dev/null 文件非常有用，将命令的输出重定向到它，会起到"禁止输出"的效果。
+# “> Log.log 2>&1” ：表示将 stdout 和 stderr 合并后重定向到 Log.log
+nohup java -jar XXX.jar > Log.log 2>&1 &
+# 或者
+nohup java -jar XXX.jar >> Log.log 2>&1 &
+# 或者
+nohup java -jar XXX.jar > /dev/null 2>&1 &
+
+# 备注：输出之后，可以使用“jobs”查看一下后台运行的任务。
 ```

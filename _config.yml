@@ -15,7 +15,8 @@ timezone:
 # url: https://xinlc.github.io
 url: https://xinlichao.cn
 root: /
-permalink: :year/:month/:day/:title/
+# permalink: :year/:month/:day/:title/
+permalink: :title/
 permalink_defaults:
 
 # Directory

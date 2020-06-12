@@ -9,7 +9,7 @@ tags:
   - inotify
 ---
 
-继 [在 CentOS7 上实现 MySQL5.7 全量备份+增量备份](https://xinlc.github.io/2019/09/15/back-end/db/mysql-backup/#more)，备份后需要将文件备份的其他机器，以提高安全性。
+继 [在 CentOS7 上实现 MySQL5.7 全量备份+增量备份](https://xinlichao.cn/back-end/db/mysql-backup/#more)，备份后需要将文件备份的其他机器，以提高安全性。
 这里使用 `Linux` 同步文件工具 `rsync + inotify` 来进行文件的同步。
 
 <!--more-->

@@ -608,7 +608,26 @@ server {
     resolver 114.114.114.114 223.5.5.5 valid=3600s;
     resolver_timeout 3s;
     location / {
-    proxy_pass http://mydomain.com;
+        proxy_pass http://mydomain.com;
+    }
+}
+
+
+# 第二种，用变量
+server {
+    listen 80;
+    server_name staging.leo.com dev.api.leo.com;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+
+    resolver 114.114.114.114 223.5.5.5 valid=30s ipv6=off;
+    set $mydomainurl "http://intranet.leo.com:8800"; # 通过变量来解决不重新解析问题，注意set好像不支持变量名中带下划线或其它特殊字符
+    location / {
+        proxy_pass $mydomainurl;
     }
 }
 ```

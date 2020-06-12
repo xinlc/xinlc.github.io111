@@ -15,7 +15,7 @@ tags:
 
 ## 安装
 
-未安装 `Docker` 可参考 [CentOS7 安装 Docker](https://xinlc.github.io/2019/09/15/back-end/linux/linux-install-docker/#more)
+未安装 `Docker` 可参考 [CentOS7 安装 Docker](https://xinlichao.cn/back-end/linux/linux-install-docker/#more)
 
 ### 使用 `docker-compose` 安装 `Jenkins`：
 

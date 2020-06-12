@@ -24,7 +24,7 @@ Spring Cloud Alibaba 致力于提供微服务开发的一站式解决方案，Se
 
 从保证系统稳定可用的角度考量，对于微服务系统来说，最好的一个限流指标是：并发请求数。通过限制并发处理的请求数目，可以限制任何时刻都不会有过多的请求在消耗资源，比如：我们通过配置 web 容器中 servlet worker 线程数目为 200，则任何时刻最多都只有 200 个请求在处理，超过的请求都会被阻塞排队。
 
-> 为什么需要服务熔断降级保护？[微服务架构之服务容错](https://xinlichao.cn/2020/02/19/back-end/java/spring-cloud-hystrix/)
+> 为什么需要服务熔断降级保护？[微服务架构之服务容错](https://xinlichao.cn/back-end/java/spring-cloud-hystrix/)
 
 ## Sentinel 简介
 

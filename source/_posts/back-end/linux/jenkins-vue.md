@@ -9,7 +9,7 @@ tags:
   - CI/CD
 ---
 
-使用 Jenkins 实现简单部署 `Docker + Vue` 项目。Jenkins 安装参考 [Docker 安装 Jenkins](https://xinlc.github.io/2019/11/02/back-end/linux/docker-jenkins/)
+使用 Jenkins 实现简单部署 `Docker + Vue` 项目。Jenkins 安装参考 [Docker 安装 Jenkins](https://xinlichao.cn/back-end/linux/docker-jenkins/)
 
 <!--more-->
 

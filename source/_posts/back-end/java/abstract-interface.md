@@ -1,6 +1,6 @@
 ---
 title: 抽象类和接口
-date: 2020-05-28 13:22:00
+date: 2019-12-02 21:25:0
 categories: Java
 tags:
   - Java

@@ -7,7 +7,7 @@ tags:
   - centos7
 ---
 
-`CentOS7` 安装参考[在 VMware ESXi 中安装 CentOS7](https://xinlc.github.io/2019/09/07/back-end/linux/vmware-esxi-centos7/#more)
+`CentOS7` 安装参考[在 VMware ESXi 中安装 CentOS7](https://xinlichao.cn/back-end/linux/vmware-esxi-centos7/#more)
 
 安装完 `CentOS7（Minimal Install）`操作系统后，需要对其进行初始化的配置，以增强服务器的安全性和可用性，本文记录 `CentOS7` 系统安装后需要做的初始化配置。
 
