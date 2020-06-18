@@ -512,6 +512,47 @@ ctrl + c  # 退出insert mode
 2. 批量删除字符快捷键：
    命令行模式下，输入 `: 首行号，尾行号 s /^字符/g`实现批量删除字符。如 输入`:2,5s/^/#/g`，在 2 到 5 行首删除#
 
+### vim 粘贴，遇到注释不自动添加注释和缩进
+
+vim粘贴代码，如果有注释会自动缩进并给后面的代码行自动添加注释。
+
+原因：`formatoptions=croql`。vim中 输入 `:set` 可以查看。
+
+```bash
+# 解决：在粘贴前先设置进入粘贴插入模式，即不会自动缩进和连续注释
+:set paste
+
+# 在粘贴插入模式下代码是不会自动按格式缩进的，需要使用nopaste设置回来
+:set nopaste
+
+# 可以查看这个帮助信息.
+:help formatoptions
+```
+
+也可以在.vimrc中设置切换的快捷键，比如设置F9，则可以在.vimrc中加入：
+
+```bash
+# 这样在粘贴前按F10键启动paste模式，粘贴后按F11取消paste模式即可。其实，paste有一个切换paste开关的选项，这就是pastetoggle。通过它可以绑定快捷键来激活/取消 paste模式
+# :map <F10> :set paste<CR> :map <F11> :set nopaste<CR>
+
+# 这样直接在插入模式按F9就会在“-- 插入 --”模式和“-- 插入（粘贴） --”模式中切换
+set pastetoggle=<F9>
+```
+
+进入paste模式以后，可以在插入模式下粘贴内容，不会有任何变形。这个真是灰常好用，情不自禁看了一下帮助，发现它做了这么多事：
+
+```bash
+textwidth设置为0
+wrapmargin设置为0
+set noai
+set nosi
+softtabstop设置为0
+revins重置
+ruler重置
+showmatch重置
+formatoptions使用空值
+```
+
 ## Vim 提高效率插件
 
 - `sasymotion`

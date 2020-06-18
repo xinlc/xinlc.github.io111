@@ -105,6 +105,114 @@ docker build -t debian-jdk8:v1.0 .
 
 > Union FS 是有最大层数限制的，比如 AUFS，曾经是最大不得超过 42 层，现在是不得超过 127 层。
 
+## 构建 SpringBoot 分层打包
+
+SpringBoot默认使用`org.springframework.boot:spring-boot-maven-plugin` Maven插件把项目编译成jar包。默认编译的jar包是一个整体，通过java -jar命令可直接启动。
+
+结合docker后，我们可以通过DockerFile或者Docker Compose方式打包成Docker镜像。但每次Maven会将SpringBoot项目文件编译出一个全量jar(FatJar)包在target文件夹下，其jar包内包含我们自己写的代码和依赖的第三方jar包，常常一个jar包在100M上下，这导致在结合docker打包的情况下，每次docker push都会上传全量的jar包。
+
+最近SpringBoot2.3.0发布，更新包含了支持分层打包，下面我们看看SpringBoot结合Docker如何实现分层打包。
+
+**启用分层：**
+
+```xml
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.3.0.RELEASE</version>
+				<executions>
+					<execution>
+						<id>repackage</id>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<layers>
+						<enabled>true</enabled>
+					</layers>
+				</configuration>
+			</plugin>
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**/*.yml</include>
+					<include>**/*.properties</include>
+				</includes>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
+```
+
+> [更多配置参考 maven-plugin](https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/maven-plugin/reference/html/#repackage-layers)
+
+**定义多阶段 Dockerfile：**
+
+```Dockerfile
+# 第一阶段
+FROM openjdk:8-jre as builder
+
+WORKDIR application
+
+# ADD ./target/*.jar ./app.jar
+# ARG JAR_FILE=target/*.jar
+ARG JAR_FILE=./target/*.jar
+
+COPY ${JAR_FILE} app.jar
+
+# 提取分层
+RUN java -Djarmode=layertools -jar app.jar extract
+
+# 第二阶段
+FROM openjdk:8-jre
+
+MAINTAINER xinlichao2016@gmail.com
+
+WORKDIR application
+
+# 从第一阶段复制分层到当前构建目录。注意：复制顺序
+COPY --from=builder application/dependencies/ ./
+COPY --from=builder application/spring-boot-loader/ ./
+COPY --from=builder application/snapshot-dependencies/ ./
+COPY --from=builder application/application/ ./
+EXPOSE 80
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "org.springframework.boot.loader.JarLauncher"]
+```
+
+> 这个dockerfile表示先进行一次临时镜像构建标记为builder，并加载一次全量jar包，然后执行`java -Djarmode=layertools -jar app.jar extract`命令将jar包分解为分层打包目录，再次构建一个新镜像，按照(`java -Djarmode=layertools -jar app.jar list`)list的目录顺序分批将分层目录加载到docker镜像中。
+
+**构建镜像：**
+
+```bash
+docker build --build-arg JAR_FILE=./demo-layer-0.0.1-SNAPSHOT.jar . -t demo:v2.0
+
+# docker build -t "${docker_registry_uri}/${RegisterName}:${ItemTag}" -f "${ProjectPath}/Dockerfile" "${ProjectPath}"
+```
+
+默认情况下，分层工具定义了以下层：
+
+- `dependencies` 对于版本不包含的任何依赖项SNAPSHOT。
+- `spring-boot-loader` 用于jar加载程序类。
+- `snapshot-dependencies` 对于其版本包含的任何依赖项SNAPSHOT。
+- `application` 应用程序类和资源。
+
+层顺序很重要，因为它确定了部分应用程序更改时可以缓存先前的层的可能性。默认顺序为 `dependencies`，`spring-boot-loader`，`snapshot-dependencies`，`application`。应该首先添加最不可能更改的内容，然后添加更可能更改的层。
+
+SpringBoot内部配置、快照依赖 ，这些SpringBoot都为我们打包到不同的文件夹下，再依靠docker的分层特征，分次加入文件即可达到分层打包的效果。
+
 ## 参考
 
 - [docker](https://docs.docker.com/engine/reference/builder/)

@@ -504,6 +504,8 @@ MYSQL_SERVICE_USER=root
 MYSQL_SERVICE_PASSWORD=123456
 ```
 
+> 注意：挂载时区避免时间不准，如果没有 timezone 文件，执行：`echo "Asia/Shanghai" > /etc/timezone`
+
 portainer 是 docker swarm 集群容器管理页面，可管理 Docker 容器、image、volume、network 等，当然我们还可以在其页面上添加多个 stack。
 
 visualizer 服务提供一个可视化页面，我们可以从浏览器中很直观的查看集群中各个服务的运行节点。

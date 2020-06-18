@@ -417,3 +417,66 @@ nohup java -jar XXX.jar > /dev/null 2>&1 &
 
 # 备注：输出之后，可以使用“jobs”查看一下后台运行的任务。
 ```
+
+## 测试端口是否可用方式
+
+**CentOS7 防火墙开放端口：**
+
+```bash
+# 开放
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+firewall-cmd --zone=public --add-port=53/udp --permanent
+firewall-cmd --reload
+
+# 删除
+firewall-cmd --zone=public --remove-port=80/tcp --permanent
+firewall-cmd --reload
+```
+
+**telnet 方式：**
+
+```bash
+telnet ip port
+
+# telnet 10.25.5.13 22 Trying 10.25.5.13... Connected to 10.25.5.13.  //端口通 Escape character is '^]'. 退出使用 quit
+
+# telnet 10.25.5.13 80 Trying 10.25.5.13... telnet:connect to address 10.25.5.13: Connection refused  //端口不通
+
+# UDP 端口测试
+# 例如测试告警信息通过syslog发送到某IP端口 nc -vuz 10.25.5.62 514 Connection to 10.25.5.62 514 port [udp/syslog] succeeded! //端口通
+
+ssh -v -p port aliyunzixun@xxx.com
+```
+
+**ssh 方式：**
+
+```bash
+ssh -v -p port root@ip
+# 说明:
+# -v 调试模式(会打印日志).
+# -p 指定端口
+# username:远程主机的登录用户
+# ip:远程主机
+
+# 返回下面日志为端口通
+debug1: Connection established.
+
+# 返回下面日志为端口不通
+debug1: connect to address xx.xx.xx.xx port 80: Connection refused
+```
+
+**curl 方式：**
+
+```bash
+curl ip:port
+
+如果端口通一般都会返回内容
+```
+
+**wget 方式：**
+
+```bash
+wget ip:port
+
+如果远程主机不存在端口则会一直提示连接主机。
+```

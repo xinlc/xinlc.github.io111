@@ -102,7 +102,7 @@ echo "Asia/Shanghai" > /etc/timezone
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 CentOS
-RUN echo "Asia/shanghai" > /etc/timezone;
+RUN echo "Asia/Shanghai" > /etc/timezone;
 # 当然也可以将时区作为构建镜像的参数处理，这样可以带来更大的灵活性。
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

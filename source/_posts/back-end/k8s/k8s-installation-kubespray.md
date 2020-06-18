@@ -274,9 +274,9 @@ cat inventory/mycluster/group_vars/all/all.yml
 cat inventory/mycluster/group_vars/k8s-cluster/k8s-cluster.yml
 
 # 替换被墙得源：
-find /etc/kubespray -name '*.yml' | xargs -n1 -I{} sed -i "s/gcr\.io\/google_containers/gcr\.mirrors\.ustc\.edu\.cn\/google-containers/g" {}
-find /etc/kubespray -name '*.yml' | xargs -n1 -I{} sed -i "s/gcr\.io\/google-containers/gcr\.mirrors\.ustc\.edu\.cn\/google-containers/g" {}
-find /etc/kubespray -name '*.yml' | xargs -n1 -I{} sed -i 's/quay\.io/quay-mirror\.qiniu\.com/' {}
+find /opt/kubespray-2.13.1 -name '*.yml' | xargs -n1 -I{} sed -i "s/gcr\.io\/google_containers/gcr\.mirrors\.ustc\.edu\.cn\/google-containers/g" {}
+find /opt/kubespray-2.13.1 -name '*.yml' | xargs -n1 -I{} sed -i "s/gcr\.io\/google-containers/gcr\.mirrors\.ustc\.edu\.cn\/google-containers/g" {}
+find /opt/kubespray-2.13.1 -name '*.yml' | xargs -n1 -I{} sed -i 's/quay\.io/quay-mirror\.qiniu\.com/' {}
 
 
 # 执行集群安装
