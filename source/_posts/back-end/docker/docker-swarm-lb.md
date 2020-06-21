@@ -358,11 +358,28 @@ Network是一个能够互相通信的Endpoint的集合。Network的实现可以�
 
 ### Docker Swarm 中的服务发现
 
-每一个docker容器都有一个域名解析器，用来把域名查询请求转发到docker engine；docker engine内部dns的服务器收到请求后就会在发出请求的容器所在的所有网络中检查域名对应的是不是一个容器或者是服务，如果是，docker引擎就会从存储的key-value建值对中查找这个容器名、任务名、或者服务名对应的IP地址，并把这个IP地址或者是服务的虚拟IP地址返回给发起请求的域名解析器。如果目的容器或服务和源容器不在同一个网络里面，Docker引擎会把这个DNS查询转发到配置的默认DNS服务。
+服务发现组件用来注册一个服务，并发布此服务的连接信息从而使其他服务知道如何连接到它。当应用转向微服务结构或者是面向服务的架构时，服务发现已经变成分布式系统必不可少的一部分，也增加了操作这些环境的复杂性。
+
+DockerEE、DockerCS 引擎通过直接包含服务发现和负载均衡机制来提升使用它的组织执行devops的积极性，并且使开发能动态的发现其他服务的应用变得简单，通过操作引擎也使得应用扩容变得简单。
+
+Docker利用service来发布应用。一个service包含了一组从同一个镜像创建的容器，每个service由执行在工作节点的任务和定义好的应用的状态两部分组成。当发布一个service，这个service的定义也包含在了service的创建中，在定义中包括组成service的容器，发布的端口，使用的网络，复制的个数等信息，所有的这些属性组成了service的预期状态。当一个节点的健康检查失败或者是一个service中某个特定的任务检查失败时，集群会自动维护service的一致状态，把失败的任务转发到其他健康的节点上。
+
+docker利用内嵌的DNS服务为单个docker引擎中的容器以及swarm 模式下的task提供服务发现能力。
+
+docker引擎有一个内部的DNS服务来为运行在该宿主机上的所有容器提供名称解析的功能，无论容器是运行在用户自定义的bridge, overlay, 和 MACVLAN 网络。每一个docker容器（或者是docker swarm中的一个任务，也是以容器运行）都有一个域名解析器，可以把域名查询请求转发到宿主机上的docker引擎上的域名服务，docker 引擎收到请求后就会在发出请求的容器所在的所有网络中检查域名对应的是不是一个容器或者是服务，如果是，docker引擎就会从存储的key-value建值对中查找这个容器名、任务名、或者服务名对应的IP地址，并把这个IP地址或者是服务的虚拟IP地址返回给发起请求的域名解析器。
+
+由上可知，docker的服务发现的作用范围是网络级别，也就意味着只有在同一个网络上的容器或任务才能利用内嵌的DNS服务来相互发现，不在同一个网络里面的服务是不能解析名称的，另外，为了安全和性能只有当一个节点上有容器或任务在某个网络里面时，这个节点才会存储那个网络里面的DNS记录。
+
+如果目的容器或服务和源容器不在同一个网络里面，Docker引擎会把这个DNS查询转发到配置的默认DNS服务。
 
 ![7][7]
 
-上图展示了task1.client请求两个不同资源dns返回的不同结果
+在上图的例子中，总共有两个服务myservice和client，其中myservice有两个容器，这两个服务在同一个网里面。在client里针对docker.com和myservice各执行了一个curl操作，下面时执行的流程：
+
+- 为了client解析docker.com和myservice，DNS查询进行初始化
+- 容器内建的解析器在127.0.0.11:53拦截到这个DNS查询请求，并把请求转发到docker引擎的DNS服务
+- myservice被解析成服务对应的虚拟IP，在接下来的内部负载均衡阶段再被解析成一个具体任务的IP地址。如果是容器名称这一步直接解析成容器对应的IP地址。
+- docker.com在mynet网络上不能被解析成服务，所以这个请求被转发到配置好的默认DNS服务器上
 
 **Docker swarm 中的LB分为两种情况：**
 
@@ -582,6 +599,59 @@ ingress network是一个特殊的overlay网络，便于服务的节点直接负�
 
 ![33][33]
 
+### 内部负载均衡
+
+当在docker swarm集群模式下创建一个服务时，会自动在服务所属的网络上给服务额外的分配一个虚拟IP，当解析服务名字时就会返回这个虚拟IP。对虚拟IP的请求会通过overlay网络自动的负载到这个服务所有的健康任务上。这个方式也避免了客户端的负载均衡，因为只有单独的一个虚拟IP会返回到客户端，docker会处理虚拟IP到具体任务的路由，并把请求平均的分配给所有的健康任务。
+
+![35][35]
+
+如果想观察一个服务对应的虚拟IP，执行`docker service inspect myservice` 命令，会看到类似于下面的结果
+
+```bash
+# 创建overlay网络：mynet  
+$ docker network create -d overlay mynet  
+a59umzkdj2r0ua7x8jxd84dhr  
+  
+# 利用mynet网络创建myservice服务，并复制两份  
+$ docker service create --network mynet --name myservice --replicas 2 busybox ping localhost  
+8t5r8cr0f0h6k2c3k7ih4l6f5  
+  
+# 通过下面的命令查看myservice对应的虚拟IP  
+$ docker service inspect myservice  
+...  
+  
+"VirtualIPs": [  
+                {  
+                    "NetworkID": "a59umzkdj2r0ua7x8jxd84dhr",  
+                    "Addr": "10.0.0.3/24"  
+                },  
+]
+```
+
+> swarm中服务还有另外一种负载均衡技术可选DNS round robin (DNS RR) （在创建服务时通过--endpoint-mode配置项指定），在DNSRR模式下，docker不再为服务创建VIP，docker DNS服务直接利用轮询的策略把服务名称直接解析成一个容器的IP地址。
+
+### 外部负载均衡
+
+当创建或更新一个服务时，你可以利用--publish选项把一个服务暴露到外部，在docker swarm模式下发布一个端口意味着在集群中的所有节点都会监听这个端口，这时当访问一个监听了端口但是并没有对应服务运行在其上的节点会发生什么呢？
+
+接下来就该我们的路由网（routing mesh）出场了，路由网时docker1.12引入的一个新特性，它结合了IPVS和iptables创建了一个强大的集群范围的L4层负载均衡，它使所有节点接收服务暴露端口的请求成为可能。当任意节点接收到针对某个服务暴露的TCP/UDP端口的请求时，这个节点会利用预先定义过的Ingress overlay网络，把请求转发给服务对应的虚拟IP。ingress网络和其他的overlay网络一样，只是它的目的是为了转换来自客户端到集群的请求，它也是利用我们前一小节介绍过的基于VIP的负载均衡技术。
+
+当启动服务时，你可以为你的应用创建一个外部的DNS服务，并把它映射到你集群的任意节点或者是所有节点，你无需担心你的容器具体运行在那个节点上，因为有了路由网这个特性后，你的集群看起来就像是单独的一个节点一样。
+
+```bash
+#在集群中创建一个复制两份的服务，并暴露在8000端口  
+$ docker service create --name app --replicas 2 --network appnet --publish 8000:80 nginx
+```
+
+![36][36]
+
+上面这个图表明了路由网是怎么工作的：
+
+- 服务（app）拥有两份复制，并把端口映射到外部端口的8000
+- 路由网在集群中的所有节点上都暴露出8000
+- 外部对服务app的请求可以是任意节点，在本例子中外部的负载均衡器将请求转发到了没有app服务的主机上
+- docker swarm的IPVS利用ingress overlay网路将请求重新转发到运行着app服务的节点的容器中
+
 ### 负载均衡试验测试
 
 管理节点：创建一个测试容器my_web
@@ -710,6 +780,7 @@ PING my_web2 (10.0.0.13): 56 data bytes
 ## 参考
 
 - https://docs.docker.com/engine/swarm/
+- https://success.docker.com/article/ucp-service-discovery-swarm
 - [Docker Swarm - 服务发现和负载均衡原理](https://www.jianshu.com/p/dba9342071d8)
 - [Docker Swarm中的LB和服务发现详解](https://www.jianshu.com/p/c83a9173459f/)
 
@@ -747,3 +818,5 @@ PING my_web2 (10.0.0.13): 56 data bytes
 [32]: /images/docker/docker-swarm-lb/32.png
 [33]: /images/docker/docker-swarm-lb/33.png
 [34]: /images/docker/docker-swarm-lb/34.png
+[35]: /images/docker/docker-swarm-lb/35.png
+[36]: /images/docker/docker-swarm-lb/36.png

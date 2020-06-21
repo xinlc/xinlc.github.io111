@@ -556,6 +556,7 @@ firewall-cmd --reload
 
 # Mac 客户端配置
 https://tunnelblick.org/
+https://openvpn.net/client-connect-vpn-for-mac-os/
 
 # 调试
 docker run -v $OVPN_DATA:/etc/openvpn -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn

@@ -88,7 +88,7 @@ pipeline {
 }
 ```
 
-> 流水线代码可以点击 “流水线语法” 生成流水线脚本。流水线语法多读 Jenkins 官方文档，写的还可以。
+> 流水线代码可以点击 “流水线语法” 生成流水线脚本。流水线语法参考 Jenkins [官方文档](https://www.jenkins.io/doc/book/pipeline/syntax/)。
 
 ### Vue Dockerfile
 

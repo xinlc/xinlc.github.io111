@@ -220,3 +220,5 @@ SpringBoot内部配置、快照依赖 ，这些SpringBoot都为我们打包到�
 - [Docker 与 Dockerfile 极简入门文档](https://blog.csdn.net/qq_33256688/article/details/80319673)
 - [如何编写最佳的 Dockerfile](https://blog.fundebug.com/2017/05/15/write-excellent-dockerfile/)
 - [多段构建](https://yeasy.gitbooks.io/docker_practice/image/multistage-builds/laravel.html)
+- [spring-boot-docker](https://spring.io/guides/topicals/spring-boot-docker)
+- [spring-boot-reference](https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/pdf/spring-boot-reference.pdf)

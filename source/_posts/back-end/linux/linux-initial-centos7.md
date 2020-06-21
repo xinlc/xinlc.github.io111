@@ -295,11 +295,15 @@ systemctl restart sshd.service
 ```bash
 vim /etc/ssh/sshd_config
 
-# Prod 22 修改为：其他端口
+# Port 22 修改为：其他端口
 
-Prod 1234
+Port 1234
 
-# 保存后重启 sshd 服务
+# 保存后，配置防火墙开发端口
+firewall-cmd --zone=public --add-port=1234/tcp --permanent
+firewall-cmd --reload
+
+# 重启 sshd 服务
 systemctl restart sshd.service
 ```
 
