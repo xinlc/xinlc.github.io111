@@ -480,3 +480,10 @@ wget ip:port
 
 如果远程主机不存在端口则会一直提示连接主机。
 ```
+
+## tcp
+
+```bash
+# 查看tcp 连接数
+netstat -an |grep 'ESTABLISHED' |grep 'tcp' |wc -l
+```

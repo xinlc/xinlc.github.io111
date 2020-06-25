@@ -321,7 +321,11 @@ services:
   nginx-router:
     image: nginx:1.17.3
     ports:
-      - "9080:80"
+      # - "9080:80"
+      - mode: host    # host 适合做入口（代理），不走集群的负载(ingress 网络)
+        protocol: tcp
+        published: 9080
+        target: 80
     configs:
       - source: nginx_config
         target: /etc/nginx/nginx.conf
@@ -330,8 +334,7 @@ services:
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
     deploy:
-      mode: replicated
-      replicas: 2
+      mode: global
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -341,7 +344,7 @@ services:
         delay: 10s
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "2"
           memory: 512M
     logging:
       driver: "json-file"
@@ -383,7 +386,7 @@ stack 是一组相互关联的服务，它是服务的上一层，这些服务�
 创建 docker-compose.yml，并创建 volumes 相关文件。
 
 ```yaml
-version: "3"
+version: "3.8"
 
 services:
   web:
@@ -477,6 +480,7 @@ services:
         delay: 5s
         max_attempts: 3
       update_config:
+        order: start-first
         parallelism: 1
         delay: 10s
       resources:
@@ -511,6 +515,9 @@ portainer 是 docker swarm 集群容器管理页面，可管理 Docker 容器、
 visualizer 服务提供一个可视化页面，我们可以从浏览器中很直观的查看集群中各个服务的运行节点。
 
 ```bash
+# 创建 overlay 网络, --attachable 允许 docker run 的方式加入该网络
+docker network create --driver=overlay --attachable backend
+
 # 部署或更新
 docker stack deploy -c docker-compose.yml test-service
 
@@ -538,6 +545,7 @@ docker stack ps test-service --format "table {{.ID}}\t{{.Name}}\t{{.Error}}" --n
 - `docker swarm join-token worker` 查看工作节点的 token；
 - `docker swarm join-token manager` 查看管理节点的 token；
 - `docker swarm join` 加入集群中；
+- `docker swarm update --task-history-limit 2` 减少历史任务，节省资源；
 
 ### docker node 常用命令
 
@@ -548,6 +556,7 @@ docker stack ps test-service --format "table {{.ID}}\t{{.Name}}\t{{.Error}}" --n
 - `docker node promote` 节点升级，由工作节点升级为管理节点；
 - `docker node update` 更新节点；
 - `docker node ps` 查看节点中的 Task 任务；
+- `docker node update --availability drain manager` 管理阶段不部署服务 ("active"|"pause"|"drain")
 
 ### docker service 常用命令
 
@@ -568,6 +577,71 @@ docker stack ps test-service --format "table {{.ID}}\t{{.Name}}\t{{.Error}}" --n
 - `docker stack rm` 删除堆栈；
 - `docker stack services` 列出堆栈中的服务；
 - `docker stack down` 移除某个堆栈（不会删除数据）；
+
+## 问题
+
+### Overlay 网络 ipvs 性能问题
+
+并发压测性能极差，扩容服务也不能解决。
+
+- [[SWARM]Very poor performance for ingress network with lots of parallel requests](https://github.com/moby/moby/issues/35082/)
+- [Pauses/delays with overlay network on swarm](https://github.com/moby/moby/issues/31746/)
+
+**监控 ipvs 命令：**
+
+```bash
+
+nsenter --net=/var/run/docker/netns/ingress_sbox ipvsadm -l
+
+nsenter --net=/var/run/docker/netns/ingress_sbox cat /proc/net/ip_vs_conn | head
+
+watch -n 0.5 "sudo nsenter --net=/var/run/docker/netns/ingress_sbox cat /proc/net/ip_vs_conn | grep TIME_WAIT | wc -l"
+
+sysctl -a | egrep "net.ipv4.vs.conntrack|net.ipv4.vs.conn_reuse_mode|expire_nodest_conn"
+```
+
+**解决方案一：**
+
+```bash
+sudo nsenter --net=/var/run/docker/netns/{your_load_balancer} sysctl -w net.ipv4.vs.conn_reuse_mode=0
+sudo nsenter --net=/var/run/docker/netns/{your_load_balancer} sysctl -w net.ipv4.vs.expire_nodest_conn=1
+
+# 解决
+# nsenter --net=/var/run/docker/netns/ingress_sbox
+# sysctl -w net.netfilter.nf_conntrack_tcp_timeout_time_wait=3
+```
+
+```diff
+- net.ipv4.vs.conn_reuse_mode = 1
+- net.ipv4.vs.conntrack = 0
+- net.ipv4.vs.expire_nodest_conn = 0
+
++ net.ipv4.vs.conntrack = 1
++ net.ipv4.vs.conn_reuse_mode = 0
++ net.ipv4.vs.expire_nodest_conn = 1
+```
+
+**解决方案二：**
+
+使用 dnsrr 网络模式
+
+```yaml
+version: '3.8'
+services:
+  server:
+    image: "server:latest"
+    stop_grace_period: 10s
+    networks:
+      - backend_network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+networks:
+  backend_network:
+    external: true
+```
+
+> 注：dnsrr 不支持暴露端口。
 
 ## 参考
 

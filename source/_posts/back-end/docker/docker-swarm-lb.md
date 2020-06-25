@@ -162,7 +162,7 @@ Service IP "10.0.0.9" 使用 Linux 内核的 iptables 和 IPVS 负载均衡到 2
 如下是 node2 上的网络命名空间：
 
 ```bash
-[root@node2 ~]# cd /run/docker/netns/
+[root@node2 ~]# cd /var/run/docker/netns/
 
 [root@node2 netns]# ls
 1-tetug0isdx  1-vyy22w04t6  be7330b99a27  d67fa9efb59e  ingress_sbox

@@ -51,7 +51,7 @@ uninstall_oh_my_zsh
 - `Ctrl + w`：从光标处删除至字首；
 - `Ctrl + u`：从光标处删除至命令行首；
 - `Ctrl + k`：从光标处删除至命令行尾；
-- `Ctrl + l`：清屏, 类似 clear 命令效果；
+- `Ctrl + l`：清屏, 类似 clear 命令效果；或 `command + r`
 - `Alt + d`：从光标处删除至字尾；
 - `Ctrl + d`：删除光标处的字符；
 - `Ctrl + y`：粘贴由 Ctrl+u ， Ctrl+d ， Ctrl+w 删除的单词；
@@ -69,6 +69,24 @@ uninstall_oh_my_zsh
 - `Ctrl + o`：执行当前命令，并选择上一条命令；
 - `Ctrl + j`：跳转到新一行，类似回车；
 - `Ctrl + m`：回车；
+
+## iterm2 常用快捷键
+
+**标签：**
+
+- `command + t`：新建标签
+- `command + w`：关闭标签
+- `command + 数字 / command + 左右方向键`：切换标签
+- `command + enter`：切换全屏
+- `command + f`：查找
+
+**分屏：**
+
+- `command + d`：垂直分屏
+- `command + shift + d`：水平分屏
+- `command + option + 方向键 command + [ 或 command + ]`：切换屏幕
+- `command + ;`：查看历史命令
+- `command + shift + h`：查看剪贴板历史
 
 ## Bang (!) 命令
 

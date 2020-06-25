@@ -630,6 +630,19 @@ server {
         proxy_pass $mydomainurl;
     }
 }
+
+# 在这个配置中，resolver 是 DNS 服务器地址, valid 设定 DNS 刷新频率。需要特别注意的一点是 set 语句不能写到 location 里面，否则不会生效。
+server {
+    listen 80;
+    server_name xxx.xxx.com;
+    resolver 127.0.0.11 valid=5s; # docker 引擎内置 DNS
+    resolver_timeout 3s;
+    set $service_lb xxxxxx;
+
+    location / {
+        proxy_pass http://$service_lb;
+    }
+}
 ```
 
 参数说明：
