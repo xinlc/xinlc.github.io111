@@ -44,6 +44,11 @@ kubectl get namespace
 kubectl get pods -o wide
 kubectl get deployment -o wide
 
+# 查看所有命名空间或指定命名空间下的资源
+kubectl get deployments -A
+kubectl get deployments --all-namespaces
+kubectl get deployments -n kube-system
+
 # 查看服务
 kubectl get service -o wide
 
@@ -53,7 +58,13 @@ kubectl describe deployment <Deployment Name>
 kubectl describe service <Service Name>
 
 # 查看日志
-kubectl logs -f <Pod Name>
+# Pod 只有一个容器可以省略容器名
+kubectl logs -f <Pod Name> # -f 实时查看
+kubectl logs -f --tail=20 <Pod Name> -c <Container Name>
+kubectl logs <Pod Name> -l app=nginx # -l 选择标签
+
+# 在名称为nginx-pod-xxxxxx的Pod中运行bash（默认第一个容器）。-c 指定容器
+kubectl exec -it nginx-pod-xxxxxx /bin/bash
 
 # 删除容器和服务
 kubectl delete deployment <Deployment Name>

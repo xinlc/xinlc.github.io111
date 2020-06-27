@@ -226,7 +226,7 @@ sed -i "s#^ExecStart=/usr/bin/dockerd.*#ExecStart=/usr/bin/dockerd -H fd:// --co
 
 # 设置 docker 镜像，提高 docker 镜像下载速度和稳定性
 # 如果您访问 https://hub.docker.io 速度非常稳定，亦可以跳过这个步骤
-curl -sSL https://kuboard.cn/install-script/set_mirror.sh | sh -s ${REGISTRY_MIRROR}
+curl -sSL https://xinlichao.cn/resource/back-end/k8s/k8s-installation-kubeadm/set_mirror.sh | sh -s ${REGISTRY_MIRROR}
 
 # 重启 docker，并启动 kubelet
 systemctl daemon-reload
@@ -304,7 +304,7 @@ cp -i /etc/kubernetes/admin.conf /root/.kube/config
 # 参考文档 https://docs.projectcalico.org/v3.13/getting-started/kubernetes/self-managed-onprem/onpremises
 echo "安装calico-3.13.1"
 rm -f calico-3.13.1.yaml
-wget https://kuboard.cn/install-script/calico/calico-3.13.1.yaml
+wget https://xinlichao.cn/resource/back-end/k8s/k8s-installation-kubeadm/calico-3.13.1.yaml-t -O calico-3.13.1.yaml
 kubectl apply -f calico-3.13.1.yaml
 ```
 
@@ -535,7 +535,7 @@ kubectl describe nodes [nodeName] -o wide
 - CentOS 7.7
 - Kubernetes 1.16.2
   - calico 3.9
-  - nginx-ingress 1.5.3
+  - nginx-ingress 1.5.5
 - Docker 18.09.7
 - 三个 master 组成主节点集群，通过内网 loader balancer 实现负载均衡；至少需要三个 master 节点才可组成高可用集群，否则会出现 脑裂 现象
 - 多个 worker 组成工作节点集群，通过外网 loader balancer 实现负载均衡
@@ -595,7 +595,7 @@ default via 172.21.0.1 dev eth0
 ```
 
 - kubelet使用的IP地址：
-  - `ip route show` 命令中，可以知道机器的默认网卡，通常是 `eth0`，如 ***default via 172.21.0.23 dev <font color="blue" weight="500">eth0</font>***
+  - `ip route show` 命令中，可以知道机器的默认网卡，通常是 `eth0`，如 ***default via 172.21.0.1 dev <font color="blue" weight="500">eth0</font>***
   - `ip address` 命令中，可显示默认网卡的 IP 地址，Kubernetes 将使用此 IP 地址与集群内的其他节点通信，如 `172.17.216.80`
   - 所有节点上 Kubernetes 所使用的 IP 地址必须可以互通（无需 NAT 映射、无安全组或防火墙隔离）
 
@@ -743,11 +743,20 @@ docker version
 **注意事项：**
 
 - 以 root 身份在 demo-master-a-1 机器上执行
-- 初始化 master 节点时，如果因为中间某些步骤的配置出错，想要重新初始化 master 节点，请先执行 kubeadm reset 操作
+- 初始化 master 节点时，如果因为中间某些步骤的配置出错，想要重新初始化 master 节点，请先执行 `kubeadm reset` 操作
 - 关于初始化时用到的环境变量
   - APISERVER_NAME 不能是 master 的 hostname
   - APISERVER_NAME 必须全为小写字母、数字、小数点，不能包含减号
   - POD_SUBNET 所使用的网段不能与 master节点/worker节点 所在的网段重叠。该字段的取值为一个 CIDR 值，如果您对 CIDR 这个概念还不熟悉，请不要修改这个字段的取值 10.100.0.1/16
+  <!--
+    Aliyun 建议：
+    Pod CIDR 172.20.0.0/16
+    Service CIDR 172.21.0.0/20
+    建议选择范围：
+    Pod CIDR 10.0.0.0/8，172.16-31.0.0/12-16，192.168.0.0/16 
+    Service CIDR 10.0.0.0/16-24，172.16-31.0.0/16-24，192.168.0.0/16-24 
+    注意：不能与 VPC 及 VPC 内已有 Kubernetes 集群使用的网段重复
+   -->
 
 - 执行以下脚本完成初始化集群
 
@@ -758,6 +767,9 @@ export APISERVER_NAME=apiserver.demo
 # Kubernetes 容器组所在的网段，该网段安装完成后，由 kubernetes 创建，事先并不存在于您的物理网络中
 export POD_SUBNET=10.100.0.1/16
 echo "127.0.0.1    ${APISERVER_NAME}" >> /etc/hosts
+
+# 运行下面初始化脚本
+bash init_master.sh
 ```
 
 ```bash
@@ -802,7 +814,7 @@ cp -i /etc/kubernetes/admin.conf /root/.kube/config
 # 安装 calico 网络插件
 # 参考文档 https://docs.projectcalico.org/v3.9/getting-started/kubernetes/
 rm -f calico-3.9.2.yaml
-wget https://kuboard.cn/install-script/calico/calico-3.9.2.yaml
+wget https://xinlichao.cn/resource/back-end/k8s/k8s-installation-kubeadm/calico-3.9.2.yaml-t -O calico-3.9.2.yaml
 sed -i "s#192\.168\.0\.0/16#${POD_SUBNET}#" calico-3.9.2.yaml
 kubectl apply -f calico-3.9.2.yaml
 ```
@@ -866,11 +878,11 @@ kubectl get nodes
 - 添加第二、三个Master节点
 - 初始化 master 节点的 token 有效时间为 2 小时
 
-***在 demo-master-b-1 和 demo-master-b-2 机器上执行：***
+***在 demo-master-a-2 和 demo-master-a-3 机器上执行：***
 
 ```bash
-# 只在第二、三个 master 节点 demo-master-b-1 和 demo-master-b-2 执行
-# 替换 x.x.x.x 为 ApiServer LoadBalancer 的 IP 地址
+# 只在第二、三个 master 节点 demo-master-a-2 和 demo-master-a-3 执行
+# 替换 x.x.x.x 为 ApiServer LoadBalancer 的 IP 地址。如果还没有配置负载可以设置 demo-master-a-1 的ip（临时解决，生产建议用内网私有 LoadBalancer）
 export APISERVER_IP=x.x.x.x
 # 替换 apiserver.demo 为 前面已经使用的 dnsName
 export APISERVER_NAME=apiserver.demo
@@ -988,9 +1000,11 @@ kubectl delete node demo-worker-x-x
 ```
 
 > - 将 demo-worker-x-x 替换为要移除的 worker 节点的名字
-> - worker 节点的名字可以通过在第一个 master 节点 demo-master-a-1 上执行 kubectl get nodes 命令获得
+> - worker 节点的名字可以通过在第一个 master 节点 demo-master-a-1 上执行 `kubectl get nodes` 命令获得
 
 ### 安装 Ingress Controller
+
+kubernetes支持多种Ingress Controllers (traefik / Kong / Istio / Nginx 等)，推荐使用 https://github.com/nginxinc/kubernetes-ingress
 
 ```bash
 # 只在第一个 master 节点 demo-master-a-1 上执行
@@ -1014,7 +1028,7 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: nginx-ingress 
+  name: nginx-ingress
   namespace: nginx-ingress
 
 ---
@@ -1189,6 +1203,278 @@ spec:
 将域名 *.demo.yourdomain.com 解析到地址负载均衡服务器 的 IP 地址 z.z.z.z
 
 > 在浏览器访问 a.demo.yourdomain.com，将得到 404 NotFound 错误页面
+
+## 安装 Kubectl
+
+日常工作中，您可能需要在自己的笔记本电脑上执行 kubectl 命令以管理远程 Linux 服务器上的 Kubernetes 集群。
+
+### 在客户端电脑安装 kubectl
+
+Kubernetes 官网文档参照 安装 [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 安装时，经常会失败，因为国内访问 google 的镜像仓库存在问题。
+
+#### Mac 安装 kubectl
+
+```bash
+# 下载最新的可执行文件
+curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl"
+
+# 添加可执行权限
+chmod +x ./kubectl
+
+# 复制到 PATH 路径
+sudo mv ./kubectl /usr/local/bin/kubectl
+
+# 检查已安装版本
+kubectl version
+```
+
+#### Windows 安装 kubectl
+
+- 从下面的链接下载 kubectl 可执行文件
+
+https://storage.googleapis.com/kubernetes-release/release/v1.16.2/bin/windows/amd64/kubectl.exe
+
+> - 请将其中的 v1.16.2 替换为最新的版本号
+> - 通过此链接可获取最新的版本号 https://storage.googleapis.com/kubernetes-release/release/stable.txt
+
+- 将下载的可执行文件添加到 PATH 环境变量
+
+- 执行命令查看已安装的 kubectl 版本号
+
+#### Linux 安装 kubectl
+
+```bash
+# 配置K8S的yum源
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
+       http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+
+# 安装
+yum install -y kubectl
+```
+
+### 获取 kubectl config 文件
+
+> 请在 demo-master-a-1 节点上执行如下命令
+
+```bash
+cat /etc/kubernetes/admin.conf
+```
+
+**Linux 和 Mac：**
+
+```bash
+# 将前面获得的 /etc/kubernetes/admin.conf 文件的内容粘贴进该文件并保存
+vim ~/.kube/config
+
+# 配置 hosts, 将 x.x.x.x 替换成 demo-master-a-1 的实际 IP 地址
+# 将 apiserver.demo 替换成前面获得 /etc/kubernetes/admin.conf 文件中 clusters/cluster/server 中 URL 里 host 对应的部分
+sudo echo "x.x.x.x    apiserver.demo" >> /etc/hosts
+
+# 验证。 更多参考：https://kubernetes.io/docs/reference/kubectl/overview/
+kubectl get nodes
+kubectl get pods -n kube-system
+
+# 多个config（集群），合并配置
+cd $HOME/.kube/config
+KUBECONFIG=config1:config2 kubectl config view --flatten > $HOME/.kube/config
+
+# 查看配置
+kubectl config view
+
+# 查看集群
+kubectl config get-contexts
+kubectl config current-context
+
+# 切换集群
+kubectl config use-context docker-for-desktop
+kubectl config use-context kubernetes-admin@kubernetes
+```
+
+**Windows：**
+
+```bash
+# 用记事本（或其他文本编辑器）创建文件 ~/.kube/config，其中 ~ 代表当前的用户目录
+# 将前面获得的 /etc/kubernetes/admin.conf 文件的内容粘贴进该文件并保存
+
+# 用记事本打开 C:\windows\System32\drivers\etc\hosts 文件（需要管理员权限），在该文件末尾添加一行记录：
+x.x.x.x    apiserver.demo
+
+# 将 x.x.x.x 替换成 demo-master-a-1 的实际 IP 地址
+# 将 apiserver.demo 替换成前面获得 /etc/kubernetes/admin.conf 文件中 clusters/cluster/server 中 URL 里 host 对应的部分
+```
+
+## 配置 Kubectl
+
+`kubectl` 命令行工具从配置文件kubeconfig中查找用于调用 API Server 接口的信息：
+* 集群 cluster
+* 用户 user
+* 名称空间 namespace
+* 认证机制 authentication mechanism
+
+> kubeconfig 并不是一个文件的名字，而是 kubectl 配置文件的统称
+
+默认情况下，`kubectl` 读取 `$HOME/.kube/config` 作为配置文件。您可以通过两种方式为 `kubectl` 指定配置文件：
+* 环境变量 `KUBECONFIG`
+* 命令行参数 `--kubeconfig`
+
+可以在一个或多个kubeconfig文件中配置多个集群的访问信息，并使用 `kubectl config use-context` 命令切换要访问哪个集群。本文描述了如何配置 kubectl 以访问多个集群。
+
+> kubectl的版本号必须大于等于集群的版本号，执行命令 `kubectl version` 可查看 kubectl 版本
+
+### KUBECONFIG环境变量
+
+可以在 `KUBECONFIG` 环境变量中配置多个 kubeconfig 文件：
+* 在 Linux 和 MAC 中，使用英文冒号 `:` 分隔
+* 在 Windows 中，使用英文分号 `;` 分隔
+
+当 `KUBECONFIG` 指定了多个 kubeconfig 文件时，kubectl会自动合并所有文件中的配置内容。您可以将每个集群的访问信息存储到一个文件中，并将该文件加入到 `KUBECONFIG` 环境变量中。
+
+`KUBECONFIG` 环境变量并不是必须配置的，如果该环境变量不存在， kubectl 将使用默认位置的 kubeconfig 文件，即 `$HOME/.kube/config`。
+
+### kubeconfig文件的合并
+
+前面提到，kubectl会自动合并 `KUBECONFIG` 指定的多个文件，执行以下指令，可以查看最终生效的结果：
+
+``` sh
+kubectl config view
+```
+
+合并时的规则如下：
+* 如果执行 kubectl 指令时，指定了 `--kubeconfig` 参数，则只使用该参数指定的 kubeconfig 文件，不会进行合并
+* 否则，在指定了环境变量 `KUBECONFIG` 的情况下，该环境变量中的所有文件将被合并使用：
+  * 对于不能正常解析的文件，提示错误信息
+  * 当执行 `kubectl config use-context` 指令后，在第一个文件中保存 `current-context` 字段
+  * 合并过程忽略冲突。例如：如果多个文件中都定义了 `red-user`，将只使用列表中第一个定义了 `red-user` 的内容，所有后面定义的 `red-user` 都将被忽略
+* 如果既没指定 `--kubeconfig` 参数，又没指定 `KUBECONFIG` 环境变量，则使用默认的配置文件 `$HOME/.kube/config`，此时也无需合并
+
+### 切换当前访问的集群
+
+当您通过 `KUBECONFIG` 环境变量指定了多个集群的访问配置文件时，执行 `kubectl config view` 指令，输出结果如下所示：
+
+* 其中 `contexts` 字段包含了多个访问集群的 `上下文`，每个上下文指定了一个 `name`，并指定了该 `上下文` 要访问的集群名称`cluster`，集群中的名称空间`namespace`，使用哪个用户去访问`user`。
+* `current-context` 字段指定了当前生效的 `上下文`
+
+
+``` yaml {6,11,21,22}
+contexts: 
+- context:
+    cluster: development
+    namespace: frontend
+    user: developer
+  name: dev-frontend
+- context:
+    cluster: development
+    namespace: ramp
+    user: developer
+  name: dev-ramp-up
+- context:
+    cluster: development
+    namespace: storage
+    user: developer
+  name: dev-storage
+- context:
+    cluster: scratch
+    namespace: default
+    user: experimenter
+  name: exp-scratch
+current-context: dev-frontend
+kind: Config
+users:
+...
+```
+
+执行 `kubectl config get-contexts` 命令，可以查看可用的 `上下文` 列表，其中第一列带 `*` 的为当前使用的 `上下文`。
+
+执行 `kubectl config use-context dev-storage` 命令，可以切换到另外一个 `上下文`
+
+## 安装 Kubernetes Dashboard
+
+Kubernetes Dashboard 是 Kubernetes 的官方 Web UI。使用 Kubernetes Dashboard，您可以：
+
+- 向 Kubernetes 集群部署容器化应用
+- 诊断容器化应用的问题
+- 管理集群的资源
+- 查看集群上所运行的应用程序
+- 创建、修改Kubernetes 上的资源（例如 Deployment、Job、DaemonSet等）
+- 展示集群上发生的错误
+
+例如：您可以伸缩一个 Deployment、执行滚动更新、重启一个 Pod 或部署一个新的应用程序
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.3/aio/deploy/recommended.yaml
+```
+
+### 访问 Dashboard
+
+Kubernetes Dashboard 当前，只支持使用 Bearer Token登录。 由于 Kubernetes Dashboard 默认部署时，只配置了最低权限的 RBAC。因此，我们要创建一个名为 `admin-user` 的 ServiceAccount，再创建一个 ClusterRolebinding，将其绑定到 Kubernetes 集群中默认初始化的 `cluster-admin` 这个 ClusterRole。
+
+> 更多关于权限管理的信息，请参考 [Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+
+- 创建 Service Account 和 ClusterRoleBinding
+
+使用 kubeadm 安装集群时，默认创建了 ClusterRole cluster-admin。此时我们可以直接为刚才的 ServiceAccount 创建 ClusterRoleBinding。
+
+执行如下命令可创建 ServiceAccount 和 ClusterRoleBinding
+
+```bash
+kubectl apply -f k8s-dashboard-auth.yaml
+```
+
+**k8s-dashboard-auth.yaml：**
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+```
+
+- 获取 Bearer Token
+
+```bash
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+```
+
+- 执行 kubectl proxy 命令
+
+```bash
+kubectl proxy
+
+# 如果在服务器运行，修改监听地址，并接收所有请求，让外网访问。
+# kubectl proxy --address=0.0.0.0 --port=8001 --accept-hosts='^*$'
+```
+
+您必须能够在自己的笔记本（工作电脑）上运行 kubectl 并访问您的集群。
+
+访问路径：http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+> 如需要使用 nodePort 或 Ingress 的方式访问 Kubernetes Dashboard 请配置正确的 https 证书，或者使用 Firefox 浏览器，并忽略 HTTPS 校验错误。
+
+将上一个步骤中获得的 Token 输入到登录界面中，点击 Sign in 按钮，完成登录
 
 ## 问题
 

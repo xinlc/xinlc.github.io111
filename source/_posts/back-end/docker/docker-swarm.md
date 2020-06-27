@@ -632,12 +632,12 @@ services:
     image: "server:latest"
     stop_grace_period: 10s
     networks:
-      - backend_network
+      - backend-network
     deploy:
       replicas: 2
       endpoint_mode: dnsrr
 networks:
-  backend_network:
+  backend-network:
     external: true
 ```
 
