@@ -296,46 +296,46 @@ kubectl create secret docker-registry registry-key \
 **使用：**
 
 ```yaml
-apiVersion: apps/v1 #与k8s集群版本有关，使用 kubectl api-versions 即可查看当前集群支持的版本
-kind: Deployment #该配置的类型，我们使用的是 Deployment
-metadata:         #元数据，即 Deployment 的一些基本属性和信息
-  name: demo-deployment	#Deployment 的名称
-  labels:	    #标签，可以灵活定位一个或多个资源，其中key和value均可自定义，可以定义多组
-    app: demo	#为该Deployment设置key为app，value为nginx的标签
-spec:	        #这是关于该Deployment的描述，可以理解为你期待该Deployment在k8s中如何使用
-  replicas: 3	#使用该Deployment创建一个应用程序实例
-  selector:	    #标签选择器，与上面的标签共同作用
-    matchLabels: #选择包含标签app:nginx的资源
+apiVersion: apps/v1 # 与k8s集群版本有关，使用 kubectl api-versions 即可查看当前集群支持的版本
+kind: Deployment # 该配置的类型，我们使用的是 Deployment
+metadata: # 元数据，即 Deployment 的一些基本属性和信息
+  name: demo-deployment # Deployment 的名称
+  labels: # 标签，可以灵活定位一个或多个资源，其中key和value均可自定义，可以定义多组
+    app: demo # 为该Deployment设置key为app，value为nginx的标签
+spec: # 这是关于该Deployment的描述，可以理解为你期待该Deployment在k8s中如何使用
+  replicas: 3 # 使用该Deployment创建一个应用程序实例
+  selector: # 标签选择器，与上面的标签共同作用
+    matchLabels: # 选择包含标签app:nginx的资源
       app: demo
-  template:	    #这是选择或创建的Pod的模板
-    metadata:	#Pod的元数据
-      labels:	#Pod的标签，上面的selector即选择包含标签app:nginx的Pod
+  template: # 这是选择或创建的Pod的模板
+    metadata: # Pod的元数据
+      labels: # Pod的标签，上面的selector即选择包含标签app:nginx的Pod
         app: demo
-    spec:	    #期望Pod实现的功能（即在pod中部署）
+    spec: # 期望Pod实现的功能（即在pod中部署）
       imagePullSecrets: # 私有镜像
       - name: registry-key
-      containers:	#生成container，与docker中的container是同一种
-      - name: demo-web	#container的名称
-        image: registry.cn-beijing.aliyuncs.com/leo/demo-web:2.0.0-release	#使用镜像nginx:1.7.9创建container，该container默认80端口可访问
+      containers: # 生成container，与docker中的container是同一种
+      - name: demo-web # container的名称
+        image: registry.cn-beijing.aliyuncs.com/leo/demo-web:1.0.0-release # 使用镜像nginx:1.7.9创建container，该container默认80端口可访问
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo-service	#Service 的名称
-  labels:     	#Service 自己的标签
-    app: demo	#为该 Service 设置 key 为 app，value 为 nginx 的标签
-spec:	    #这是关于该 Service 的定义，描述了 Service 如何选择 Pod，如何被访问
-  selector:	    #标签选择器
-    app: demo	#选择包含标签 app:nginx 的 Pod
+  name: demo-service # Service 的名称
+  labels: # Service 自己的标签
+    app: demo # 为该 Service 设置 key 为 app，value 为 nginx 的标签
+spec: # 这是关于该 Service 的定义，描述了 Service 如何选择 Pod，如何被访问
+  selector: # 标签选择器
+    app: demo # 选择包含标签 app:nginx 的 Pod
   ports:
-  - name: demo-port	#端口的名字
-    protocol: TCP	    #协议类型 TCP/UDP
-    port: 80	        #集群内的其他容器组可通过 80 端口访问 Service
-    nodePort: 32600   #通过任意节点的 32600 端口访问 Service
-    targetPort: 80	#将请求转发到匹配 Pod 的 80 端口
-  type: NodePort	#Serive的类型，ClusterIP/NodePort/LoaderBalancer
+  - name: demo-port # 端口的名字
+    protocol: TCP # 协议类型 TCP/UDP
+    port: 80 # 集群内的其他容器组可通过 80 端口访问 Service
+    nodePort: 32600 # 通过任意节点的 32600 端口访问 Service
+    targetPort: 80 # 将请求转发到匹配 Pod 的 80 端口
+  type: NodePort # Serive的类型，ClusterIP/NodePort/LoaderBalancer
 ```
 
 ## 亲和性与反亲和性

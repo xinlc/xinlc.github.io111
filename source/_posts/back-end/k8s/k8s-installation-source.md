@@ -21,7 +21,7 @@ tags:
 k8s-master1 | 192.168.0.216 | Master1,etcd1,node节点
 k8s-master2 | 192.168.0.217 | Master2,etcd2,node节点
 k8s-master3 | 192.168.0.218 | Master3,etcd3,node节点
-slb | lb.leo.com.cn | 外网阿里slb域名
+slb | lb.ypvip.com.cn | 外网阿里slb域名
 
 > 本环境使用阿里云，API Server 高可用通过阿里云SLB实现，如果环境不在云上，可以通过 Nginx + Keepalived，或者 HaProxy + Keepalived等实现。
 
@@ -159,6 +159,8 @@ function Install_docker(){
     yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
     yum makecache fast
     yum -y install docker-ce-19.03.6 docker-ce-cli-19.03.6
+    # 设置 iptables file表中 FORWARD 默认链规则为 ACCEPT
+    sed  -i '/ExecStart=/i ExecStartPost=\/sbin\/iptables -P FORWARD ACCEPT' /usr/lib/systemd/system/docker.service
     systemctl enable docker.service
     systemctl start docker.service
     systemctl stop docker.service
@@ -278,7 +280,7 @@ cat > server-csr.json <<EOF
       "192.168.0.217",
       "192.168.0.218",
       "10.10.0.1",
-      "lb.leo.com.cn",
+      "lb.ypvip.com.cn",
       "kubernetes",
       "kubernetes.default",
       "kubernetes.default.svc",
@@ -359,7 +361,7 @@ cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kube
 "192.168.0.217",
 "192.168.0.218",
 "10.10.0.1",
-"lb.leo.com.cn",
+"lb.ypvip.com.cn",
 ```
 
 修改完脚本，然后执行
@@ -661,7 +663,7 @@ EOF
 #----------------------
 
 # 创建kubelet bootstrapping kubeconfig
-export KUBE_APISERVER="https://lb.leo.com.cn:6443"
+export KUBE_APISERVER="https://lb.ypvip.com.cn:6443"
 
 # 设置集群参数
 kubectl config set-cluster kubernetes \
@@ -733,6 +735,12 @@ scp *kubeconfig root@k8s-master3:/opt/kubernetes/cfg
 ```bash
 # 创建 /data/k8s-master 目录，用于存放 master 配置执行脚本
 mkdir /data/k8s-master
+
+# 创建 kube-apiserver 日志存放目录
+mkdir -p /var/log/kubernetes
+
+# 创建 kube-apiserver 审计日志文件
+touch /var/log/kubernetes/k8s-audit.log
 ```
 
 > 登陆到 k8s-master1
@@ -957,9 +965,216 @@ etcd-1               Healthy   {"health":"true"}
 etcd-0               Healthy   {"health":"true"}
 ```
 
-### 配置kubelet证书自动续期
+错误处理
+
+```bash
+# 查询集群状态报下面错误
+kubectl get cs
+
+error: no configuration has been provided, try setting KUBERNETES_MASTER environment variable
+```
+
+两种解决方法：
+
+1. 可以把kubectl版本降级到1.17版本，生成管理员config文件，并存放到 ~/.kube/config 目录下，再把 kubectl升级到1.18版本，这时就可以正常使用
+2. 直接声明下 KUBERNETES_MASTER Apiserver 地址，不推荐这种方法
+
+这里介绍生成管理员 config 配置
+
+```bash
+# 降级 kubectl 版本到 1.17.5 
+mv /opt/kubernetes/bin/kubectl /opt/kubernetes/bin/kubectl-1.18.2
+wget https://cdm.yp14.cn/k8s-package/k8s-1.17-bin/kubectl -O /opt/kubernetes/bin/kubectl
+chmod +x /opt/kubernetes/bin/kubectl
+
+# 创建一个存放用户文件目录
+mkdir -p /root/yaml/create-user
+cd /root/yaml/create-user
+
+# Copy 脚本依赖文件
+cp /data/ssl/ca-config.json /opt/kubernetes/ssl/
+
+# 创建一个生成用户脚本
+vim create-user-kubeconfig.sh
+```
+
+```bash
+#!/bin/bash
+# 注意修改KUBE_APISERVER为你的API Server的地址
+
+KUBE_APISERVER=$1
+USER=$2
+USER_SA=system:serviceaccount:default:${USER}
+Authorization=$3
+USAGE="USAGE: create-user.sh <api_server> <username> <clusterrole authorization>\n
+Example: https://lb.ypvip.com.cn:6443 brand"
+CSR=`pwd`/user-csr.json
+SSL_PATH="/opt/kubernetes/ssl"
+USER_SSL_PATH="/root/yaml/create-user"
+SSL_FILES=(ca-key.pem ca.pem ca-config.json)
+CERT_FILES=(${USER}.csr $USER-key.pem ${USER}.pem)
+
+if [[ $KUBE_APISERVER == "" ]]; then
+   echo -e $USAGE
+   exit 1
+fi
+if [[ $USER == "" ]];then
+    echo -e $USAGE
+    exit 1
+fi
+
+if [[ $Authorization == "" ]];then
+    echo -e $USAGE
+    exit 1
+fi
+
+# 创建用户的csr文件
+function createCSR(){
+cat>$CSR<<EOF
+{
+  "CN": "USER",
+  "hosts": [],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "ST": "BeiJing",
+      "L": "BeiJing",
+      "O": "k8s",
+      "OU": "System"
+    }
+  ]
+}
+EOF
+# 替换csr文件中的用户名
+sed -i "s/USER/$USER_SA/g" $CSR
+}
+
+function ifExist(){
+if [ ! -f "$SSL_PATH/$1" ]; then
+    echo "$SSL_PATH/$1 not found."
+    exit 1
+fi
+}
+
+function ifClusterrole(){
+kubectl get clusterrole ${Authorization} &> /dev/null
+if (( $? !=0 ));then
+   echo "${Authorization} clusterrole there is no"
+   exit 1
+fi
+}
+
+# 判断clusterrole授权是否存在
+ifClusterrole
+
+# 判断证书文件是否存在
+for f in ${SSL_FILES[@]};
+do
+    echo "Check if ssl file $f exist..."
+    ifExist $f
+    echo "OK"
+done
+
+echo "Create CSR file..."
+createCSR
+echo "$CSR created"
+echo "Create user's certificates and keys..."
+cd $USER_SSL_PATH
+cfssl gencert -ca=${SSL_PATH}/ca.pem -ca-key=${SSL_PATH}/ca-key.pem -config=${SSL_PATH}/ca-config.json -profile=kubernetes $CSR| cfssljson -bare $USER_SA
+
+# 创建 sa
+kubectl create sa ${USER} -n default
+
+# 设置集群参数
+kubectl config set-cluster kubernetes \
+--certificate-authority=${SSL_PATH}/ca.pem \
+--embed-certs=true \
+--server=${KUBE_APISERVER} \
+--kubeconfig=${USER}.kubeconfig
+
+# 设置客户端认证参数
+kubectl config set-credentials ${USER_SA} \
+--client-certificate=${USER_SSL_PATH}/${USER_SA}.pem \
+--client-key=${USER_SSL_PATH}/${USER_SA}-key.pem \
+--embed-certs=true \
+--kubeconfig=${USER}.kubeconfig
+
+# 设置上下文参数
+kubectl config set-context kubernetes \
+--cluster=kubernetes \
+--user=${USER_SA} \
+--namespace=default \
+--kubeconfig=${USER}.kubeconfig
+
+# 设置默认上下文
+kubectl config use-context kubernetes --kubeconfig=${USER}.kubeconfig
+
+# 创建 namespace
+# kubectl create ns $USER
+
+# 绑定角色
+# kubectl create rolebinding ${USER}-admin-binding --clusterrole=admin --user=$USER --namespace=$USER --serviceaccount=$USER:default
+kubectl create clusterrolebinding ${USER}-binding --clusterrole=${Authorization} --user=${USER_SA}
+
+# kubectl config get-contexts
+
+echo "Congratulations!"
+echo "Your kubeconfig file is ${USER}.kubeconfig"
+```
+
+```bash
+# 添加执行权限
+chmod +x create-user-kubeconfig.sh
+
+# 脚本 Help
+./create-user-kubeconfig.sh --help
+
+USAGE: create-user.sh <api_server> <username> <clusterrole authorization>
+ Example: https://lb.ypvip.com.cn:6443 brand
+
+# 创建一个 admin 管理员用户，绑定 cluster-admin 权限
+./create-user-kubeconfig.sh https://lb.ypvip.com.cn:6443 admin cluster-admin
+
+# 查看 admin 用户 Token
+kubectl describe secrets -n default `kubectl  get secrets -n default | grep admin-token | awk '{print $1}'` | grep 'token:'
+
+# 把上面查看的 Token 写入到脚本生成 admin.kubeconfig 文件最底部
+vim admin.kubeconfig
+```
+
+```bash
+# 创建 .kube 目录
+mkdir ~/.kube/
+
+# 拷贝到 .kube 目录下
+cp admin.kubeconfig ~/.kube/config
+
+# 把kubectl 从 1.17.5 换成 1.18.2版本，可以正常查看集群状态
+mv /opt/kubernetes/bin/kubectl-1.18.2 /opt/kubernetes/bin/kubectl
+chmod +x /opt/kubernetes/bin/kubectl
+kubectl  get cs
+
+NAME                 STATUS    MESSAGE             ERROR
+scheduler            Healthy   ok
+controller-manager   Healthy   ok
+etcd-0               Healthy   {"health":"true"}
+etcd-1               Healthy   {"health":"true"}
+etcd-2               Healthy   {"health":"true"}
+```
+
+### 配置kubelet证书自动续期和创建Node授权用户
 
 > 登陆到 k8s-master1 操作
+
+创建 Node节点 授权用户 kubelet-bootstrap
+
+```bash
+kubectl create clusterrolebinding  kubelet-bootstrap --clusterrole=system:node-bootstrapper  --user=kubelet-bootstrap
+```
 
 创建自动批准相关 CSR 请求的 ClusterRole
 
@@ -1053,7 +1268,7 @@ apiVersion: kubelet.config.k8s.io/v1beta1 # api版本
 address: 0.0.0.0 # 监听地址
 port: 10250 # 当前kubelet的端口
 readOnlyPort: 10255 # kubelet暴露的端口
-cgroupDriver: cgroupfs # 驱动，要与docker info显示的驱动一致
+cgroupDriver: cgroupfs # 驱动，要于docker info显示的驱动一致
 clusterDNS:
   - ${DNS_SERVER_IP}
 clusterDomain: ${CLUETERDOMAIN}  # 集群域
@@ -1122,7 +1337,7 @@ systemctl restart kubelet
 
 ```bash
 # 创建生成 kube-proxy 配置脚本
-$ vim proxy.sh
+vim proxy.sh
 ```
 
 ```bash
@@ -1144,7 +1359,7 @@ metricsBindAddress: 0.0.0.0:10249 # 监控指标地址,监控获取相关信息 
 clientConnection:
   kubeconfig: /opt/kubernetes/cfg/kube-proxy.kubeconfig # 读取配置文件
 hostnameOverride: ${HOSTNAME} # 注册到k8s的节点名称唯一
-clusterCIDR: 10.10.0.0/16 # service IP范围
+clusterCIDR: 10.20.0.0/16 # Pod IP范围
 mode: iptables # 使用iptables模式
 
 # 使用 ipvs 模式
@@ -1351,7 +1566,7 @@ Calico 有两种网络模式：BGP 和 IPIP
 
 ```yaml
             - name: KUBERNETES_SERVICE_HOST
-              value: "lb.leo.com.cn"
+              value: "lb.ypvip.com.cn"
             - name: KUBERNETES_SERVICE_PORT
               value: "6443"
             - name: KUBERNETES_SERVICE_PORT_HTTPS
