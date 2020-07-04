@@ -20,27 +20,38 @@ tags:
 ### 使用 `docker-compose` 安装 `Jenkins`：
 
 ```yaml
-version: "3"
+# version: "3"
+version: "2.2"
 
 services:
   jenkins:
     image: jenkinsci/blueocean:latest
+    # image: jenkinsci/blueocean:lts
+    restart: unless-stopped
     privileged: true
     user: root
     ports:
       - "8080:8080"
       - "50000:50000"
+    environment:
+      - JAVA_OPTS="-server -Xms1024m -Xmx2048m -XX:PermSize=256m -XX:MaxPermSize=512m"
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
       - ~/docker-data/jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/java/maven:/usr/local/maven
+    cpus: '2'
+    mem_limit: 2048m
 ```
 
 - `privileged: true` 提升容器权限；
 - `user: root` 使用 root 用户；
 - `~/docker-data/jenkins_home:/var/jenkins_home` `/var/jenkins_home` 目录为 Jenkins 工作目录，方便后续更新镜像后继续使用原来的工作目录；
 - `/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro` 让容器使用和服务器同样的时间设置；
+- `/etc/localtime:/etc/localtime:ro` 设置容器时间与宿主机一致
 - `/var/run/docker.sock:/var/run/docker.sock` 容器内可以使用主机 Docker 守护进程通信；
+- `/usr/java/maven:/usr/local/maven` 将宿主机的maven环境变量/usr/java/maven映射到容器的/usr/local/maven，jenkins里配置maven时地址填写/usr/local/maven
 
 ### 启动
 
@@ -110,6 +121,12 @@ docker-compose restart
 
 ## 在容器中安装软件
 
+用root权限进入容器
+
+```bash
+sudo docker exec -it -u root <容器id> bash
+```
+
 比如安装 NodeJS
 
 ```bash
@@ -143,11 +160,35 @@ apk add npm=10.14.2-r0
 System.setProperty('org.apache.commons.jelly.tags.fmt.timeZone', 'Asia/Shanghai')
 ```
 
+## Nginx 反代配置
+
+```conf
+server {
+  listen 80;
+
+  server_name jenkins.leo.com;
+
+  location / {
+    proxy_pass http://192.168.0.80:28081;
+    proxy_read_timeout 90;
+    proxy_redirect      http://192.168.0.80:28081 http://jenkins.leo.com;
+    proxy_set_header X-Forwarded-Host $host:$server_port;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_http_version 1.1;
+    proxy_request_buffering off;
+  }
+}
+```
+
 ## 参考
 
 - [jenkins](https://jenkins.io/zh/doc/)
 - [jenkins installing](https://jenkins.io/zh/doc/book/installing/)
 - [jenkins pipeline](https://jenkins.io/doc/pipeline/steps/workflow-basic-steps/)
+- [jenkins docker](https://github.com/jenkinsci/docker)
 
 [1]: /images/linux/docker-jenkins/1.jpg
 [2]: /images/linux/docker-jenkins/2.jpg

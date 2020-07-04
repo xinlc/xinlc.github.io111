@@ -577,7 +577,7 @@ echo "127.0.0.1   $(hostname)" >> /etc/hosts
 
 > 在所有节点执行命令
 
-```bash
+```bash{2,11,13}
 [root@demo-master-a-1 ~]$ ip route show
 default via 172.21.0.1 dev eth0
 169.254.0.0/16 dev eth0 scope link metric 1002
@@ -748,6 +748,8 @@ docker version
   - APISERVER_NAME 不能是 master 的 hostname
   - APISERVER_NAME 必须全为小写字母、数字、小数点，不能包含减号
   - POD_SUBNET 所使用的网段不能与 master节点/worker节点 所在的网段重叠。该字段的取值为一个 CIDR 值，如果您对 CIDR 这个概念还不熟悉，请不要修改这个字段的取值 10.100.0.1/16
+
+<pre style="display:none;">
   <!--
     Aliyun 建议：
     Pod CIDR 172.20.0.0/16
@@ -757,6 +759,7 @@ docker version
     Service CIDR 10.0.0.0/16-24，172.16-31.0.0/16-24，192.168.0.0/16-24 
     注意：不能与 VPC 及 VPC 内已有 Kubernetes 集群使用的网段重复
    -->
+</pre>
 
 - 执行以下脚本完成初始化集群
 
@@ -1497,6 +1500,248 @@ kubectl get pods --all-namespaces
 ```bash
 kubectl delete pod <pod-name> -n <pod-namespece>
 ```
+
+### 为什么Kubernetes Service不能ping
+
+#### 现象
+
+**Kubernetes Service 不能 ping**
+
+例如可以执行 `nslookup` 命令，如下所示：
+
+```bash
+[root@gateway-example-6f6f45cd6-px8bn eip]# nslookup gateway-example
+Server:         10.96.0.10
+Address:        10.96.0.10#53
+
+Name:   gateway-example.example.svc.cluster.local
+Address: 10.105.141.232
+```
+
+但是执行 `ping` 命令则会失败：
+
+```bash
+[root@gateway-example-6f6f45cd6-px8bn eip]# ping gateway-example
+PING gateway-example.example.svc.cluster.local (10.105.141.232) 56(84) bytes of data.
+From 172.17.76.171 (172.17.76.171) icmp_seq=1 Time to live exceeded
+From 172.17.76.171 (172.17.76.171) icmp_seq=2 Time to live exceeded
+From 172.17.76.171 (172.17.76.171) icmp_seq=3 Time to live exceeded
+From 172.17.76.171 (172.17.76.171) icmp_seq=4 Time to live exceeded
+^C
+--- gateway-example.example.svc.cluster.local ping statistics ---
+4 packets transmitted, 0 received, +4 errors, 100% packet loss, time 3003ms
+```
+
+执行 `curl` 命令会成功：(如果后端 Pod 正常)
+
+```bash
+[root@gateway-example-6f6f45cd6-px8bn eip]# curl gateway-example:9201
+{"timestamp":"2019-11-29T15:29:39.515+0000","path":"/","status":404,"error":"Not Found","message":null}
+```
+
+执行 `telnet` 命令也可以成功：(如果后端 Pod 正常)
+
+```bash
+[root@gateway-example-6f6f45cd6-px8bn eip]# telnet gateway-example 9201
+Trying 10.105.141.232...
+Connected to gateway-example.
+Escape character is '^]'.
+```
+
+#### 解释
+
+在 Kubernetes 的网络中，Service 就是 ping 不通的。因为 Kubernetes 只是为 Service 生成了一个虚拟 IP 地址，实现的方式有：
+- [User space 代理模式](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#user-space-代理模式)
+- [Iptables 代理模式](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#iptables-代理模式)
+- [IPVS 代理模式](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#ipvs-代理模式)
+
+不管是哪种代理模式，Kubernetes Service 的 IP 背后都没有任何实体可以响应「ICMP」，全称为 Internet 控制报文协议（Internet Control Message Protocol）。参考 [每天都在用的Ping命令，它到底是什么？](https://www.jianshu.com/p/dc9de5038874)
+
+通过 Service 访问 Pod 时的数据传递方式，可参考 [数据包的传递：Service-to-Pod](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#数据包的传递：service-to-pod)
+
+### 为什么我不能获取到镜像，ImagePullBackoff
+
+> 应用长时间处于 Pending 状态时，也可以按照这个办法查看镜像的下载进度。
+
+安装 Kubernetes 过程中，或者向 Kubernetes 部署应用的过程中，有可能会碰到 ImagePullBackoff 的问题。例如执行命令：
+
+```sh
+kubectl get pods -n kube-system
+```
+
+结果如下所示：
+
+``` {2,3}
+NAME                                          READY   STATUS              RESTARTS   AGE
+coredns-94d74667-6dj45                        1/1     ImagePullBackOff    0          12m
+coredns-94d74667-xv6wd                        1/1     Pending             0          12m
+etcd-master                                   1/1     Running             0          13m
+kube-apiserver-master                         1/1     Running             0          13m
+kube-controller-manager-master                1/1     Running             0          12m
+kube-flannel-ds-amd64-4wjcl                   1/1     Running             0          12m
+kube-flannel-ds-amd64-9k28h                   1/1     Running             0          12m
+kube-flannel-ds-amd64-pwkv5                   1/1     Running             0          12m
+kube-proxy-qd6w7                              1/1     Running             0          12m
+kube-scheduler-master                         1/1     Running             0          12m
+```
+
+碰到这个问题时，可按如下步骤解决：
+
+* 确定问题 Pod 所在节点，以 `kube-system` 名称空间下的 Pod `coredns-94d74667-6dj45` 为例：
+  ``` sh
+  kubectl get pods coredns-94d74667-6dj45 -n kube-system -o wide
+  ```
+
+  输出结果如下所示：
+  ```
+  NAME                     READY   STATUS    RESTARTS   AGE   IP            NODE     NOMINATED NODE   READINESS GATES
+  coredns-94d74667-6dj45   1/1     Running   2          39d   10.244.0.40   master   <none>           <none>
+  ```
+  从这个就结果中，我们得知，该 Pod 被调度到了 `master` 节点
+
+* 确定 Pod 所使用的容器镜像：
+  ``` sh
+  kubectl get pods coredns-94d74667-6dj45 -n kube-system -o yaml | grep image:
+  ```
+  输出结果如下所示：
+  ```
+      image: registry.aliyuncs.com/google_containers/coredns:1.3.1
+      image: registry.aliyuncs.com/google_containers/coredns:1.3.1
+  ```
+  从这个结果中，我们得知，该 Pod 使用到了容器镜像 `registry.aliyuncs.com/google_containers/coredns:1.3.1`
+
+* 在 Pod 所在节点执行 docker pull 指令：
+  ```sh
+  docker pull registry.aliyuncs.com/google_containers/coredns:1.3.1
+  ```
+
+  如果镜像标签没有问题，docker 指令将显示该镜像的下载过程，耐心等待即可。如果不能抓取 docker 镜像，请参考 Docker 命令的输出提示，做对应的处理。
+
+### 修改NodePort的范围
+
+在 Kubernetes 集群中，NodePort 默认范围是 30000-32767，某些情况下，因为您所在公司的网络策略限制，您可能需要修改 NodePort 的端口范围，本文描述了具体的操作方法。
+
+#### 修改kube-apiserver.yaml
+
+使用 kubeadm 安装 K8S 集群的情况下，您的 Master 节点上会有一个文件 `/etc/kubernetes/manifests/kube-apiserver.yaml`，修改此文件，向其中添加 `--service-node-port-range=20000-22767` （请使用您自己需要的端口范围），如下所示：
+
+``` yaml {38}
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    component: kube-apiserver
+    tier: control-plane
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - --advertise-address=172.17.216.80
+    - --allow-privileged=true
+    - --authorization-mode=Node,RBAC
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --enable-admission-plugins=NodeRestriction
+    - --enable-bootstrap-token-auth=true
+    - --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+    - --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+    - --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+    - --etcd-servers=https://127.0.0.1:2379
+    - --insecure-port=0
+    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+    - --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    - --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+    - --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+    - --requestheader-allowed-names=front-proxy-client
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+    - --requestheader-extra-headers-prefix=X-Remote-Extra-
+    - --requestheader-group-headers=X-Remote-Group
+    - --requestheader-username-headers=X-Remote-User
+    - --secure-port=6443
+    - --service-account-key-file=/etc/kubernetes/pki/sa.pub
+    - --service-cluster-ip-range=10.96.0.0/12
+    - --service-node-port-range=20000-22767
+    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+    - --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+    image: registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v1.16.0
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 172.17.216.80
+        path: /healthz
+        port: 6443
+        scheme: HTTPS
+      initialDelaySeconds: 15
+      timeoutSeconds: 15
+  ...
+```
+
+#### 重启apiserver
+
+执行以下命令，重启 apiserver
+``` sh
+# 获得 apiserver 的 pod 名字
+export apiserver_pods=$(kubectl get pods --selector=component=kube-apiserver -n kube-system --output=jsonpath={.items..metadata.name})
+# 删除 apiserver 的 pod
+kubectl delete pod $apiserver_pods -n kube-system
+```
+
+#### 验证结果
+
+执行以下命令，验证修改是否生效：
+``` sh
+kubectl describe pod $apiserver_pods -n kube-system
+```
+输出结果如下所示：（此时，我们可以看到，apiserver 已经使用新的命令行参数启动）
+``` {29}
+...
+    Host Port:     <none>
+    Command:
+      kube-apiserver
+      --advertise-address=172.17.216.80
+      --allow-privileged=true
+      --authorization-mode=Node,RBAC
+      --client-ca-file=/etc/kubernetes/pki/ca.crt
+      --enable-admission-plugins=NodeRestriction
+      --enable-bootstrap-token-auth=true
+      --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+      --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+      --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+      --etcd-servers=https://127.0.0.1:2379
+      --insecure-port=0
+      --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+      --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+      --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+      --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+      --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+      --requestheader-allowed-names=front-proxy-client
+      --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+      --requestheader-extra-headers-prefix=X-Remote-Extra-
+      --requestheader-group-headers=X-Remote-Group
+      --requestheader-username-headers=X-Remote-User
+      --secure-port=6443
+      --service-account-key-file=/etc/kubernetes/pki/sa.pub
+      --service-cluster-ip-range=10.96.0.0/12
+      --service-node-port-range=20000-22767
+      --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+      --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+    State:          Running
+      Started:      Mon, 11 Nov 2019 21:31:39 +0800
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        250m
+  ...
+```
+
+::: tip 注意
+* 对于已经创建的NodePort类型的Service，您需要删除重新创建
+* 如果您的集群有多个 Master 节点，您需要逐个修改每个节点上的  `/etc/kubernetes/manifests/kube-apiserver.yaml` 文件，并重启 apiserver
+:::
 
 ## 参考
 

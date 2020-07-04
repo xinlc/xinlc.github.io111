@@ -748,6 +748,12 @@ git remote set-url origin <url>
 举个例子，如果遇到前面提到的 有人推送了经过变基的提交，并丢弃了你的本地开发所基于的一些提交 那种情境，如果我们不是执行合并，而是执行 `git fetch`，再 `git rebase teamone/master`。或者使用另一种简短方法 `git pull --rebase`（一定要通知每个人执行 `git pull --rebase` 命令）。
 
 ```bash
+# 比如有commit如下
+# commit1
+# commit2
+# commit3
+# commit4
+
 # -i 进入交互式命令，调整好策略，保存退出（:wq)
 
 # rebase -i 交互式命令:
@@ -802,7 +808,66 @@ git push --force
 
 ```
 
-核武器级选项：filter-branch
+### rebase vs merge
+
+在 Git 中整合来自不同分支的修改主要有两种方法：merge 以及 rebase。事实上git rebase 和git merge 做的事其实是一样的。它们都被设计来将一个分支的更改并入另一个分支，只不过方式有些不同。
+
+例如现在有两个分支 master 和 feature, 你在 feature 分支上进行了实验，这时候有个另外的人在 master 分支上进行了新的提交。那么你需要将 master上别人的修改应用到 feature 分支上。
+
+**方法1： merge**
+
+```bash
+git checkout feature
+git merge master
+
+# 或者直接指定两个分支：
+git merge master feature
+```
+
+这样操作后会在 feature 分支上产生一个新的 commit, 这个commit就是包含了 master 分支的修改。同时历史记录中也会包含这个 commit 的信息。这样会有个好处，也会带来问题。
+
+- 好处就是：merge 是 non-destructive 的操作，比较安全。（相对于rebase操作）
+- 问题就是：如果merge频繁，那么 feature 分支的历史记录中会包含很多个由于 merge 产生的新 commit 信息。这可能不是你希望看到了…）。
+
+![1][1]
+
+**方法2： rebase**
+
+```bash
+git checkout feature
+git rebase master # 将 master 上的修改合并到 feature 分支（当前分支）。
+```
+
+rebase 会将 feature 上的历史 commit 全部修改，并且用新的提交覆盖之（即下图中的 Brand New Commit）。
+
+看起来就是你的 feature 分支从一个开始就是在最新的 master 上开发的( 新的master跑到了你分支的最开始处 )。
+
+如图（注意比较与上图 merge 的差异）：
+
+![2][2]
+
+一个注意点就是不要将 master 分支 rebase 到其他分支上面。这样会导致该 master 分支和其他人的 master 分支的历史记录不一样。然后你还得将你的 master 分支与别人的master分支merge。
+
+所以，在 rebase 一个分支前想一下别人有没有 watch 这个分支， 因为rebase 会将该分支的历史提交修改。
+
+### rebase在开发中的使用场景 - 本地清理
+
+隔一段时间执行一次交互式 rebase，你可以保证你 feature 分支中的每一个提交都是专注和有意义的。你在写代码时不用担心造成孤立的提交——因为你后面一定能修复
+
+下面的命令对最新的 3 次提交进行了交互式 rebase：
+
+```bash
+git checkout feature
+git rebase -i HEAD~3
+```
+
+你实际上没有移动分支——你只是将之后的 3 次提交合并了
+
+交互式 rebase 是在你工作流中引入 git rebase 的的好办法，因为它只影响本地分支。其他开发者只能看到你已经完成的结果，那就是一个非常整洁、易于追踪的分支历史。
+
+但同样的，这只能用在私有分支上。如果你在同一个 feature 分支和其他开发者合作的话，这个分支是公开的，你不能重写这个历史。
+
+### 核武器级选项：filter-branch
 
 > 有另一个历史改写的选项，如果想要通过脚本的方式改写大量提交的话可以使用它——例如，全局修改你的邮箱地址或从每一个提交中移除一个文件。 这个命令是 filter-branch，它可以改写历史中大量的提交，除非你的项目还没有公开并且其他人没有基于要改写的工作的提交做的工作，你不应当使用它。
 
@@ -986,3 +1051,6 @@ git gui
 - [Git Community Book 中文版](http://gitbook.liuhui998.com/index.html)
 - [git 的飞行规则](https://github.com/k88hudson/git-flight-rules)
 - [gitignore 模板](https://github.com/github/gitignore)
+
+[1]: /images/tools/git/1.jpg
+[2]: /images/tools/git/2.jpg

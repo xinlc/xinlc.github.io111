@@ -5,6 +5,7 @@
 ```bash
 npm config set registry "https://registry.npm.taobao.org" #设置为淘宝镜像站
 npm install -g hexo-cli   #安装
+npm install --registry=https://registry.npm.taobao.org
 hexo help                 #查看帮助
 hexo init                 #初始化一个目录
 hexo new "postName"       #新建文章
