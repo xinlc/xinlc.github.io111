@@ -1748,6 +1748,7 @@ kubectl describe pod $apiserver_pods -n kube-system
 - https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux/
 - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 - https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm/
+- https://kubernetes.io/zh/docs/reference/kubectl/overview/
 - https://kuboard.cn/
 
 [1]: /images/k8s/k8s-installation/1.jpg

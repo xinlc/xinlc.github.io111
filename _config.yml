@@ -209,36 +209,16 @@ theme_config:
     # Available values: block | inline
     layout: block
   links:
-    W3Cschool: https://www.w3cschool.cn/
-    菜鸟教程: http://www.runoob.com
-    CTOLib: http://www.ctolib.com
-    阿里妈妈: http://mux.alimama.com
-    美团技术: https://tech.meituan.com
-    segmentfault: https://segmentfault.com
-    资源库: http://www.dowebok.com
     Learn X in Y minutes: https://learnxinyminutes.com
-    知识库: http://lib.csdn.net/home
-    V2EX: https://www.v2ex.com
-    前端网址: http://caibaojian.com/links
-    博客墙: http://blogwall.us
-    awesomes: https://www.awesomes.cn/
-    醉牛前端: http://f2er.club/
-    粉丝日志: http://blog.fens.me
-    极客教程: https://www.geekjc.com
     justjavac: http://justjavac.com
     阮一峰: http://www.ruanyifeng.com/blog/
     廖雪峰: https://www.liaoxuefeng.com
-    Linxu运营笔记: https://blog.linuxeye.cn
+    美团技术: https://tech.meituan.com
+    V2EX: https://www.v2ex.com
     caniuse/工具: https://caniuse.com
-    css检索: http://cssvalues.com/
-    短连接生成: https://git.io
     css88/doc: http://www.css88.com/nav/
     OverAPI/api: http://overapi.com/
     DevDocs/api: http://devdocs.io/
-    JS花园/js语法: http://www.jb51.net/onlineread/JavaScript-Garden-CN/#intro
     在线工具/索引: http://tool.oschina.net/
     ToolBox: http://tool.lu/
     设计导航: http://hao.shejidaren.com/
-    JSbin/环境: http://jsbin.com/
-    RunJs/环境: http://runjs.cn/
-    codepen: https://codepen.io
