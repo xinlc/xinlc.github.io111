@@ -176,7 +176,7 @@ theme_config:
   creative_commons:
     license: by-nc-sa
     sidebar: true
-    post: true
+    post: false
 
   baidu_analytics: 4530ac9d0bc4e258535c4a9b17029f0c
 
