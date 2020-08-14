@@ -132,6 +132,41 @@ db.createUser(
 show users
 ```
 
+```yaml
+version: '3'
+
+services:
+  mongo:
+    image: mongo:4
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    networks:
+      - net-dev
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+    volumes:
+      - /mnt/dev-data/db/mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express:0.54
+    restart: unless-stopped
+    ports:
+      - "27081:8081"
+    networks:
+      - net-dev
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=123456
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=123456
+
+networks:
+  net-dev:
+    external: true
+```
+
 ## [Mysql](https://hub.docker.com/_/mysql)
 
 ```bash
@@ -789,7 +824,7 @@ anon-access=none             # 匿名用户不可读写，也可设置为只读 
 auth-access=write            # 授权用户可读可写
 password-db=passwd           # 密码文件路径，相对于当前目录
 authz-db=authz               # 访问控制文件
-realm=/var/opt/svn/repo      # 认证命名空间，会在认证提示界面显示，并作为凭证缓存的关键字，可以写仓库名称比如repo
+# realm=/var/opt/svn/repo      # 认证命名空间，会在认证提示界面显示，并作为凭证缓存的关键字，可以写仓库名称比如repo
 # realm=repo
 
 ## 配置账号与密码，修改 conf/passwd 文件，格式为“账号 = 密码”
@@ -799,14 +834,14 @@ realm=/var/opt/svn/repo      # 认证命名空间，会在认证提示界面显�
 admin=123456
 
 ## 配置账户权限，修改 conf/authz 文件
-[groups]
-owner=admin
+# [groups]
+# owner=admin
 
 [/]               # / 表示所有仓库
 admin=rw        # 用户 admin 在所有仓库拥有读写权限
 
-[repo:/]           # 表示以下用户在仓库 svn 的所有目录有相应权限
-@owner=rw       # 表示 owner 组下的用户拥有读写权限
+# [repo:/]           # 表示以下用户在仓库 svn 的所有目录有相应权限
+# @owner=rw       # 表示 owner 组下的用户拥有读写权限
 
 # 防火墙开放端口
 firewall-cmd --zone=public --add-port=3690/tcp --permanent

@@ -305,7 +305,7 @@ Dubbo和Spring Cloud 仅仅解决了微服务基础设施的部分问题，K8s �
 
 ## Spring Cloud 微服务框架骨架模板
 
-待抽离整理……
+[微服务基本骨架](https://github.com/xinlc/springcloud-microservices-template)
 
 ## 参考
 

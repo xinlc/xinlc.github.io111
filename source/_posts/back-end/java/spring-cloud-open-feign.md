@@ -300,6 +300,58 @@ logging:
     com.leo.demo.service.FeignUserService: debug # 配置 UserService 的日志级别为 debug。
 ```
 
+### feign不过注册中心子系统联调的方法(开发环境常用)
+
+团队开发中通常使用同一个注册中心，为了避免联调时调用其他成员机器实例，需要配置feign不通过注册中心获取实例地址，主要有以下两种方法：
+
+1. 通过feign注解@FeignClient的url属性
+
+```java
+@FeignClient(name = "server-a", url = "http://localhost:8080", fallback = FeignApiFallbackComponent.class)
+```
+
+这种方式将两个子系统作为无关系统直接调用，只适合与开发环境上面做联调，联调结束之后需要删除url属性。
+
+- 主要的缺点是如果没有删除直接上传，会导致代码结果被破坏，而且不利于调试定位。需要通过修改代码来实现
+- 主要的优点是联调比较简单
+
+2. 通过ribbon的相关配置
+
+feign在子系统间调用时，主要是借助于ribbon进行负载均衡的，因此，我们可以通过配置ribbon属性，方便的进行联调。
+
+feign的配置如下：
+
+```java
+@FeignClient(name = "server-a", fallback = FeignApiFallbackComponent.class)
+```
+
+在spring boot开发时，我们通常会针对开发环境配置`application-dev.yaml`文件作为开发环境的配置。因此，我们可以在该文件中增加如下的配置，直接进行联调
+
+```yaml
+ribbon:
+  # eureka 注册中心
+  eureka:
+    enabled: false
+  # nacos 注册中心, spring.cloud.nacos.discovery.enabled=false
+  nacos:
+    enabled: false
+server-a:
+  ribbon:
+    listOfServers: localhost:8080
+    ServerListRefreshInterval: 15000
+```
+
+程序启动的时候，需要加上如下的程序参数
+
+```bash
+--spring.profiles.active=dev
+```
+
+通过这种方式，就可以直接在开发环境中进行联调，主要是通过spring boot的配置文件进行的。这种方式的主要优缺点如下
+
+- 主要的优点是，打包之后环境不同，不会相互影响，确保生产环境的正确性。在部署到生产环境之后，也可以通过该方式，测试子系统间的可用性
+- 主要的缺点是，需要增加一个配置文件
+
 ## 扩展
 
 ### Feign 源码执行流程
@@ -1522,6 +1574,60 @@ public class Holder {
 	 * SECURE_RANDOM
 	 */
 	public final static SecureRandom SECURE_RANDOM = new SecureRandom();
+}
+```
+
+### 支持以form表单形式提交数据（application/x-www-form-urlencoded）
+
+```java
+import feign.Logger;
+import feign.codec.Encoder;
+import feign.form.FormEncoder;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.FeignLoggerFactory;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.support.SpringEncoder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.web.bind.annotation.PostMapping;
+
+@FeignClient(name = "service-a", configuration = TestFeignClient.FormSupportConfig.class)
+public interface TestFeignClient {
+
+	@PostMapping(value = "/test",
+			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE},
+			produces = {MediaType.APPLICATION_JSON_UTF8_VALUE}
+	)
+	void post(Map<String, ?> queryParam);
+
+	class FormSupportConfig {
+		@Autowired
+		private ObjectFactory<HttpMessageConverters> messageConverters;
+
+		@Bean
+		Logger.Level feignLevel() {
+			return Logger.Level.FULL;
+		}
+
+	//	@Bean
+	//	FeignLoggerFactory infoFeignLoggerFactory() {
+	//		return new InfoFeignLoggerFactory();
+	//	}
+
+		/**
+		* new一个form编码器，实现支持form表单提交
+		* 注意这里方法名称，也就是bean的名称是什么不重要，
+		* 重要的是返回类型要是 Encoder 并且实现类必须是 FormEncoder 或者其子类
+		*/
+		@Bean
+		@Scope("prototype")
+		public Encoder feignFormEncoder() {
+			return new FormEncoder(new SpringEncoder(this.messageConverters));
+		}
+	}
 }
 ```
 

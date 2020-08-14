@@ -387,6 +387,9 @@ ribbon:
   MaxAutoRetriesNextServer: 1 #切换重试实例的最大个数
   MaxAutoRetries: 1 # 切换实例后重试最大次数
   NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule #修改负载均衡算法
+  eager-load:
+    enabled: true # 开启Ribbon的饥饿加载模式, 主要是Ribbon进行客户端负载均衡的Client并不是在服务启动的时候就初始化好的，而是在调用的时候才会去创建相应的Client，所以第一次调用的耗时不仅仅包含发送HTTP请求的时间，还包含了创建RibbonClient的时间，这样一来如果创建时间速度较慢，同时设置的超时时间又比较短的话，很容易出现第一次访问报错情况，建议在网关中开启。
+#   clients: 指定需要饥饿加载的服务名
 ```
 
 ### 指定服务进行配置

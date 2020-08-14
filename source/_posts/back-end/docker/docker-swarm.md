@@ -643,6 +643,18 @@ networks:
 
 > 注：dnsrr 不支持暴露端口。
 
+### 【Docker】启动container的时候出现iptables: No chain/target/match by that name
+
+**原因:**
+
+如果再启动docker service的时候网关是关闭的，那么docker管理网络的时候就不会操作网管的配置（chain docker），然后网关重新启动了，导致docker network无法对新container进行网络配置，也就是没有网管的操作权限，做重启处理
+
+```bash
+systemctl restart  docker
+```
+
+> 使用的centos7服务器，在部署docker的过程中，因端口问题有启停firewalld服务，在centos7里使用firewalld代替了iptables。在启动firewalld之后，iptables还会被使用，属于引用的关系。所以在docker run的时候，iptables list里没有docker chain，重启docker engine服务后会被加入到iptables list里面。
+
 ## 参考
 
 - [docker swarm](https://docs.docker.com/engine/swarm/)
