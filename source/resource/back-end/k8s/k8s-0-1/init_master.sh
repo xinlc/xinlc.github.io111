@@ -15,6 +15,8 @@ fi
 
 
 # 查看完整配置选项 https://godoc.org/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2
+# imageRepository: registry.aliyuncs.com/k8sxio # 最新镜像 https://github.com/zhangguanzhang/google_containers
+
 rm -f ./kubeadm-config.yaml
 cat <<EOF > ./kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta2

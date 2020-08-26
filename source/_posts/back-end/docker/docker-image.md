@@ -694,7 +694,7 @@ services:
       - '5380:8080'
     environment:
       - HTTP_USER=root
-      - HTTP_PASS=zkyc
+      - HTTP_PASS=123456
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -1057,6 +1057,93 @@ mysql -u sharding -h 1921.68.0.20 -P 13308 -p
 - `!!` 表示实例化该类
 - `-` 表示可以包含一个或多个
 - `[]` 表示数组，可以与减号相互替换使用
+
+## 常用 DB
+
+```yaml
+version: "3"
+
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    networks:
+      - net-dev
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /mnt/dev-data/db/mysql-data:/var/lib/mysql
+      - /mnt/dev-data/db/mysql.conf.d:/etc/mysql/mysql.conf.d
+
+  redis:
+    image: redis:5.0.5
+    container_name: redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass 123456
+    ports:
+      - "6379:6379"
+    networks:
+      - net-dev
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /mnt/dev-data/db/redis-data:/data
+
+  mongo:
+    image: mongo:4
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    networks:
+      - net-dev
+    volumes:
+      - /mnt/dev-data/db/mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express:0.54
+    restart: unless-stopped
+    ports:
+      - "27081:8081"
+    networks:
+      - net-dev
+
+networks:
+  net-dev:
+    external: true
+```
+
+## [Nexus3](https://github.com/sonatype/docker-nexus3)
+
+[Nexus3](https://www.sonatype.com/download-oss-sonatype/) 是一个仓库管理器，它极大地简化了本地内部仓库的维护和外部仓库的访问。支持多种仓库类型：Maven、npm、APT、Yum、PyPI、Docker、Helm、Go 等等。
+
+```bash
+docker volume create --name nexus-data
+docker run -d -p 8081:8081 --name nexus -v nexus-data:/nexus-data sonatype/nexus3 
+
+mkdir /some/dir/nexus-data && chown -R 200 /some/dir/nexus-data
+docker run -d -p 8081:8081 --name nexus -v /some/dir/nexus-data:/nexus-data sonatype/nexus3
+```
+
+```yaml
+version: "3"
+
+services:
+  nexus:
+    image: sonatype/nexus3
+    container_name: nexus
+    ports:
+      - "8002:8081"
+    restart: unless-stopped
+    environment:
+      # - NEXUS_CONTEXT=nexus
+      # - INSTALL4J_ADD_VM_PARAMS=-Xms2g -Xmx2g -XX:MaxDirectMemorySize=3g  -Djava.util.prefs.userRoot=/some-other-dir
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+      - /mnt/dev-data/nexus-data:/nexus-data # 注意修改目录用户为 200
+```
 
 ## 参考
 

@@ -214,8 +214,8 @@ ssh-keygen -t rsa -b 4096 -C xinlichao2016@gamil.com -f .ssh/201_id_rsa
 ssh-keygen -t rsa -b 4096 -C xinlichao2016@gamil.com -f .ssh/202_id_rsa
 
 # 上传
-sh-copy-id -i .ssh/201_id_rsa.pub root@192.168.2.201
-sh-copy-id -i .ssh/202_id_rsa.pub root@192.168.2.202
+ssh-copy-id -i .ssh/201_id_rsa.pub root@192.168.2.201
+ssh-copy-id -i .ssh/202_id_rsa.pub root@192.168.2.202
 
 # 第一种 添加 ssh-key 到 ssh-agent：
 ssh-add ~/.ssh/201_id_rsa
