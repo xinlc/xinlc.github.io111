@@ -163,23 +163,33 @@ SpringBoot默认使用`org.springframework.boot:spring-boot-maven-plugin` Maven�
 
 ```Dockerfile
 # 第一阶段
-FROM openjdk:8-jre as builder
+FROM openjdk:8-jre-alpine as builder
 
 WORKDIR application
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
 
 # ADD ./target/*.jar ./app.jar
 # ARG JAR_FILE=target/*.jar
-ARG JAR_FILE=./target/*.jar
-
-COPY ${JAR_FILE} app.jar
+# ARG JAR_FILE=./target/*.jar
+# COPY ${JAR_FILE} app.jar
 
 # 提取分层
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # 第二阶段
-FROM openjdk:8-jre
+# FROM adoptopenjdk/openjdk8
+FROM openjdk:8-jre-alpine
 
 MAINTAINER xinlichao2016@gmail.com
+
+# apk 镜像源
+#RUN echo -e "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/main\n\
+#https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/community" > /etc/apk/repositories
+
+# 安装字体库，easyexcel 依赖
+RUN apk --update add ttf-dejavu && \
+      rm -rf /var/cache/apk/*
 
 WORKDIR application
 
@@ -188,8 +198,14 @@ COPY --from=builder application/dependencies/ ./
 COPY --from=builder application/spring-boot-loader/ ./
 COPY --from=builder application/snapshot-dependencies/ ./
 COPY --from=builder application/application/ ./
-EXPOSE 80
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "org.springframework.boot.loader.JarLauncher"]
+
+ENV TZ="Asia/Shanghai" PORT=80 JAVA_OPTS=" " SPRING_OPTS=" "
+
+# VOLUME ["/logs"]
+
+EXPOSE $PORT
+
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.JarLauncher ${SPRING_OPTS}"]
 ```
 
 > 这个dockerfile表示先进行一次临时镜像构建标记为builder，并加载一次全量jar包，然后执行`java -Djarmode=layertools -jar app.jar extract`命令将jar包分解为分层打包目录，再次构建一个新镜像，按照(`java -Djarmode=layertools -jar app.jar list`)list的目录顺序分批将分层目录加载到docker镜像中。

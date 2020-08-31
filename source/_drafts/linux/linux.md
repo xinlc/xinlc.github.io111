@@ -487,3 +487,65 @@ wget ip:port
 # 查看tcp 连接数
 netstat -an |grep 'ESTABLISHED' |grep 'tcp' |wc -l
 ```
+
+## shell的dirname $0和readlink用法
+
+### 获取当前脚本路径
+
+```bash
+path.sh
+#!/bin/bash
+path=$(cd `dirname $0`;pwd)
+echo $path
+path2=$(dirname $0)
+echo $path2
+当前脚本存在路径：/home/software
+sh path.sh
+/home/software
+.
+解释：
+dirname $0 只是获取的当前脚本的相对路径.
+cd `dirname $0`;pwd  先cd到当前路径然后pwd，打印成绝对路径
+
+方法二：
+path.sh
+#!/bin/bash
+path=$(dirname $0)
+path2=$(readlink -f $path)
+echo path2
+sh path.sh
+/home/software
+解释：
+readlink -f $path 如果$path没有链接，就显示自己本身的绝对路径
+```
+
+### readlink
+
+```bash
+readlink是linux用来找出符号链接所指向的位置
+例1：
+readlink -f /usr/bin/awk
+结果：
+/usr/bin/gawk #因为/usr/bin/awk是一个软连接，指向gawk
+例2：
+readlink -f /home/software/log
+/home/software/log  #如果没有链接，就显示自己本身的绝对路径
+```
+
+### 获取路径的比较
+
+```bash
+path.sh
+#!/bin/bash
+PATH1=$(dirname $0)
+PATH2=$(cd `dirname $0`;pwd)
+PATH3=$(readlink -f $PATH1/..)
+echo $PATH1
+echo $PATH2
+echo $PATH3
+当前脚本存在路径：/home/software
+sh path.sh
+.              【echo $PATH1】
+/home/software 【echo $PATH2】
+/home          【echo $PATH3】
+```

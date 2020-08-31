@@ -300,6 +300,34 @@ public static void main(String[] args) {
 }
 ```
 
+类::实例方法二：
+
+```java
+public static void main(String[] args) {
+    RequestTemplate requestTemplate  = new RequestTemplate();
+
+    // 设置请求头，要求接口方法签名保持一致；
+    setHeader(requestTemplate::header);
+
+    public static void setHeader(TracingSetter tracingSetter) {
+        tracingSetter.set(tracingSetter);
+    }
+
+    /**
+     * Tracing信息设置器
+     */
+    public interface TracingSetter {
+        /**
+         * 设置tracing属性
+         *
+         * @param key   key
+         * @param value value
+         */
+        void set(String key, String value);
+    }
+}
+```
+
 ## Lambda Scopes
 
 从 Lambda 表达式中访问外部作用域中变量非常类似于匿名对象，可以访问本地的 final 变量、实例域以及静态变量。

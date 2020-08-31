@@ -378,6 +378,9 @@ vim 有强大的内容替换命令 s(substitute)，进行内容替换操作时�
 “gd'c     删除当前位置到标记c位置 并且把内容存到 字母寄存器 “g 中
 :reg      查看所有寄存器内容
 :reg      查看单个寄存器内容比如 :reg 1  :reg _
+gg"*yG    Normal Mode 复制全部到系统剪切板（gg"+yG)
+ggoG"+y   Visual Mode (linewise)
+VggoG"+y  Visual Mode (characterwise or blockwise)
 ```
 
 > 数字寄存器，也是最常用的 从 0-9。 如果不指定寄存器的名字，那么删除的内容，vim 默认是存到 1 ，复制内容是存到 0 号寄存器。 如果继续删除，那么原来 1 的内容就转到 2，类推，当删除超过 9 的时候， 原先的 8 号数字寄存器就转到 9， 原先 9 的数字寄存器内容就会丢失。

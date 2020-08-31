@@ -322,6 +322,8 @@ image_path="${docker_registry_uri}/${project_name}:${image_tag}"
 # package 签名
 package_lock="${project_path}/package-lock.json"
 package_md5_file="${work_path}/package-md5"
+# .gitignore 需要添加 package-md5, 不能被git跟踪否则每次构建会被删除
+touch $package_md5_file
 package_md5=$(head -n 1 ${package_md5_file})
 
 # 校验 package 版本
