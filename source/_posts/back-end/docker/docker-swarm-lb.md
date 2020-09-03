@@ -186,7 +186,8 @@ SandboxID 即为 "client" 容器的网络命名空间。
 使用如下命令，我们就能够进入到 "client" 容器的网络命令空间：
 
 ```bash
-nsenter --net=f3d1c4ef53f8 sh
+# nsenter --net=f3d1c4ef53f8 sh
+nsenter --net=be7330b99a27 sh
 ```
 
 下面，我们可以看到 iptables 的转发规则和 IPVS 输出：

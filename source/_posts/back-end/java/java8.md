@@ -303,29 +303,31 @@ public static void main(String[] args) {
 类::实例方法二：
 
 ```java
-public static void main(String[] args) {
-    RequestTemplate requestTemplate  = new RequestTemplate();
+...
+    public static void main(String[] args) {
+        RequestTemplate requestTemplate  = new RequestTemplate();
 
-    // 设置请求头，要求接口方法签名保持一致；
-    setHeader(requestTemplate::header);
+        // 设置请求头，要求接口方法签名保持一致；
+        setHeader(requestTemplate::header);
+    }
 
     public static void setHeader(TracingSetter tracingSetter) {
-        tracingSetter.set(tracingSetter);
+        tracingSetter.set("X-GroupId", "1");
+        tracingSetter.set("X-TracingId", "1");
     }
 
     /**
-     * Tracing信息设置器
-     */
+    * Tracing信息设置器
+    */
     public interface TracingSetter {
         /**
-         * 设置tracing属性
-         *
-         * @param key   key
-         * @param value value
-         */
+        * 设置tracing属性
+        *
+        * @param key   key
+        * @param value value
+        */
         void set(String key, String value);
     }
-}
 ```
 
 ## Lambda Scopes

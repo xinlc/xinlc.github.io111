@@ -412,6 +412,11 @@ git am <path/to/xxx.patch>
 
 # difftool 命令来用 Araxis ，emerge 或 vimdiff 等软件输出 diff 分析结果。
 git difftool
+
+# Git 导出某两次提交之间的差异文件 使用 –name-only 参数可以只显示文件名
+# 注意：执行本打包指令的时候，一定要在项目的根目录中执行，以为不论是在项目目录中的哪个位置，git diff指令输出的文件路径都是相对于项目根目录的，在非项目根目录下执行xargs tar的时候会提示找不到文件；
+git diff --name-only aee3668 HEAD | xargs tar -zcvf update.tar.gz
+git diff --name-only 608e120 4abe32e | xargs zip update.zip
 ```
 
 ## 分支操作

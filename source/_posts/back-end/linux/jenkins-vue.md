@@ -171,9 +171,10 @@ apk add nodejs=10.14.2-r0
 apk add npm=10.14.2-r0
 
 # 安装 node-sass 依赖
-set SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass/
+npm config set sass_binary_site=https://npm.taobao.org/mirrors/node-sass/
+npm config set registry https://registry.npm.taobao.org
 npm install node-sass
-# 或修改.npmrc
+# 或修改.npmrc（可以添加到项目下）
 sass_binary_site=https://npm.taobao.org/mirrors/node-sass/
 phantomjs_cdnurl=https://npm.taobao.org/mirrors/phantomjs/
 electron_mirror=https://npm.taobao.org/mirrors/electron/
