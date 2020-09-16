@@ -1553,13 +1553,13 @@ Escape character is '^]'.
 #### 解释
 
 在 Kubernetes 的网络中，Service 就是 ping 不通的。因为 Kubernetes 只是为 Service 生成了一个虚拟 IP 地址，实现的方式有：
-- [User space 代理模式](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#user-space-代理模式)
-- [Iptables 代理模式](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#iptables-代理模式)
-- [IPVS 代理模式](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#ipvs-代理模式)
+- [User space 代理模式](/back-end/k8s/k8s-services-networking/#user-space-代理模式)
+- [Iptables 代理模式](/back-end/k8s/k8s-services-networking/#iptables-代理模式)
+- [IPVS 代理模式](/back-end/k8s/k8s-services-networking/#ipvs-代理模式)
 
 不管是哪种代理模式，Kubernetes Service 的 IP 背后都没有任何实体可以响应「ICMP」，全称为 Internet 控制报文协议（Internet Control Message Protocol）。参考 [每天都在用的Ping命令，它到底是什么？](https://www.jianshu.com/p/dc9de5038874)
 
-通过 Service 访问 Pod 时的数据传递方式，可参考 [数据包的传递：Service-to-Pod](https://xinlichao.cn/back-end/k8s/k8s-services-networking/#数据包的传递：service-to-pod)
+通过 Service 访问 Pod 时的数据传递方式，可参考 [数据包的传递：Service-to-Pod](/back-end/k8s/k8s-services-networking/#数据包的传递：service-to-pod)
 
 ### 为什么我不能获取到镜像，ImagePullBackoff
 

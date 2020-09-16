@@ -300,7 +300,7 @@ docker-compose restart jira
 docker-compose restart confluence
 ```
 
-## 安装好后可以集成参考： [Jira Software 和 Confluence 集成](https://xinlichao.cn/back-end/linux/jira-integration-confluence/)
+## 安装好后可以集成参考： [Jira Software 和 Confluence 集成](/back-end/linux/jira-integration-confluence/)
 
 ## 参考
 

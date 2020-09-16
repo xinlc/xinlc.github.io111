@@ -9,7 +9,7 @@ tags:
   - CI/CD
 ---
 
-使用 Jenkins 实现简单部署 `Docker + SpringBoot + Maven` 聚合项目。Jenkins 安装参考 [Docker 安装 Jenkins](https://xinlichao.cn/back-end/linux/docker-jenkins/)
+使用 Jenkins 实现简单部署 `Docker + SpringBoot + Maven` 聚合项目。Jenkins 安装参考 [Docker 安装 Jenkins](/back-end/linux/docker-jenkins/)
 
 <!--more-->
 

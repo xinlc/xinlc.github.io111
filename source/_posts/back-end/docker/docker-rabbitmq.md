@@ -472,7 +472,7 @@ systemctl restart haproxy
 
 访问 http://192.168.174.13:8100/rabbitmq-stats 可以看到状态
 
-> [Keepalived 安装参考](https://xinlichao.cn/back-end/linux/lb-ha/)
+> [Keepalived 安装参考](/back-end/linux/lb-ha/)
 
 ## 集群镜像模式配置
 

@@ -150,7 +150,7 @@ CD/DVD 驱动器 1 更改为数据存储 ISO 文件， 并点击介质浏览
 
 ![36][36]
 
-## [CentOS 7 安装后的相关配置](https://xinlichao.cn/back-end/linux/linux-initial-centos7/#more)
+## [CentOS 7 安装后的相关配置](/back-end/linux/linux-initial-centos7/#more)
 
 [1]: /images/linux/vmware-esxi-centos7/1.jpg
 [2]: /images/linux/vmware-esxi-centos7/2.jpg

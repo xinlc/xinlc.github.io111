@@ -18,7 +18,7 @@ tags:
 
 ## Docker Swarm 接收外部请求的处理流程
 
-Docker swarm利用ingress overlay网络处理外部请求，并利用IPVS做外部负载均衡。[更多参考 Docker Swarm 之 服务发现和负载均衡原理](https://xinlichao.cn/back-end/docker/docker-swarm-lb/)
+Docker swarm利用ingress overlay网络处理外部请求，并利用IPVS做外部负载均衡。[更多参考 Docker Swarm 之 服务发现和负载均衡原理](/back-end/docker/docker-swarm-lb/)
 
 IPVS有三种NAT、IP Tunneling和 DR：
 

@@ -318,7 +318,7 @@ docker diff     # 显示容器文件系统的前后变化
 - `volume`：管理 Docker volume，包括查看、创建、删除等；
 - `wait`：阻塞直到一个容器终止，然后输出它的退出符。
 
-[Docker 常用镜像](https://xinlichao.cn/back-end/linux/docker-image)
+[Docker 常用镜像](/back-end/linux/docker-image)
 
 ## 参考
 

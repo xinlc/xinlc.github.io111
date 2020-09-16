@@ -113,7 +113,7 @@ Linux 知识地图
   - `bzip2`
     - 压缩与解压命令
     - 扩展名 `.bz2`
-- [Vim 文本编辑器](https://xinlichao.cn/tools/vim/)
+- [Vim 文本编辑器](/tools/vim/)
 
 #### 用户管理
 

@@ -17,7 +17,7 @@ Image 里面是一层层文件系统，叫做 Union FS（联合文件系统）�
 
 ## 镜像加速
 
-[CentOS7 安装 Docker](https://xinlichao.cn/back-end/linux/linux-install-docker)
+[CentOS7 安装 Docker](/back-end/linux/linux-install-docker)
 
 ```bash
 # 官方国内加速地址 https://www.docker-cn.com/registry-mirror

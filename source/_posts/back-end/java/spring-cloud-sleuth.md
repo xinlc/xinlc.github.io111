@@ -267,26 +267,181 @@ Collector 参考硬件规格：
 - 项目定期分组
 - 定期关注State报表和HDFS使用情况
 
+## APM系统概述
+
+APM (Application Performance Management) 即应用性能管理系统，是对企业系统即时监控以实现，对应用程序性能管理和故障管理的系统化的解决方案。应用性能管理，主要指对企业的关键业务应用进，行监测、优化，提高企业应用的可靠性和质量，保证用户得到良好的服务，降低IT总拥有成本。
+
+APM系统是可以帮助理解系统行为、用于分析性能问题的工具，以便发生故障的时候，能够快速定位和解决问题。
+
 ## SkyWalking 简介
+
+Skywalking与2016年11月2日由国人吴晟在Github上传v1.0版本，用于提供分布式链路追踪功能，从5.x开始，成为一个功能较为完善的APM（Application Performance Management）系统，2019年4月17日从Apache孵化器毕业，正式成为Apache顶级项目。提供分布式追踪、服务网格遥测分析、度量聚合和可视化一体化解决方案。官方对自己介绍是专为微服务，云原生和基于容器（Docker，Kubernetes，Mesos）架构而设计。
 
 - SkyWalking 是观察性分析平台和应用性能管理系统。
 - 提供分布式追踪、服务网格遥测分析、度量聚合和可视化一体化解决方案.
 - 支持Java, .Net Core, PHP, NodeJS, Golang, LUA语言探针
 - 支持Envoy + Istio构建的Service Mesh
 
+### Skywalking 主要功能
+
+- 服务，服务实例，端点指标分析
+- 根本原因分析
+- 服务拓扑图分析
+- 服务，服务实例和端点依赖性分析
+- 慢服务检测
+- 性能优化
+- 分布式跟踪和上下文传播
+- 数据库访问指标、检测慢速数据库访问语句（包括SQL）
+- 告警
+
+### Skywalking主要特性
+
+- 多种监控手段，语言探针和service mesh
+- 多语言自动探针，Java，.NET Core和Node.JS
+- 多种后端存储支持
+- 轻量高效
+- 模块化，UI、存储、集群管理多种机制可选
+- 支持告警
+- 优秀的可视化方案
+
 ### SkyWalking 架构设计
 
 ![14][14]
 
+整个架构，分成上、下、左、右四部分：
+
+- 上部分 Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器。目前支持 SkyWalking、Zikpin、Jaeger 等提供的 Tracing 数据信息。而我们目前采用的是，SkyWalking Agent 收集 SkyWalking Tracing 数据，传递给服务器。
+- 下部分 SkyWalking OAP ：负责接收 Agent 发送的 Tracing 数据信息，然后进行分析(Analysis Core) ，存储到外部存储器( Storage )，最终提供查询( Query )功能。
+- 右部分 Storage ：Tracing 数据存储。目前支持 ES、MySQL、Sharding Sphere、TiDB、H2 多种存储器。而我们目前采用的是 ES ，主要考虑是 SkyWalking 开发团队自己的生产环境采用 ES 为主。
+- 左部分 SkyWalking UI ：负责提供控台，查看链路等等。
+
 SkyWalking 的核心是数据分析和度量结果的存储平台，通过 HTTP 或 gRPC 方式向 SkyWalking Collecter 提交分析和度量数据，SkyWalking Collecter 对数据进行分析和聚合，存储到 Elasticsearch、H2、MySQL、TiDB 等其一即可，最后我们可以通过 SkyWalking UI 的可视化界面对最终的结果进行查看。Skywalking 支持从多个来源和多种格式收集数据：多种语言的 Skywalking Agent 、Zipkin v1/v2 、Istio 勘测、Envoy 度量等数据格式。
+
+要用 Skywalking 监控一个应用，需要在其 VM 参数中添加 “-javaagent:skywalking-agent.jar”（省略skywalking-agent.jar的完整路径），这其实用了Java探针技术，算是个比较老的技术了，Java Agent 是从 JDK1.5 开始引入的，用一句概括其功能的话就是“在main()函数之前的一个拦截器”，也就是在执行main函数前，先执行Agent中的代码。
 
 Skywalking Java Agent 支持库：
 
 - https://github.com/apache/skywalking/blob/master/docs/en/setup/service-agent/java-agent/Supported-list.md
 
+### 官方文档
+
+- 在 https://github.com/apache/skywalking/tree/master/docs 地址下，提供了 SkyWalking 的英文文档。
+- 在 https://github.com/SkyAPM/document-cn-translation-of-skywalking 地址，提供了 SkyWalking 的中文文档。
+
+### [使用 Docker 安装 SkyWalking](https://github.com/apache/skywalking-docker)
+
+存储库默认使用 ES，安装 SkyWalking 前请先 [安装 ELK](/back-end/docker/docker-elk/#more)
+
+搭建一个 SkyWalking 单机环境，步骤如下：
+
+- 第一步，搭建一个 Elasticsearch 服务。
+- 第二步，下载 SkyWalking 软件包。
+- 第三步，搭建一个 SkyWalking OAP 服务。
+- 第四步，启动一个 Spring Boot 应用，并配置 SkyWalking Agent。
+- 第五步，搭建一个 SkyWalking UI 服务。
+
+**docker-compose.yaml：**
+
+```yaml
+version: '3.8'
+
+services:
+  oap:
+    image: apache/skywalking-oap-server:8.1.0-es7
+    container_name: oap
+    restart: always
+    ports:
+      - 11800:11800
+      - 12800:12800
+    networks:
+      - oap
+      - elastic
+    healthcheck:
+      test: ["CMD-SHELL", "/skywalking/bin/swctl"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    environment:
+      SW_STORAGE: elasticsearch7
+      SW_STORAGE_ES_CLUSTER_NODES: es01:9200
+  ui:
+    image: apache/skywalking-ui:8.1.0
+    container_name: oap-ui
+    depends_on:
+      - oap
+    restart: always
+    ports:
+      - 9301:8080
+    networks:
+      - oap
+    environment:
+      SW_OAP_ADDRESS: oap:12800
+
+networks:
+  oap:
+    driver: bridge
+  elastic:
+    external: true
+```
+
+> 如果您打算覆盖配置文件 /skywalking/config，请在 /skywalking/ext-config 放置其他文件，具有相同名称的文件将被覆盖。
+
 ### Spring Cloud 整合 SkyWalking
 
-待完善……
+到 http://skywalking.apache.org/downloads/ 地址下载Skywalking的压缩包，解压后将我们需要将 apache-skywalking-apm-bin-es7/agent 目录，拷贝到 Java 应用所在的服务器上。
+
+配置 Java 启动脚本
+
+```bash
+# SkyWalking Agent 配置
+export SW_AGENT_NAME=demo-app # 配置 Agent 名字。一般来说，我们直接使用 Spring Boot 项目的 `spring.application.name` 或用 -Dskywalking.agent.service_name=demo-app 指定。
+export SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.2.202:11800 # 配置 Collector 地址。或用 -Dskywalking.collector.backend_service=192.168.2.202:11800
+export SW_AGENT_SPAN_LIMIT=2000 # 配置链路的最大 Span 数量。一般情况下，不需要配置，默认为 300 。主要考虑，有些新上 SkyWalking Agent 的项目，代码可能比较糟糕。
+export JAVA_AGENT=-javaagent:~/apache-skywalking-apm-bin-es7/agent/skywalking-agent.jar # SkyWalking Agent jar 地址。
+
+# Jar 启动, 可以在 apache-skywalking-apm-bin-es7/agent/agent/logs/skywalking-api.log 查看对应的 SkyWalking Agent 日志。
+java -jar $JAVA_AGENT -jar demo-app-1.0.0.RELEASE.jar
+```
+
+> 更多的变量，可以在 apache-skywalking-apm-bin-es7/agent/config/agent.config 查看。
+
+完事，可以去 SkyWalking UI 查看是否链路收集成功。
+
+1. 首先，使用浏览器，请求下 Spring Boot 应用提供的 API。因为，我们要追踪下该链路。
+2. 然后，继续使用浏览器，打开 http://192.168.2.202:9301/ 地址，进入 SkyWalking UI 界面。
+
+> 如果看不到数据，需要稍定几秒，因为 agent 上传的链路数据给 OAP 是异步的。
+
+SkyWalking 中非常重要的三个概念：
+
+- 服务(Service) ：表示对请求提供相同行为的一系列或一组工作负载。在使用 Agent 或 SDK 的时候，你可以定义服务的名字。如果不定义的话，SkyWalking 将会使用你在平台（例如说 Istio）上定义的名字。
+- 服务实例(Service Instance) ：上述的一组工作负载中的每一个工作负载称为一个实例。就像 Kubernetes 中的 pods 一样, 服务实例未必就是操作系统上的一个进程。但当你在使用 Agent 的时候, 一个服务实例实际就是操作系统上的一个真实进程。
+- 端点(Endpoint) ：对于特定服务所接收的请求路径, 如 HTTP 的 URI 路径和 gRPC 服务的类名 + 方法签名。
+
+> 在 SkyWalking 中，每个被监控的实例的名字，会包含 hostname，格式为：{agent_name}-pid:{pid}@{hostname}。所以要正确设置服务器的 hostname，不然会显示一个很长的字符串。
+
+### 搭建 SkyWalking 集群环境
+
+在生产环境下，我们一般推荐搭建 SkyWalking 集群环境。当然，也可以在生产环境下使用 SkyWalking 单机环境，毕竟 SkyWalking 挂了之后，不影响业务的正常运行。
+
+搭建一个 SkyWalking 集群环境，步骤如下：
+
+- 第一步，搭建一个 Elasticsearch 服务的集群。
+- 第二步，搭建一个注册中心的集群。目前 SkyWalking 支持 Zookeeper、Kubernetes、Consul、Nacos 作为注册中心。
+- 第三步，搭建一个 SkyWalking OAP 服务的集群，同时参考[《SkyWalking 文档 —— 集群管理》](https://github.com/SkyAPM/document-cn-translation-of-skywalking/blob/master/docs/zh/8.0.0/setup/backend/backend-cluster.md)，将 SkyWalking OAP 服务注册到注册中心上。
+- 第四步，启动一个 Spring Boot 应用，并配置 SkyWalking Agent。另外，在设置 SkyWaling Agent 的 `SW_AGENT_COLLECTOR_BACKEND_SERVICES` 地址时，需要设置多个 SkyWalking OAP 服务的地址数组。
+- 第五步，搭建一个 SkyWalking UI 服务的集群，同时使用 Nginx 进行负载均衡。另外，在设置 SkyWalking UI 的 `collector.ribbon.listOfServers` 地址时，也需要设置多个 SkyWalking OAP 服务的地址数组。
+
+### 告警
+
+在 SkyWaling 中，已经提供了告警功能，具体可见[《SkyWalking 文档 —— 告警》](https://github.com/SkyAPM/document-cn-translation-of-skywalking/blob/master/docs/zh/8.0.0/setup/backend/backend-alarm.md)。
+
+默认情况下，SkyWalking 已经[内置告警规则](https://github.com/SkyAPM/document-cn-translation-of-skywalking/blob/master/docs/zh/8.0.0/setup/backend/backend-alarm.md#%E9%BB%98%E8%AE%A4%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99)。同时，我们可以参考[告警规则](https://github.com/SkyAPM/document-cn-translation-of-skywalking/blob/master/docs/zh/8.0.0/setup/backend/backend-alarm.md#%E8%A7%84%E5%88%99)，进行自定义。
+
+
+因为有些服务器未正确设置 hostname ，所以我们一定要去修改，不然都不知道是哪个服务器上的实例（😈 鬼知道 "iZbp1e2xlyvr7fh67qi59oZ" 一串是哪个服务器啊）。
+
 
 ## Open Tracing 简介
 
@@ -328,6 +483,7 @@ Skywalking Java Agent 支持库：
 - https://github.com/apache/skywalking/
 - https://github.com/jaegertracing/jaeger/
 - https://github.com/opentracing/
+- https://github.com/SkyAPM/document-cn-translation-of-skywalking
 - 《微服务架构实战》
 - 《Spring Boot & Kubernetes 云原生微服务实践》
 - 《从0开始学微服务》

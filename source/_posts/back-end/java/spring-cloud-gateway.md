@@ -1978,6 +1978,25 @@ public class DynamicRouteScheduling {
   </dependency>
 ```
 
+### reactor.netty.http.client.PrematureCloseException: Connection has been closed BEFORE response, while sending request body
+
+原因：请求没有发送完下游服务关闭了连接，下游服务 tomcat 默认2MB请求限制，导致请求体被截断，controller 对请求参数有校验，被截断的内容校验没通过抛出异常关闭了连接。
+
+解决：修改下游服务请求限制大小即可。
+
+```yaml
+server:
+  max-http-header-size: 4048576
+  tomcat:
+    max-http-post-size: 100MB  #请求参数长度
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB  #单个文件的最大上限
+      max-request-size: 100MB #单个请求的文件总大小上限
+```
+
 ## 参考
 
 - https://spring.io/projects/spring-cloud-gateway
