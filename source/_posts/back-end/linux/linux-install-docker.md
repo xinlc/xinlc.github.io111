@@ -174,6 +174,7 @@ docker rm $(docker ps -a | grep "Exited" | awk '{print $1 }') # 删除容器
 docker rmi $(docker images | grep "none" | awk '{print $3}')  # 删除<none>镜像
 docker rmi $(docker images -f "dangling=true" -q) # 删除<none>镜像
 docker image prune -f # 删除所有悬空映像 -f 不提示。如果-a指定，还将删除任何容器未引用的所有映像
+docker system prune -f # 删除 已停止的容器（container）,未被任何容器所使用的卷（volume）,未被任何容器所关联的网络（network）,所有悬空镜像（image）。该指令默认只会清除悬空镜像，未被使用的镜像不会被删除,添加 -a 或 --all 参数后，可以一并清除所有未使用的镜像和悬空镜像。
 
 # 格式化输出
 docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}\t{{.Status}}"
@@ -317,6 +318,66 @@ docker diff     # 显示容器文件系统的前后变化
 - `version`：输出 Docker 的版本信息；
 - `volume`：管理 Docker volume，包括查看、创建、删除等；
 - `wait`：阻塞直到一个容器终止，然后输出它的退出符。
+
+## 清理空间
+
+```bash
+# 清理空间
+sudo docker rm -v $(sudo docker ps -a -q -f status=exited)
+sudo docker rmi -f  $(sudo docker images -f "dangling=true" -q)
+docker volume ls -qf dangling=true | xargs -r docker volume rm
+
+# 清理 已停止的容器（container）,未被任何容器所使用的卷（volume）,未被任何容器所关联的网络（network）,所有悬空镜像（image）。该指令默认只会清除悬空镜像，未被使用的镜像不会被删除,添加 -a 或 --all 参数后，可以一并清除所有未使用的镜像和悬空镜像。
+sudo docker system prune -a -f
+
+# 每天01点10分执行
+# crontab -e
+# 10 01 * * * docker system prune -f
+```
+
+### overlay2 占用大量磁盘空间处理方法
+
+针对/var/lib/docker/overlay2空间占用很大网上提供了很多解决方案，其中有些误导的说法需要去迁移路径等操作。其实磁盘空间的占用和overlay没关系（它的usage和真实的disk usage相同），它只是一个docker的虚拟文件系统，真实的文件系统是前者/dev/vda1,可以看到路径所指为根目录，所以你要去找是哪里出现了垃圾。
+
+往往占用大量空间的日志文件位于containers下, 在目录中会存在以目录名为前缀，以“-json.log”为后缀的目录文件。使用如下命令会看到该文件的大小：
+
+```bash
+# 查看目录下文件大小
+ll -h
+
+# 或
+du -sh *
+```
+
+然后可使用如下命令对该文件的内容进行清理：
+
+```bash
+cat /dev/null > *-json.log
+```
+
+**docker_log_size.sh：**
+
+```bash
+# 计算容器日志大小脚本
+echo "======== docker containers logs file size ========"
+logs=$(find /var/lib/docker/containers/ -name *-json.log)
+for log in $logs; do
+  ls -lh $log
+done
+```
+
+**clean_docker_log.sh：**
+
+```bash
+# 清理容器日志大小脚本
+echo "======== start clean docker containers logs ========"
+logs=$(find /var/lib/docker/containers/ -name *-json.log)
+for log in $logs; do
+  echo "clean logs : $log"
+  cat /dev/null >$log
+done
+echo "======== end clean docker containers logs ========"
+```
 
 [Docker 常用镜像](/back-end/linux/docker-image)
 
