@@ -238,6 +238,101 @@ show columns from MyClass;
 # 命令：drop table <表名>
 ```
 
+## docker-compose 部署 MySQL8 版本
+
+```yaml
+version: '3'
+
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    command:
+    # MySQL8的密码验证方式默认是 caching_sha2_password，但是很多的连接工具还不支持该方式
+    # 就需要手动设置下mysql的密码认证方式为以前的 mysql_native_password 方式
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+    # docker的重启策略：在容器退出时总是重启容器，但是不考虑在Docker守护进程启动时就已经停止了的容器
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password # root用户的密码
+      MYSQL_USER: user # 创建新用户
+      MYSQL_PASSWORD: user_password # 新用户的密码
+    ports:
+      - 3306:3306
+    volumes:
+      - ~/docker/mysql/data:/var/lib/mysql
+      - ~/docker/mysql/conf:/etc/mysql/conf.d
+      - ~/docker/mysql/logs:/logs
+```
+
+这里有个小坑就是创建的用户还需要先使用root用户登陆以后给它赋予相关的权限才可以使用它进行数据库的连接：
+
+```bash
+docker exec -it mysql1 mysql -uroot -p
+
+grant all privileges on dbname.tablename to 'username'@'ip';
+# 比如想给用户user赋予数据库test所有的表的权限并且不限制root用户的连接地址，代码如下
+grant all privileges on test.* to 'user'@'%';
+flush privileges; # 刷新权限
+```
+
+## 安装 [mysql-server:8.0.22](https://hub.docker.com/r/mysql/mysql-server/)
+
+> 目前只有 mysql-server:8.x 镜像支持 arm64
+
+```bash
+# 启动镜像
+docker run --name=mysql1 -d -p 3306:3306 mysql/mysql-server:8.0.22
+
+# 获取初始密码
+docker logs mysql1 2>&1 | grep GENERATED
+
+# 使用该命令从docker log里获取初始密码。之后访问mysql，不支持跨域，得用容器方法访问,把刚才密码输进去进入mysql的terminal，之后就可以改密码了。
+docker exec -it mysql1 mysql -uroot -p
+
+# password 替换成你的密码
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';
+
+# 如要支持端口访问，需要修改跨域
+use mysql;
+update user set host='%' where user='root';
+flush privileges;
+
+# 建个新用户
+create database mydb;
+create user 'userName'@'%' identified by 'password';
+grant all privileges on mydb.* to userName@'%';
+flush privileges;
+
+# 进入容器拷贝配置文件，到宿主主机。
+docker cp mysql1:/etc/my.cnf ./my.cnf
+```
+
+```yaml
+version: "3"
+
+services:
+  mysql:
+    image: mysql/mysql-server:8.0.22
+    container_name: mysql8
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    networks:
+      - net-dev
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+      - ./my.cnf:/etc/my.cnf
+
+networks:
+  net-dev:
+    external: true
+```
+
 ## [Zookeeper](https://hub.docker.com/_/zookeeper)
 
 ```bash
