@@ -549,3 +549,26 @@ sh path.sh
 /home/software 【echo $PATH2】
 /home          【echo $PATH3】
 ```
+
+## 运行 jar
+
+```bash
+#!/bin/sh
+_service="auth"
+ps -ef | grep -v grep | grep $_service > /dev/null 2>&1
+if [ $? -eq 0 ];then
+   echo "$_service service is runing ,checked in `date +"%Y-%m-%d %H:%M:%S"`" >> /home/shell/check.log
+else
+   echo "$_service service is not running in HuaXin" | mail -s "$_service Alert in HuaXin" xinlichao2016@gmail.com
+fi
+
+#!/bin/sh
+_dir="/home/backend"
+
+_mod="auth";_port=8100
+echo "Restarting java $_mod on port $_port..."
+cd $_dir/$_mod/
+_pid=`/usr/bin/ps -ef |grep java |grep $_mod | awk '{print $2}'`
+kill -9 $_pid
+nohup /opt/jdk/bin/java -jar $_mod.jar --spring.profiles.active=test --server.port=$_port> $_dir/logs/$_mod.log 2>&1 &  #port 8100
+```

@@ -1193,6 +1193,13 @@ public static void reduce(){
             }));
     System.out.println(collect);
 }
+// 转换成新对象
+List<NewObj> = oldObj.stream().collect(ArrayList::new, (l, o) -> {
+    NewObj obj = new NewObj()
+    obj.setName(o.getName());
+    // ...
+    l.add(o);
+}, List::addAll);
 ```
 
 ### Match

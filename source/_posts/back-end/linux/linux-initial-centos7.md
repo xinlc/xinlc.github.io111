@@ -217,7 +217,7 @@ ssh-keygen -t rsa -b 4096 -C xinlichao2016@gamil.com -f .ssh/202_id_rsa
 ssh-copy-id -i .ssh/201_id_rsa.pub root@192.168.2.201
 ssh-copy-id -i .ssh/202_id_rsa.pub root@192.168.2.202
 
-# 第一种 添加 ssh-key 到 ssh-agent：
+# 第一种 添加 ssh-key 到 ssh-agent, 添加代理，这是为了让请求自动对应相应的账号，git ssh 多账号也可用该方法
 ssh-add ~/.ssh/201_id_rsa
 ssh-add ~/.ssh/202_id_rsa
 

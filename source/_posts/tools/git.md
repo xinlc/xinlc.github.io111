@@ -960,6 +960,29 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
 生成的 key 保存在`~/.ssh`目录 id_rsa（私钥）和 id_rsa.pub（公钥）两个文件
 
+### 多个账户秘钥
+
+```bash
+# 更改公私钥文件名后，使用 ssh-add 添加到代理。这种方式每次开机都要添加，可以把命令添加到 .bashrc 文件
+ssh-add ~/.ssh/xxx_rsa
+
+# 或者使用 ./ssh/config
+
+# 个人的
+Host github.com-xinlc
+  User git
+  Hostname github.com
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/github01_rsa
+
+# 组织的
+Host github.com-orgname
+  User git
+  Hostname github.com
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/github02_rsa
+```
+
 ## 解决冲突
 
 `git status` 可以告诉我们冲突的文件。
