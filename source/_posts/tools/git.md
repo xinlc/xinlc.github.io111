@@ -508,6 +508,10 @@ git branch -D <branch-name>
 git push origin --delete <branch-name>
 git push origin :<branch-name>
 git branch -dr <remote/branch>
+
+# 重命名分支
+git branch -m master main
+git push -u origin main
 ```
 
 ## 标签

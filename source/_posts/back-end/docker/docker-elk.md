@@ -438,3 +438,8 @@ logstash-plugin install logstash-codec-json_lines
 - https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
 - https://www.elastic.co/guide/en/kibana/current/docker.html
 - https://www.elastic.co/guide/en/logstash/current/docker.html
+- https://www.elastic.co/cn/blog/how-to-make-a-dockerfile-for-elasticsearch
+- https://www.elastic.co/cn/blog/elasticsearch-docker-plugin-management
+- https://www.elastic.co/cn/blog/docker-networking
+- https://github.com/lmenezes/cerebro
+- https://github.com/helm/charts/tree/master/stable/elastic-stack

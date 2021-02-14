@@ -55,6 +55,14 @@ highlight:
   wrap: true
   hljs: false
 
+# highlight:
+#   enable: false
+# prismjs:
+#   enable: true
+#   preprocess: true
+#   line_number: true
+#   tab_replace: ''
+
 # Home page setting
 # path: Root path for your blogs index page. (default = '')
 # per_page: Posts displayed per page. (0 = disable pagination)
@@ -222,3 +230,16 @@ theme_config:
     在线工具/索引: http://tool.oschina.net/
     ToolBox: http://tool.lu/
     设计导航: http://hao.shejidaren.com/
+
+  codeblock:
+    # Code Highlight theme
+    # Available values: normal | night | night eighties | night blue | night bright | solarized | solarized dark | galactic
+    # See: https://github.com/chriskempson/tomorrow-theme
+    highlight_theme: normal
+    # Add copy button on codeblock
+    copy_button:
+      enable: true
+      # Show text copy result.
+      show_result: true
+      # Available values: default | flat | mac
+      style: mac
