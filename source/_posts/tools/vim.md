@@ -321,7 +321,7 @@ ctrl + r # 返回上一步
 
 vim 有强大的内容替换命令 s(substitute)，进行内容替换操作时，注意：如何指定替换文件范围、是否整词匹配、是否逐一确认后再替换。
 
-```
+```vim
 :[range]s/{pattern}/{string}/[flags]
 ```
 
@@ -335,6 +335,13 @@ vim 有强大的内容替换命令 s(substitute)，进行内容替换操作时�
 - `:n,$s/vivian/sky/g` 替换第 n 行开始到最后一行中每一行所有 vivian 为 sky；
 - `:21,27s/^/#/g` 行首替换`#`替换（增加）掉；
 - `:ab mymail asdf@qq.com` 输入`mymail` 摁下空格自动替换成`asdf@qq.com`；
+
+### 批量修改数字（加1，减1）
+
+```vim
+:%s/\d\+/\=submatch(0)+1/
+:%s/\d\+/\=submatch(0)-1/
+```
 
 ## 标记 mark
 
@@ -392,7 +399,6 @@ qa 把的操作记录在寄存器 a，于是 @a 会 replay 被录制的宏，@@ 
 ```bash
 # 在一个只有一行且这一行只有“1”的文本中，键入如下命令：
 
-qaYp<C-a>q→
 qa 开始录制
 Yp 复制行.
 <C-a> 增加1.
