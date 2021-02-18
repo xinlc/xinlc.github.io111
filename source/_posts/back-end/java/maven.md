@@ -256,7 +256,7 @@ Maven 包含了一个项目对象模型(Project Object Model)，一组标准集�
          <!--SCM里项目开发者的唯一标识符-->
             <id>HELLO WORLD</id>  
             <!--项目开发者的全名-->
-            <name>Leo</name>  
+            <name>Richard</name>  
             <!--项目开发者的email-->
             <email>xinlichao2016@gmail.com</email>  
             <!--项目开发者的主页的URL-->

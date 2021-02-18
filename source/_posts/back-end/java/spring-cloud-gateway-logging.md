@@ -58,7 +58,7 @@ import java.util.logging.Level;
 /**
  * 访问日志全局过滤器
  *
- * @author Leo
+ * @author Richard
  * @date 2020.03.02
  */
 @Configuration

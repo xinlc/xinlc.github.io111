@@ -795,7 +795,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 配置 Feign
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.17
  */
 @Configuration
@@ -1046,7 +1046,7 @@ import java.util.Enumeration;
  * <p>
  * 服务间进行 Feign 调用时，不会传递请求头信息。通过实现 RequestInterceptor 接口，完成对所有的 Feign 请求，传递请求头和请求参数。
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.19
  */
 public class FeignRequestHeaderInterceptor implements RequestInterceptor {
@@ -1085,7 +1085,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 /**
- * @author Leo
+ * @author Richard
  * @date 2020.02.28
  */
 public final class OkHttpUtil {
@@ -1152,7 +1152,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * OkHttp log
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.28
  */
 public final class OkHttpLogInterceptor implements Interceptor {
@@ -1384,7 +1384,7 @@ import lombok.Getter;
 /**
  * OkHttp 请求日志级别
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.28
  */
 @Getter
@@ -1485,7 +1485,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * OkHttp Slf4j logger
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.28
  */
 @Slf4j
@@ -1507,7 +1507,7 @@ import java.security.cert.X509Certificate;
 /**
  * 不进行证书校验
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.28
  */
 public class DisableValidationTrustManager implements X509TrustManager {
@@ -1538,7 +1538,7 @@ import javax.net.ssl.SSLSession;
 /**
  * 信任所有 host name
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.28
  */
 public class TrustAllHostNames implements HostnameVerifier {
@@ -1560,7 +1560,7 @@ import java.util.Random;
 /**
  * 一些常用的单例对象
  *
- * @author Leo
+ * @author Richard
  * @date 2020.02.28
  */
 public class Holder {

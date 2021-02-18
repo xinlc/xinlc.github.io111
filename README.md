@@ -1,4 +1,4 @@
-# Leo Xin's Blog
+# Richard Xin's Blog
 
 ## [Hexo Commands](https://hexo.io/zh-cn/docs/commands.html)
 

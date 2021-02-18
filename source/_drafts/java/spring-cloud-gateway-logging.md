@@ -60,7 +60,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * 访问日志全局过滤器
  *
- * @author Leo
+ * @author Richard
  */
 //@Component
 @Configuration

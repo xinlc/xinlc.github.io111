@@ -140,8 +140,8 @@ pipeline {
 ##
 ## 测试环境部署脚本
 ##
-## Started on 2019/10/28 Leo <xinlichao2016@gmail.com>
-## Last update 2019/10/28 Leo <xinlichao2016@gmail.com>
+## Started on 2019/10/28 Richard <xinlichao2016@gmail.com>
+## Last update 2019/10/28 Richard <xinlichao2016@gmail.com>
 ##
 
 version="1.0.0"

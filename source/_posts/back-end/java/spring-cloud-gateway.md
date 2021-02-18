@@ -1110,7 +1110,7 @@ import java.util.List;
 /**
  * 异常处理配置类, 覆盖默认的异常处理
  *
- * @author Leo
+ * @author Richard
  */
 @Configuration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
@@ -1175,7 +1175,7 @@ import java.util.Map;
 /**
  * 自定义异常 Handler
  *
- * @author Leo
+ * @author Richard
  */
 @Slf4j
 public class CustomErrorWebExceptionHandler extends DefaultErrorWebExceptionHandler {
@@ -1235,7 +1235,7 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * 网关异常通知
  *
- * @author Leo
+ * @author Richard
  */
 @Slf4j
 @Component
@@ -1355,7 +1355,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 /**
  * Swagger 配置
  *
- * @author Leo
+ * @author Richard
  */
 @Configuration
 @EnableSwagger2
@@ -1376,7 +1376,7 @@ public class SwaggerConfig {
 		return new ApiInfoBuilder()
 				.title("auth 服务")
 				.description("<div style='font-size:14px;color:red;'>授权，认证服务</div>")
-				.contact("Leo")
+				.contact("Richard")
 				.version("1.0")
 				.build();
 	}
@@ -1414,7 +1414,7 @@ import java.util.List;
 /**
  * Swagger 聚合配置
  *
- * @author Leo
+ * @author Richard
  */
 @Slf4j
 @Component
@@ -1468,7 +1468,7 @@ import org.springframework.web.server.ServerWebExchange;
  * 在 Swagger 中会根据 X-Forwarded-Prefix 这个 Header 来获取 BasePath，
  * 而 Gateway 在做转发的时候并没有这个 Header 添加进 Request，所以发生接口调试的 404 错误，
  *
- * @author Leo
+ * @author Richard
  */
 @Component
 public class SwaggerHeaderFilter extends AbstractGatewayFilterFactory<SwaggerHeaderFilter.Config> {
@@ -1571,7 +1571,7 @@ import java.util.List;
 /**
  * 路由模型
  *
- * @author Leo
+ * @author Richard
  */
 @Data
 @AllArgsConstructor
@@ -1606,7 +1606,7 @@ import java.util.Map;
 /**
  * 路由断言模型
  *
- * @author Leo
+ * @author Richard
  */
 @Data
 @AllArgsConstructor
@@ -1632,7 +1632,7 @@ import java.util.Map;
 /**
  * 过滤器模型
  *
- * @author Leo
+ * @author Richard
  */
 @Data
 @AllArgsConstructor
@@ -1666,7 +1666,7 @@ import reactor.core.publisher.Mono;
 /**
  * 动态路由服务
  *
- * @author Leo
+ * @author Richard
  */
 @Service
 public class DynamicRouteService implements ApplicationEventPublisherAware {
@@ -1743,7 +1743,7 @@ import java.util.List;
 /**
  * 动态路由控制器
  *
- * @author Leo
+ * @author Richard
  */
 @RestController
 @RequestMapping("/route")
@@ -1865,7 +1865,7 @@ import java.util.List;
 /**
  * 定时任务，拉取路由信息
  *
- * @author Leo
+ * @author Richard
  */
 @Component
 @Slf4j

@@ -86,7 +86,7 @@ import javax.sql.DataSource;
 /**
  * Druid 配置
  *
- * @author Leo
+ * @author Richard
  * @date 2020.05.07
  */
 @Configuration

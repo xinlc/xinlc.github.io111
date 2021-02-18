@@ -296,7 +296,7 @@ function Subtr(arg1, arg2) {
 
 ```js
 /**
- * Leo：根据生日计算星座
+ * Richard：根据生日计算星座
  * @param  {[type]} birthday [description]
  * @return {[type]}          [description]
  */

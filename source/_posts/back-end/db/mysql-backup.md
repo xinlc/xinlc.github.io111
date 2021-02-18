@@ -272,8 +272,8 @@ mysqlbinlog mysql-bin.0000xx | mysql -u用户名 -p密码 数据库名
 ##
 ## 删除备份文件
 ##
-## Started on 2019/11/8 Leo <xinlichao2016@gmail.com>
-## Last update 2019/11/8 Leo <xinlichao2016@gmail.com>
+## Started on 2019/11/8 Richard <xinlichao2016@gmail.com>
+## Last update 2019/11/8 Richard <xinlichao2016@gmail.com>
 ##
 
 BAKINCRE_PATH=/home/leo/mysqlbackup/bakincre

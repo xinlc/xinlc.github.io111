@@ -894,7 +894,7 @@ git filter-branch --subdirectory-filter trunk HEAD
 git filter-branch --commit-filter '
       if [ "$GIT_AUTHOR_EMAIL" = "leo@localhost" ];
       then
-        GIT_AUTHOR_NAME="Leo";
+        GIT_AUTHOR_NAME="Richard";
         GIT_AUTHOR_EMAIL="leo@example.com";
         git commit-tree "$@";
       else
