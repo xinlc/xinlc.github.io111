@@ -7,9 +7,35 @@ tags:
   - linux
 ---
 
-## [iTerm2](https://www.iterm2.com/downloads.html)
+## [iTerm2](https://iterm2.com)
 
-### 安装 zsh
+iTerm2 + Oh My Zsh 打造舒适终端体验。
+
+iTerm2是默认终端的替代品，也是目前Mac系统下最好用的终端工具，集颜值和效率于一身。
+
+## 安装iTerm2
+
+- https://www.iterm2.com/downloads.html
+
+### 迁移配置
+
+导入配置
+
+> Preferences -> Profiles -> Other Actions -> import JSON Profiles，然后设置为默认配置。
+
+### 调整 Status Bar
+
+将 iTerm2 自带 theme 修改为 `Minimal` 以达到顶栏沉浸式的效果
+
+> Preferences -> Appearance -> General -> Theme
+
+可以在Profiles选项卡，Session页面最底部看到开启选项。Status bar enabled 选项，勾选上即可打开。点击右边的 Configure Status Bar 按钮可设置显示的内容。
+
+可以看到能显示的内容非常多，把上方要显示的内容拖动到下方 Active Components 区域即添加。
+
+在Preference页面中点击Appearance选项卡，可以设置Status bar的位置，修改 Status bar location，我这里改到Bottom底部。
+
+## 安装 zsh
 
 ```bash
 brew install zsh
@@ -29,6 +55,16 @@ sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/i
 # 卸载
 uninstall_oh_my_zsh
 ```
+
+### 参考配置
+
+- [安装 zsh](https://github.com/xinlc/dotfiles/blob/master/mac/README.md#%E5%AE%89%E8%A3%85-zsh)
+
+### 更多主题
+
+- https://github.com/mbadolato/iTerm2-Color-Schemes
+
+> 推荐 Solarized Dark Higher Contrast
 
 ## 常用快捷键
 
@@ -100,3 +136,13 @@ uninstall_oh_my_zsh
 - `^blah`：删除上一条命令中的 blah；
 - `^blah^foo`：将上一条命令中的 blah 替换为 foo；
 - `^blah^foo^`：将上一条命令中所有的 blah 都替换为 foo；
+
+## 其他终端
+
+- [hyper](https://github.com/vercel/hyper)
+  - Hyper 使用 Electron 框架，这让它可以变得很漂亮、酷炫，但也带来了速度慢、体积大的缺点。它的插件和主题非常丰富，见 awesome-hyper，可以说是最多的。如果你不在乎性能，那 Hyper 也是不错的选择。它支持 Windows, Linux 和 MacOS。
+- [Terminus](https://github.com/Eugeny/terminus)
+  - Terminus 是一个高度定制化的终端模拟器，同样使用了 Electron，并可以设置成 Fluent Design 风格的背景，和 Windows 10 很搭配。它集成了 SSH 客户端和连接管理器，完全支持 Unicode，包括全角字符，拥有图形界面的设置页面。支持 Windows, Linux 和 MacOS。Terminus 同样有一些插件和主题。
+- [Alacritty](https://github.com/alacritty/alacritty)
+  - Alacritty 使用 Rust 开发，追求简单和性能。号称是现有最快的终端模拟器，使用了 GPU 渲染。支持 macOS，Linux，BSD 和 Windows。
+  - 经实测，Alacritty 的打开速度可谓“秒开”，比 [Windows Terminal](https://github.com/microsoft/terminal) 还要快不少。

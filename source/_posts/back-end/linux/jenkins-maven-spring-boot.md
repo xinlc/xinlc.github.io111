@@ -74,6 +74,10 @@ pipeline {
         unstash 'app'
         // 登录镜像仓库，镜像仓库用的是阿里云镜像服务
         sh 'docker login -u ${ACCESS_DOCKER_USR} -p ${ACCESS_DOCKER_PSW} registry.cn-chengdu.aliyuncs.com'
+
+        // 登录远程并执行命令，请使用 withCredentials
+        // sh 'ssh root@127.0.0.1 "docker login $REGISTRY_URL -u $username -p \'$password\' "'
+
         // 执行自定义脚本，注意要给这个文件添加执行权限
         sh './jenkins-deploy.sh'
       }

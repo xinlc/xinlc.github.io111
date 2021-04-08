@@ -1198,7 +1198,7 @@ List<NewObj> = oldObj.stream().collect(ArrayList::new, (l, o) -> {
     NewObj obj = new NewObj()
     obj.setName(o.getName());
     // ...
-    l.add(o);
+    l.add(obj);
 }, List::addAll);
 ```
 
@@ -1304,6 +1304,62 @@ public static void testSet(){
     list.parallelStream().collect(Collectors.toSet());
     System.out.println(System.currentTimeMillis()-start2);
 }
+
+public static void main(String[] args) {
+    List<Integer> list = new ArrayList<>();
+    for (int i = 0; i < 5000; i++) {
+        list.add(i);
+    }
+    Integer a = 1000;
+    //无顺序的打印
+    list.parallelStream().filter(mm -> mm < 1000).forEach(System.out::println);
+    //按list原有的顺序输出。collect(Collectors.toList())后得到的集合是按原来的顺序输出的
+    list.parallelStream().filter(mm -> !a.equals(mm)).collect(Collectors.toList()).forEach(System.out::println);
+    //stream().parallel()与parallelStream()效果一样，都会无顺序的打印
+    list.stream().parallel().forEach(System.out::println);
+}
+
+
+
+/**
+* 批量操作，分割集合
+*
+* @param oriList    要分割的集合
+* @param size       每批处理大小
+* @param isParallel 是否启用并行流
+* @param <T>        数据类型
+* @return 分割后的集合
+*/
+public static <T> List<List<T>> splitList(List<T> oriList, int size, boolean isParallel) {
+    // 未达到批量上限，不做分割处理
+    if (oriList.size() <= size) {
+        List<List<T>> splitList = new ArrayList<>();
+        splitList.add(oriList);
+        return splitList;
+    }
+
+    // 计算分割数量
+    int limit = (oriList.size() + size - 1) / size;
+
+    // 并行流处理分割
+    if (isParallel) {
+        return Stream.iterate(0, n -> n + 1)
+            .limit(limit)
+            .parallel()
+            .map(a -> oriList.stream()
+                .skip(a * size)
+                .limit(size)
+                .parallel()
+                .collect(Collectors.toList()))
+            .collect(Collectors.toList());
+    } else {
+        final List<List<T>> splitList = new ArrayList<>();
+        Stream.iterate(0, n -> n + 1).limit(limit).forEach(i -> {
+            splitList.add(oriList.stream().skip(i * size).limit(size).collect(Collectors.toList()));
+        });
+        return splitList;
+    }
+}
 ```
 
 ### peek（调试）
@@ -1318,6 +1374,93 @@ private static void peekTest() {
     data.stream().map(per->per.getName()).peek(p->{
         System.out.println(p);
     }).collect(toList());
+}
+```
+
+### forEach
+
+```java
+    /**
+     * forEach 增强
+     *
+     * @param <T>
+     * @param startIndex 开始遍历的索引
+     * @param elements   集合
+     * @param action
+     */
+    public static <T> void forEach(int startIndex, Iterable<? extends T> elements, BiConsumer<Integer, ? super T> action) {
+        Objects.requireNonNull(elements);
+        Objects.requireNonNull(action);
+        if (startIndex < 0) {
+            startIndex = 0;
+        }
+        int index = 0;
+        for (T element : elements) {
+            index++;
+            if (index <= startIndex) {
+                continue;
+            }
+
+            action.accept(index - 1, element);
+        }
+    }
+
+
+    /**
+    * 统计集合中每个元素出现的所有位置
+    */
+    public static Map<String, List<Integer>> getElementPositions(List<String> list) {
+        Map<String, List<Integer>> positionsMap = new HashMap<>();
+
+        for (int i = 0; i < list.size(); i++) {
+            positionsMap.computeIfAbsent(list.get(i), k -> new ArrayList<>(1)).add(i);
+        }
+
+        return positionsMap;
+    }
+```
+
+```java
+import java.util.Objects;
+import java.util.function.BiConsumer;
+
+/**
+ * Iterable 的工具类
+ */
+public class Iterables {
+
+    public static <E> void forEach(
+            Iterable<? extends E> elements, BiConsumer<Integer, ? super E> action) {
+        Objects.requireNonNull(elements);
+        Objects.requireNonNull(action);
+
+        int index = 0;
+        for (E element : elements) {
+            action.accept(index++, element);
+        }
+    }
+}
+```
+
+用 Iterables.forEach 改写 getElementPositions方法：
+
+```java
+public static Map<String, List<Integer>> getElementPositions(List<String> list) {
+    Map<String, List<Integer>> positionsMap = new HashMap<>();
+
+    Iterables.forEach(list, (index, str) -> {
+        positionsMap.computeIfAbsent(str, k -> new ArrayList<>(1)).add(index);
+    });
+
+    return positionsMap;
+}
+
+public static void main(String[] args) throws Exception {
+    List<String> list = Arrays.asList("a", "b", "b", "c", "c", "c", "d", "d", "d", "f", "f", "g");
+
+    System.out.println("使用 computeIfAbsent 和 Iterable.forEach：");
+    Map<String, List<Integer>> elementPositions = getElementPositions(list);
+    System.out.println(elementPositions);
 }
 ```
 
