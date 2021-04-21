@@ -1546,6 +1546,105 @@ public class OptimizedBooleanSerializer extends JsonSerializer<Boolean> {
 }
 ```
 
+### @JsonTypeInfo 多态类型
+
+Jackson框架对json字段的序列化和反序列化默认策略是根据getter和setter方法，去掉get和set,再把首字母小写，便找到了对应的字段。通常情况，我们都是对普通的POJO进行serialization/deserialization。那么如果遇到了解析抽象类(或者接口)呢？如何定位到对应的实现类？实现类都找不到，谈何匹配到对应的字段反序列化。
+
+jackson允许配置多态类型处理，当进行反序列话时，JSON数据匹配的对象可能有多个子类型，为了正确的读取对象的类型，我们需要添加一些类型信息。可以通过下面几个注解来实现：
+
+- @JsonTypeInfo
+  - 作用于类/接口，被用来开启多态类型处理，对基类/接口和子类/实现类都有效
+  - `@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "name")`
+- 这个注解有一些属性:
+  - use:定义使用哪一种类型识别码，它有下面几个可选值：
+    - `JsonTypeInfo.Id.CLASS`：使用完全限定类名做识别, (使用class name会使代码的可移植性变差。比如代码修改包名后，再按照json里的metadata反序列化，发现找不到类了)
+    - `JsonTypeInfo.Id.MINIMAL_CLASS`：若基类和子类在同一包类，使用类名(忽略包名)作为识别码
+    - `JsonTypeInfo.Id.NAME`：一个合乎逻辑的指定名称
+    - `JsonTypeInfo.Id.CUSTOM`：自定义识别码，由`@JsonTypeIdResolver`对应，稍后解释
+    - `JsonTypeInfo.Id.NONE`：不使用识别码
+  - include(可选):指定识别码是如何被包含进去的，它有下面几个可选值：
+    - JsonTypeInfo.As.PROPERTY：作为数据的兄弟属性
+    - JsonTypeInfo.As.EXISTING_PROPERTY：作为POJO中已经存在的属性
+    - JsonTypeInfo.As.EXTERNAL_PROPERTY：作为扩展属性
+    - JsonTypeInfo.As.WRAPPER_OBJECT：作为一个包装的对象
+    - JsonTypeInfo.As.WRAPPER_ARRAY：作为一个包装的数组
+  - property(可选):制定识别码的属性名称, 此属性只有当:
+    - `use为JsonTypeInfo.Id.CLASS`（若不指定property则默认为@class）、`JsonTypeInfo.Id.MINIMAL_CLASS`(若不指定property则默认为@c)、`JsonTypeInfo.Id.NAME`(若不指定property默认为@type)
+    - `include为JsonTypeInfo.As.PROPERTY`、`JsonTypeInfo.As.EXISTING_PROPERTY`、`JsonTypeInfo.As.EXTERNAL_PROPERTY`时才有效
+  - defaultImpl(可选)：如果类型识别码不存在或者无效，可以使用该属性来制定反序列化时使用的默认类型
+  - visible(可选，默认为false)：是否可见属性定义了类型标识符的值是否会通过JSON流成为反序列化器的一部分，默认为fale,也就是说,jackson会从JSON内容中处理和删除类型标识符再传递给JsonDeserializer。
+
+- @JsonSubTypes
+  - 作用于类/接口，用来列出给定类的子类，只有当子类类型无法被检测到时才会使用它,一般是配合@JsonTypeInfo在基类上使用
+  - 它的Type子类有两个属性，可以定义一个类的别名：
+    - value：给哪个子类起名字
+    - name：起啥名字
+
+**基本使用**
+
+```java
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "custom-type-name")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(value = Son1.class, name = "FirstSon"),
+    @JsonSubTypes.Type(value = Son2.class, name = "SecondSon")
+})
+public interface xxx {
+
+}
+
+// or public abstract class AbstractXXX {}
+```
+
+生成如下：
+
+```json
+{"list":[{"custom-type-name":"SecondSon","a":5,"c":"10"},{"custom-type-name":"FirstSon","a":5,"b":0}]}
+```
+
+**必须记录的多态类型**
+
+从json的角度来看，就好像是对象除了a、c，还有一个custom-type-name属性一样。如果直接看json，这种新增了metadata的行为岂不是会让人产生误会？
+
+先反过来想，如果不加metadata会怎样？
+
+不加多态信息也能直接序列化，且不带metadata：
+
+```json
+{"list":[{"a":5,"c":"10"},{"a":5,"b":0}]}
+```
+
+这的确是原汁原味的对象内容！但是反序列化的时候，发现反序列化不回来了：
+
+```java
+Exception in thread "main" com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized field "c" (class example.jackson.Family$Father), not marked as ignorable (one known property: "a"])
+ at [Source: (String)"{"list":[{"a":5,"c":"10"},{"a":5,"b":0}]}"; line: 1, column: 22] (through reference chain: example.jackson.Family$D["list"]->java.util.ArrayList[0]->example.jackson.Family$Father["c"])
+```
+
+因为序列化的时候记录的信息不足，导致不知道究竟是哪个子类。
+
+所以说，这个类型信息是必须被记录的，不管使用`@autotype`还是以普通property的形式去记录，总之都要记下来，然后用相对应的处理metadata的反序列化方法将json反序列化为对象。
+
+但是这样序列化出来的json看起来会比较奇怪，总感觉不是“纯正的json”。json的好处就是可读，这么搞可读性稍稍下降了一些。json序列化框架使用了一种略微影响可读性的方式完成了对多态的序列化。
+
+其他序列化方式（比如protobuf、avro）呢？可想而知，因为他们本身就是序列化为字节，不是给人看的，人们也不关心他们写了啥字节，他们自然想写啥写啥。比如protobuf可以用oneof指代一个field，至于这个field是Son1还是Son2，肯定通过字节标识出来了，要不然protobuf也是不可能发序列化回来的。
+
+所以说，只要人类看不见，就不会逼逼赖赖了:D
+
+说到这里，不禁想到了Java多态的本身：运行时，如果一个Son1赋值给Father的引用，理论上来讲只知道这是一个Father对象，实际上它可能是Son1也可能是Son2，那么调用具体的方法时，为什么Java能准确地调用Son1的override方法呢？
+
+根据上面序列化的经验，可以猜想Java一定像json序列化一样，将子类型也记录了下来，才能在调用的时候找到真正的子类型：
+
+1. 每个.class字节码文件在被ClassLoader加载之后都会在jvm中生成一个唯一的Class对象，该Class类型的对象含有该类的所有信息，比如类名、方法、field、构造函数等；
+2. 每一个该类new出来的对象，都有一个指向上述Class对象的引用。可通过Object的`public final native Class<?> getClass()`方法获得Class对象；
+3. 获取到了一个object的Class对象之后，关于这个object的一切类相关的信息都可以通过Class对象取得了。
+
+> 这不是多态的实际实现，但说明了一个对象的实际类型实际上都是可以被检索到的。
+
+所以Java也是通过记录所有对象的类信息，以在运行时实时决定该对象类型，并在多态时调用合适的override方法。
+
+**因此，解决多态问题的唯一途径就是记录下该对象究竟是哪一个子类型，无论是序列化时的多态还是运行时的多态！**
+
+
 ## 参考
 
 - [Jackson使用详解](https://juejin.cn/post/6844904166809157639)
@@ -1556,3 +1655,4 @@ public class OptimizedBooleanSerializer extends JsonSerializer<Boolean> {
 - [Jackson JsonParser](http://tutorials.jenkov.com/java-json/jackson-jsonparser.html)
 - [Jackson JsonGenerator](http://tutorials.jenkov.com/java-json/jackson-jsongenerator.html)
 - [Jackson Annotations](http://tutorials.jenkov.com/java-json/jackson-annotations.html)
+- [Jackson Annotation Examples](https://www.baeldung.com/jackson-annotations)
