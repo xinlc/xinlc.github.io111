@@ -176,6 +176,9 @@ docker rmi $(docker images -f "dangling=true" -q) # 删除<none>镜像
 docker image prune -f # 删除所有悬空映像 -f 不提示。如果-a指定，还将删除任何容器未引用的所有映像
 docker system prune -f # 删除 已停止的容器（container）,未被任何容器所使用的卷（volume）,未被任何容器所关联的网络（network）,所有悬空镜像（image）。该指令默认只会清除悬空镜像，未被使用的镜像不会被删除,添加 -a 或 --all 参数后，可以一并清除所有未使用的镜像和悬空镜像。
 
+docker image prune -af # 仅仅清除没有被容器使用的镜像文件
+docker system prune -f # 清除多余的数据，包括停止的容器、多余的镜像、未被使用的volume等
+
 # 格式化输出
 docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}\t{{.Status}}"
 
