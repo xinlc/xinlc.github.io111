@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Update如果你觉得移动端适配让人头疼，建议采用最新适配方案：https:&#x2F;&#x2F;www.w3cplus.com&#x2F;css&#x2F;vw-for-layout.html #lib.flexible 移动端自适应方案，相关文章请参考此处 最新版本0.3.2 用Grunt打包运行 npm install，来安装所需的依赖模块。关于NPM的知识，请参见nodejs; 运行 grunt，来对项目进行打包。关于Grun">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Richard Xin&#39;s Blog">
+<meta property="og:url" content="https://blog.lichao.xin/resource/js/lib-flexible/master/README.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Update如果你觉得移动端适配让人头疼，建议采用最新适配方案：https:&#x2F;&#x2F;www.w3cplus.com&#x2F;css&#x2F;vw-for-layout.html #lib.flexible 移动端自适应方案，相关文章请参考此处 最新版本0.3.2 用Grunt打包运行 npm install，来安装所需的依赖模块。关于NPM的知识，请参见nodejs; 运行 grunt，来对项目进行打包。关于Grun">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/resource/js/lib-flexible/master/grid.jpg">
+<meta property="article:published_time" content="2021-06-14T01:33:23.015Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:23.015Z">
+<meta property="article:author" content="Richard">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/resource/js/lib-flexible/master/grid.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/resource/js/lib-flexible/master/README">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title> | Richard Xin's Blog
+</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+  
+  
+
+          <div class="content page posts-expand">
+            
+
+    
+    
+    
+    <div class="post-block" lang="zh-CN">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+          
+            <li><a href="/resource/">RESOURCE</a></li>
+            <li><a href="/resource/js/">JS</a></li>
+            <li><a href="/resource/js/lib-flexible/">LIB-FLEXIBLE</a></li>
+            <li><a href="/resource/js/lib-flexible/master/">MASTER</a></li>
+            <li>README</li>
+          
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+          <h1 id="Update"><a href="#Update" class="headerlink" title="Update"></a>Update</h1><p><strong>如果你觉得移动端适配让人头疼，建议采用最新适配方案：<a href="https://www.w3cplus.com/css/vw-for-layout.html" target="_blank" rel="noopener">https://www.w3cplus.com/css/vw-for-layout.html</a></strong></p>
+<p>#lib.flexible</p>
+<p>移动端自适应方案，相关文章请参考<a href="https://github.com/amfe/article/issues/17" target="_blank" rel="noopener">此处</a></p>
+<h2 id="最新版本"><a href="#最新版本" class="headerlink" title="最新版本"></a>最新版本</h2><p><strong>0.3.2</strong></p>
+<h2 id="用Grunt打包"><a href="#用Grunt打包" class="headerlink" title="用Grunt打包"></a>用Grunt打包</h2><p>运行 <code>npm install</code>，来安装所需的依赖模块。关于NPM的知识，请参见<a href="http://nodejs.org/" target="_blank" rel="noopener">nodejs</a>;</p>
+<p>运行 <code>grunt</code>，来对项目进行打包。关于Grunt的知识，请参见<a href="http://gruntjs.com/" target="_blank" rel="noopener">gruntjs</a>;</p>
+<h2 id="依赖库"><a href="#依赖库" class="headerlink" title="依赖库"></a>依赖库</h2><p>无</p>
+<p>完整引用举例：</p>
+<pre><code>&lt;script src=&quot;http://g.tbcdn.cn/mtb/lib-flexible/{{version}}/??flexible_css.js,flexible.js&quot;&gt;&lt;/script&gt;</code></pre><h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>建议对于js做<code>内联处理</code>，在<strong>所有资源加载之前</strong>执行这个js。</p>
+<p>执行这个js后，会在<code>html</code>（也就是document.documentElement）上增加一个<code>data-dpr</code>属性，以及<code>font-size</code>样式。</p>
+<p>之后页面中的元素，都可以用rem单位来设置。<code>html</code>上的<code>font-size</code>就是rem的基准像素。</p>
+<h2 id="把视觉稿中的px转换成rem"><a href="#把视觉稿中的px转换成rem" class="headerlink" title="把视觉稿中的px转换成rem"></a>把视觉稿中的px转换成rem</h2><p>首先，目前视觉稿大小分为<code>640</code>，<code>750</code>以及，<code>1125</code>这三种。</p>
+<p>当前方案会把这3类视觉稿分成<code>100份</code>来看待（为了以后兼容vh，vw单位）。每一份被称为一个单位a。同时，1rem单位认定为10a。拿750的视觉稿举例：</p>
+<pre><code>1a = 7.5px
+1rem = 75px</code></pre><p>因此，对于视觉稿上的元素的尺寸换算，只需要<code>原始px值</code>除以<code>rem基准px值</code>即可。例如240px * 120px的元素，最后转换为3.2rem * 1.6rem。</p>
+<h2 id="字体不使用rem的方法"><a href="#字体不使用rem的方法" class="headerlink" title="字体不使用rem的方法"></a>字体不使用rem的方法</h2><p>字体的大小不推荐用rem作为单位。所以对于字体的设置，仍旧使用px作为单位，并配合用<code>data-dpr</code>属性来区分不同dpr下的的大小。</p>
+<p>例如：</p>
+<pre><code>div {
+    width: 1rem; 
+    height: 0.4rem;
+    font-size: 12px; // 默认写上dpr为1的fontSize
+}
+
+[data-dpr=&quot;2&quot;] div {
+    font-size: 24px;
+}
+
+[data-dpr=&quot;3&quot;] div {
+    font-size: 36px;
+}</code></pre><h3 id="手动配置dpr"><a href="#手动配置dpr" class="headerlink" title="手动配置dpr"></a>手动配置dpr</h3><p>引入执行js之前，可以通过输出meta标签方式来手动设置dpr。语法如下：</p>
+<pre><code>&lt;meta name=&quot;flexible&quot; content=&quot;initial-dpr=2,maximum-dpr=3&quot; /&gt;</code></pre><p>其中<code>initial-dpr</code>会把dpr强制设置为给定的值，<code>maximum-dpr</code>会比较系统的dpr和给定的dpr，取最小值。<strong>注意：这两个参数只能选其一。</strong></p>
+<h3 id="手动设置rem基准值的方法"><a href="#手动设置rem基准值的方法" class="headerlink" title="手动设置rem基准值的方法"></a>手动设置rem基准值的方法</h3><p>输出如下css样式即可：</p>
+<pre><code>html {font-size: 60px!important;}</code></pre><h3 id="一些常用APIs"><a href="#一些常用APIs" class="headerlink" title="一些常用APIs"></a>一些常用APIs</h3><p><strong>[Number] lib.flexible.dpr</strong></p>
+<p>当前页面的dpr值</p>
+<p><strong>[Number] lib.flexible.rem</strong> </p>
+<p>当前页面的rem基准值</p>
+<p><strong>[Number|String] lib.flexible.rem2px([Number|String digital])</strong></p>
+<p>把rem转换为px</p>
+<p><strong>[Number|String] lib.flexible.px2rem([Number|String digital])</strong> </p>
+<p>把px转换为rem</p>
+<p><strong>lib.flexible.refreshRem()</strong> </p>
+<p>刷新当前页面的rem基准值</p>
+<h2 id="栅格系统"><a href="#栅格系统" class="headerlink" title="栅格系统"></a>栅格系统</h2><h3 id="需引入makegrid-js"><a href="#需引入makegrid-js" class="headerlink" title="需引入makegrid.js"></a>需引入makegrid.js</h3><pre><code>&lt;script src=&quot;http://g.tbcdn.cn/mtb/lib-flexible/{{version}}/makegrid.js&quot;&gt;&lt;/script&gt;</code></pre><h3 id="使用方法-1"><a href="#使用方法-1" class="headerlink" title="使用方法"></a>使用方法</h3><pre><code>lib.flexible.makeGrid(params)</code></pre><ul>
+<li>[Object params]<ul>
+<li>designWidth - 设计稿宽度</li>
+<li>designUnit - 设计稿最小单位a（以px为单位）</li>
+<li>columnCount - 栅格列数</li>
+<li>columnXUnit - 栅格列宽（以a为单位）</li>
+<li>gutterXUnit - 栅格间距（以a为单位）</li>
+<li>edgeXUnit - 页面左右边距（以a为单位）</li>
+<li>className - 栅格样式的名称（可省略，默认为grid）</li>
+</ul>
+</li>
+</ul>
+<p>通过传入视觉的栅格规范定义，可以输出对应的css样式。</p>
+<pre><code>lib.flexible.makeGridMode(modeName)</code></pre><ul>
+<li>[String modeName]</li>
+</ul>
+<p>方案还预置了几个默认的栅格规范，分别是<code>750-12</code>，<code>750-6</code>，<code>640-12</code>，<code>640-6</code>。</p>
+<h3 id="利用meta输出栅格样式"><a href="#利用meta输出栅格样式" class="headerlink" title="利用meta输出栅格样式"></a>利用meta输出栅格样式</h3><pre><code>&lt;meta content=&quot;designWidth=750, desginUnit=6, columnCount=12, columnXUnit=7, gutterXUnit=3, edgeXUnit=4&quot; name=&quot;grid&quot; /&gt;</code></pre><p>或</p>
+<pre><code>&lt;meta content=&quot;modeName=750-12&quot; name=&quot;grid&quot; /&gt;</code></pre><h3 id="栅格代码举例"><a href="#栅格代码举例" class="headerlink" title="栅格代码举例"></a>栅格代码举例</h3><pre><code>&lt;div class=&quot;grid&quot;&gt;
+    &lt;div class=&quot;col-4&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-4&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-4&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;grid&quot;&gt;
+    &lt;div class=&quot;col-6&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-6&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;grid&quot;&gt;
+    &lt;div class=&quot;col-3&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-4&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-5&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre><h3 id="四类栅格在不同手机上的表现"><a href="#四类栅格在不同手机上的表现" class="headerlink" title="四类栅格在不同手机上的表现"></a>四类栅格在不同手机上的表现</h3><p><img src="grid.jpg" alt="栅格"></p>
+
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+          
+            <li><a href="/resource/">RESOURCE</a></li>
+            <li><a href="/resource/js/">JS</a></li>
+            <li><a href="/resource/js/lib-flexible/">LIB-FLEXIBLE</a></li>
+            <li><a href="/resource/js/lib-flexible/master/">MASTER</a></li>
+            <li>README</li>
+          
+  </ul>
+
+    
+    
+    
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Update"><span class="nav-number">1.</span> <span class="nav-text">Update</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#最新版本"><span class="nav-number">1.1.</span> <span class="nav-text">最新版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用Grunt打包"><span class="nav-number">1.2.</span> <span class="nav-text">用Grunt打包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖库"><span class="nav-number">1.3.</span> <span class="nav-text">依赖库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用方法"><span class="nav-number">1.4.</span> <span class="nav-text">使用方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#把视觉稿中的px转换成rem"><span class="nav-number">1.5.</span> <span class="nav-text">把视觉稿中的px转换成rem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字体不使用rem的方法"><span class="nav-number">1.6.</span> <span class="nav-text">字体不使用rem的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#手动配置dpr"><span class="nav-number">1.6.1.</span> <span class="nav-text">手动配置dpr</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#手动设置rem基准值的方法"><span class="nav-number">1.6.2.</span> <span class="nav-text">手动设置rem基准值的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一些常用APIs"><span class="nav-number">1.6.3.</span> <span class="nav-text">一些常用APIs</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#栅格系统"><span class="nav-number">1.7.</span> <span class="nav-text">栅格系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#需引入makegrid-js"><span class="nav-number">1.7.1.</span> <span class="nav-text">需引入makegrid.js</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用方法-1"><span class="nav-number">1.7.2.</span> <span class="nav-text">使用方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用meta输出栅格样式"><span class="nav-number">1.7.3.</span> <span class="nav-text">利用meta输出栅格样式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#栅格代码举例"><span class="nav-number">1.7.4.</span> <span class="nav-text">栅格代码举例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四类栅格在不同手机上的表现"><span class="nav-number">1.7.5.</span> <span class="nav-text">四类栅格在不同手机上的表现</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

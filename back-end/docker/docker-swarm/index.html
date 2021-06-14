@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Docker Swarm 是 Docker 官方三剑客项目之一，提供 Docker 容器集群服务，是 Docker 官方对容器云生态进行支持的核心方案。 使用它，用户可以将多个 Docker 主机封装为单个大型的虚拟 Docker 主机，快速打造一套容器云平台。 Swarm mode 内置 kv 存储功能，提供了众多的新特性，比如：具有容错能力的去中心化设计、内置服务发现、负载均衡、路由网格、动态">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker 三剑客之 Docker Swarm">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/docker/docker-swarm/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Docker Swarm 是 Docker 官方三剑客项目之一，提供 Docker 容器集群服务，是 Docker 官方对容器云生态进行支持的核心方案。 使用它，用户可以将多个 Docker 主机封装为单个大型的虚拟 Docker 主机，快速打造一套容器云平台。 Swarm mode 内置 kv 存储功能，提供了众多的新特性，比如：具有容错能力的去中心化设计、内置服务发现、负载均衡、路由网格、动态">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm/1.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm/2.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm/3.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm/4.png">
+<meta property="article:published_time" content="2019-11-21T21:50:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.387Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/docker/docker-swarm/1.png">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/docker/docker-swarm/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Docker 三剑客之 Docker Swarm | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/docker/docker-swarm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Docker 三剑客之 Docker Swarm
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-21 21:50:00" itemprop="dateCreated datePublished" datetime="2019-11-21T21:50:00+00:00">2019-11-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Docker Swarm 是 Docker 官方三剑客项目之一，提供 Docker 容器集群服务，是 Docker 官方对容器云生态进行支持的核心方案。</p>
+<p>使用它，用户可以将多个 Docker 主机封装为单个大型的虚拟 Docker 主机，快速打造一套容器云平台。</p>
+<p>Swarm mode 内置 kv 存储功能，提供了众多的新特性，比如：具有容错能力的去中心化设计、内置服务发现、负载均衡、路由网格、动态伸缩、滚动更新、安全传输等。使得 Docker 原生的 Swarm 集群具备与 Kubernetes、Mesos 竞争的实力。</p>
+<a id="more"></a>
+
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>Swarm 是使用 <a href="https://github.com/docker/swarmkit/" target="_blank" rel="noopener">SwarmKit</a> 构建的 Docker 引擎内置（原生）的集群管理和编排工具。</p>
+<p>使用 Swarm 集群之前需要了解以下几个概念。</p>
+<h3 id="节点"><a href="#节点" class="headerlink" title="节点"></a>节点</h3><p>运行 Docker 的主机可以主动初始化一个 Swarm 集群或者加入一个已存在的 Swarm 集群，这样这个运行 Docker 的主机就成为一个 Swarm 集群的节点 (node) 。</p>
+<p>节点分为管理 (manager) 节点和工作 (worker) 节点。</p>
+<p>管理节点用于 Swarm 集群的管理，<code>docker swarm</code> 命令基本只能在管理节点执行（节点退出集群命令 <code>docker swarm leave</code> 可以在工作节点执行）。一个 Swarm 集群可以有多个管理节点，但只有一个管理节点可以成为 leader，leader 通过 raft 协议实现。</p>
+<p>工作节点是任务执行节点，管理节点将服务 (service) 下发至工作节点执行。管理节点默认也作为工作节点。你也可以通过配置让服务只运行在管理节点或工作节点。生产环境建议服务只运行在工作节点，这样即使管理节点宕掉也不会影响服务运行，执行 <code>docker node update --availability drain manager</code> 使服务不部署在管理节点上。</p>
+<p>来自 Docker 官网的这张图片形象的展示了集群中管理节点与工作节点的关系。</p>
+<p><img src="/images/docker/docker-swarm/1.png" alt="1"></p>
+<h3 id="服务和任务"><a href="#服务和任务" class="headerlink" title="服务和任务"></a>服务和任务</h3><p>任务 （Task）是 Swarm 中的最小的调度单位，目前来说就是一个单一的容器。</p>
+<p>服务 （Services） 是指一组任务的集合，服务定义了任务的属性。服务有两种模式：</p>
+<ul>
+<li><code>replicated services</code> 按照一定规则在各个工作节点上运行指定个数的任务。</li>
+<li><code>global services</code> 每个工作节点上运行一个任务</li>
+</ul>
+<p>两种模式通过 <code>docker service create</code> 的 <code>--mode</code> 参数指定。</p>
+<p>来自 Docker 官网的这张图片形象的展示了容器、任务、服务的关系。</p>
+<p><img src="/images/docker/docker-swarm/2.png" alt="2"></p>
+<p>任务与调度</p>
+<p><img src="/images/docker/docker-swarm/3.png" alt="3"></p>
+<p>服务副本与全局服务</p>
+<p><img src="/images/docker/docker-swarm/4.png" alt="4"></p>
+<h2 id="创建-swarm-集群"><a href="#创建-swarm-集群" class="headerlink" title="创建 swarm 集群"></a>创建 swarm 集群</h2><p>集群节点之间保证 TCP 2377、TCP/UDP 7946 和 UDP 4789 端口通信</p>
+<ul>
+<li>TCP 端口 2377 集群管理端口；</li>
+<li>TCP 与 UDP 端口 7946 节点之间通讯端口；</li>
+<li>TCP 与 UDP 端口 4789 overlay 网络通讯端口；</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CentOS 7 配置防火墙</span></span><br><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/udp --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+
+<p>为了方便演示，这里使用 Docker Machine 创建 一个 Manager 节点和两个 Worker 节点。</p>
+<p>创建管理节点并初始化集群</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-machine create -d virtualbox manager</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>docker swarm init</code> 在管理节点初始化一个 Swarm 集群</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ docker-machine ssh manager</span><br><span class="line"></span><br><span class="line">docker@manager:~$ docker swarm init --advertise-addr 192.168.99.101</span><br><span class="line">Swarm initialized: current node (2huj5pkeuip0yu9vu8wcp4q7x) is now a manager.</span><br><span class="line"></span><br><span class="line">To add a worker to this swarm, run the following <span class="built_in">command</span>:</span><br><span class="line"></span><br><span class="line">    docker swarm join --token SWMTKN-1-0sntadyqdf0epdptj6x32r9q18d1a0j6m4p5p5w1tz1c3q78ld-d7fa0b99vfzveggesu88lq05f 192.168.99.101:2377</span><br><span class="line"></span><br><span class="line">To add a manager to this swarm, run <span class="string">'docker swarm join-token manager'</span> and follow the instructions.</span><br></pre></td></tr></table></figure>
+
+<p>如果你的 Docker 主机有多个网卡，拥有多个 IP，必须使用 <code>--advertise-addr</code> 指定 IP。</p>
+<blockquote>
+<p>执行 <code>docker swarm init</code> 命令的节点自动成为管理节点。</p>
+</blockquote>
+<p>创建工作节点并加入集群</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker-machine create -d virtualbox worker1</span><br><span class="line"></span><br><span class="line">$ docker-machine ssh worker1</span><br><span class="line"></span><br><span class="line">docker@worker1:~$ docker swarm join \</span><br><span class="line">    --token SWMTKN-1-0sntadyqdf0epdptj6x32r9q18d1a0j6m4p5p5w1tz1c3q78ld-d7fa0b99vfzveggesu88lq05f \</span><br><span class="line">    192.168.99.101:2377</span><br><span class="line"></span><br><span class="line">This node joined a swarm as a worker.</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker-machine create -d virtualbox worker2</span><br><span class="line"></span><br><span class="line">$ docker-machine ssh worker2</span><br><span class="line"></span><br><span class="line">docker@worker2:~$ docker swarm join \</span><br><span class="line">    --token SWMTKN-1-0sntadyqdf0epdptj6x32r9q18d1a0j6m4p5p5w1tz1c3q78ld-d7fa0b99vfzveggesu88lq05f \</span><br><span class="line">    192.168.99.101:2377</span><br><span class="line"></span><br><span class="line">This node joined a swarm as a worker.</span><br></pre></td></tr></table></figure>
+
+<p>在管理节点使用 <code>docker node ls</code> 查看集群</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker@manager:~$ docker node ls</span><br><span class="line">ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION</span><br><span class="line">2huj5pkeuip0yu9vu8wcp4q7x *   manager             Ready               Active              Leader              19.03.5</span><br><span class="line">ygfa4uatifir9h0mvryx0mdk4     worker1             Ready               Active                                  19.03.5</span><br><span class="line">awk7ubm92whmdn3cqrn412x5h     worker2             Ready               Active                                  19.03.5</span><br></pre></td></tr></table></figure>
+
+<h2 id="部署服务"><a href="#部署服务" class="headerlink" title="部署服务"></a>部署服务</h2><p>使用 docker service 命令来管理 Swarm 集群中的服务，该命令只能在管理节点运行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 部署 3 个 nginx 服务</span></span><br><span class="line">docker service create \</span><br><span class="line">                --name web \</span><br><span class="line">                --replicas 3 \</span><br><span class="line">                --publish published=80,target=80 \</span><br><span class="line">                nginx:latest</span><br></pre></td></tr></table></figure>
+
+<p>使用浏览器，输入任意节点 IP ，即可看到 nginx 默认页面。</p>
+<blockquote>
+<p>使用私有镜像仓库需要先 login，创建服务时加 <code>--with-registry-auth</code> 参数</p>
+</blockquote>
+<p>查看服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker service ls</span><br><span class="line">docker service ps web</span><br></pre></td></tr></table></figure>
+
+<p>服务伸缩</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 扩展服务运行数量</span></span><br><span class="line">docker service scale web=5</span><br><span class="line"></span><br><span class="line"><span class="comment"># 减少服务容器运行数量</span></span><br><span class="line">docker service scale nginx=2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除服务</span></span><br><span class="line">docker service rm web</span><br></pre></td></tr></table></figure>
+
+<h2 id="管理秘钥"><a href="#管理秘钥" class="headerlink" title="管理秘钥"></a>管理秘钥</h2><p>在动态的、大规模的分布式集群上，管理和分发 密码、证书 等敏感信息是极其重要的工作。传统的密钥分发方式（如密钥放入镜像中，设置环境变量，volume 动态挂载等）都存在着潜在的巨大的安全风险。</p>
+<p>Docker 目前已经提供了 secrets 管理功能，用户可以在 Swarm 集群中安全地管理密码、密钥证书等敏感数据，并允许在多个 Docker 容器实例之间共享访问指定的敏感数据。</p>
+<blockquote>
+<p>注意：secret 也可以在 Docker Compose 中使用。</p>
+</blockquote>
+<h3 id="创建-secret"><a href="#创建-secret" class="headerlink" title="创建 secret"></a>创建 secret</h3><p>使用 <code>docker secret create</code> 命令以管道符的形式创建 secret</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ openssl rand -base64 20 | docker secret create mysql_password -</span><br><span class="line"></span><br><span class="line">$ openssl rand -base64 20 | docker secret create mysql_root_password -</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看创建好的秘钥</span></span><br><span class="line">$ docker secret ls</span><br></pre></td></tr></table></figure>
+
+<p>创建 MySQL 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ docker network create -d overlay mysql_private</span><br><span class="line"></span><br><span class="line">$ docker service create \</span><br><span class="line">     --name mysql \</span><br><span class="line">     --replicas 1 \</span><br><span class="line">     --network mysql_private \</span><br><span class="line">     --mount <span class="built_in">type</span>=volume,<span class="built_in">source</span>=mydata,destination=/var/lib/mysql \</span><br><span class="line">     --secret <span class="built_in">source</span>=mysql_root_password,target=mysql_root_password \</span><br><span class="line">     --secret <span class="built_in">source</span>=mysql_password,target=mysql_password \</span><br><span class="line">     -e MYSQL_ROOT_PASSWORD_FILE=<span class="string">"/run/secrets/mysql_root_password"</span> \</span><br><span class="line">     -e MYSQL_PASSWORD_FILE=<span class="string">"/run/secrets/mysql_password"</span> \</span><br><span class="line">     -e MYSQL_USER=<span class="string">"wordpress"</span> \</span><br><span class="line">     -e MYSQL_DATABASE=<span class="string">"wordpress"</span> \</span><br><span class="line">     mysql:latest</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果你没有在 target 中显式的指定路径时，secret 默认通过 tmpfs 文件系统挂载到容器的 /run/secrets 目录中。</p>
+</blockquote>
+<p>创建 wordpress 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ docker service create \</span><br><span class="line">     --name wordpress \</span><br><span class="line">     --replicas 1 \</span><br><span class="line">     --network mysql_private \</span><br><span class="line">     --publish target=30000,port=80 \</span><br><span class="line">     --mount <span class="built_in">type</span>=volume,<span class="built_in">source</span>=wpdata,destination=/var/www/html \</span><br><span class="line">     --secret <span class="built_in">source</span>=mysql_password,target=wp_db_password,mode=0400 \</span><br><span class="line">     -e WORDPRESS_DB_USER=<span class="string">"wordpress"</span> \</span><br><span class="line">     -e WORDPRESS_DB_PASSWORD_FILE=<span class="string">"/run/secrets/wp_db_password"</span> \</span><br><span class="line">     -e WORDPRESS_DB_HOST=<span class="string">"mysql:3306"</span> \</span><br><span class="line">     -e WORDPRESS_DB_NAME=<span class="string">"wordpress"</span> \</span><br><span class="line">     wordpress:latest</span><br></pre></td></tr></table></figure>
+
+<h2 id="管理配置信息"><a href="#管理配置信息" class="headerlink" title="管理配置信息"></a>管理配置信息</h2><p>在动态的、大规模的分布式集群上，管理和分发配置文件也是很重要的工作。传统的配置文件分发方式（如配置文件放入镜像中，设置环境变量，volume 动态挂载等）都降低了镜像的通用性。</p>
+<p>在 Docker 17.06 以上版本中，Docker 新增了 docker config 子命令来管理集群中的配置信息，以后你无需将配置文件放入镜像或挂载到容器中就可实现对服务的配置。config 仅能在 Swarm 集群中使用并且需 Swarm Manager 权限才能操作。</p>
+<p>在 Swarm 中添加一个 Config 时，Docker 通过 TLS 连接把 Config 发送给 Swarm Manager。这个 Config 经过加密后，存储在 Raft 日志中，而且整个 Raft 日志会被复制到其他 Manager 中，确保 Config 的高可用性。</p>
+<p>在新创建的或正在运行的服务添加 Config 时，Config 将作为文件安装到容器中，文件路径默认为 linux 容器中的 <code>/&lt;config-name&gt;</code>。可以在任何时候通过更新服务的方式授权其他的 Config 或移除已有的 Config 访问权。</p>
+<p>如果节点是 Swarm Manager，或者正在运行服务任务已被授权访问这个 Config，那么这个节点才能访问这个配置。当容器任务停止运行时，共享给它的 Config 将从该容器的内存文件系统中卸载，并从节点的内存刷新。</p>
+<p>如果一个节点运行了一个带 Config 的任务容器，在它失去与 Swarm 的连接后，这个任务容器仍然可以访问其 Config，但只有在节点重新连接到 Swarm 时才能接收更新。</p>
+<p>正在运行的服务正在使用的 Config 不能删除。想要在不中断正在运行的服务的情况下删除配置可以参考 <a href="https://docs.docker.com/engine/swarm/configs/#example-rotate-a-config" target="_blank" rel="noopener">《Rotate a config》</a>。</p>
+<p>为了更容易地更新或回退 Config，可以考虑在 Config Name 中添加版本号或日期。</p>
+<p>如需更新 Stack ，可以更改 Compose file，然后重新运行 docker stack deploy -c <code>&lt;new-compose-file&gt; &lt;stack-name&gt;</code>。如果 Compose file 使用新的 Config ，那么 services 将开始使用这些配置。</p>
+<blockquote>
+<p>注意：配置是不可变的，所以无法更改现有服务的文件，可以创建一个新的 Config 来使用不同的文件。</p>
+</blockquote>
+<p>这里以在 Swarm 集群中部署 redis 服务为例。</p>
+<h3 id="创建-config"><a href="#创建-config" class="headerlink" title="创建 config"></a>创建 config</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 新建 redis.conf 文件</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"port 6380"</span> &gt; redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 config</span></span><br><span class="line">docker config create redis.conf redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 config</span></span><br><span class="line">docker config ls</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 redis 服务</span></span><br><span class="line">$ docker service create \</span><br><span class="line">     --name redis \</span><br><span class="line">     <span class="comment"># --config source=redis.conf,target=/etc/redis.conf \</span></span><br><span class="line">     --config redis.conf \</span><br><span class="line">     -p 6379:6380 \</span><br><span class="line">     redis:latest \</span><br><span class="line">     redis-server /redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 ngxin 服务</span></span><br><span class="line"><span class="comment"># $ docker service create \</span></span><br><span class="line"><span class="comment">#      --name nginx \</span></span><br><span class="line"><span class="comment">#      --secret site.key \</span></span><br><span class="line"><span class="comment">#      --secret site.crt \</span></span><br><span class="line"><span class="comment">#      --config source=site.conf,target=/etc/nginx/conf.d/site.conf,mode=0440 \</span></span><br><span class="line"><span class="comment">#      --publish published=3000,target=443 \</span></span><br><span class="line"><span class="comment">#      nginx:latest \</span></span><br><span class="line"><span class="comment">#      sh -c "exec nginx -g 'daemon off;'"</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果你没有在 target 中显式的指定路径时，默认的 redis.conf 以 tmpfs 文件系统挂载到容器的 /config.conf。</p>
+</blockquote>
+<h4 id="compose-file"><a href="#compose-file" class="headerlink" title="compose-file"></a>compose-file</h4><ul>
+<li><a href="https://docs.docker.com/compose/compose-file/#configs" target="_blank" rel="noopener">compose-file-configs</a></li>
+<li><a href="https://docs.docker.com/engine/swarm/configs/" target="_blank" rel="noopener">swarm-configs</a></li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3.3"</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">redis:latest</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">my_config</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">my_other_config</span></span><br><span class="line"><span class="attr">configs:</span></span><br><span class="line">  <span class="attr">my_config:</span></span><br><span class="line">    <span class="attr">file:</span> <span class="string">./my_config.txt</span></span><br><span class="line">  <span class="attr">my_other_config:</span></span><br><span class="line">    <span class="attr">external:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3.7"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">nginx-router:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">nginx:1.17.3</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="comment"># - "9080:80"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">mode:</span> <span class="string">host</span>    <span class="comment"># host 适合做入口（代理），不走集群的负载(ingress 网络)</span></span><br><span class="line">        <span class="attr">protocol:</span> <span class="string">tcp</span></span><br><span class="line">        <span class="attr">published:</span> <span class="number">9080</span></span><br><span class="line">        <span class="attr">target:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">source:</span> <span class="string">nginx_config</span></span><br><span class="line">        <span class="attr">target:</span> <span class="string">/etc/nginx/nginx.conf</span></span><br><span class="line">        <span class="comment"># 将模式设置为0440，以便该文件只能由其所有者和所有者的组读取，而不能由所有人读取。</span></span><br><span class="line">        <span class="attr">mode:</span> <span class="number">0440</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">mode:</span> <span class="string">global</span></span><br><span class="line">      <span class="attr">restart_policy:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">on-failure</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">5s</span></span><br><span class="line">        <span class="attr">max_attempts:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">update_config:</span></span><br><span class="line">        <span class="attr">parallelism:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">10s</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">"2"</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">512M</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">configs:</span></span><br><span class="line">  <span class="attr">nginx_config:</span></span><br><span class="line">    <span class="attr">file:</span> <span class="string">./data/nginx/nginx.conf</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：修改 nginx.conf 没有生效，需要 stack rm 重新 deploy。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker stack rm nginx-router</span><br><span class="line">docker stack deploy -c docker-compose.yml nginx-router</span><br></pre></td></tr></table></figure>
+
+<p>或使用 Rotate 方式，创新的 conf 更新 service：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 site.conf 名为的新文件创建新的 Docker 配置 site-v2.conf。</span></span><br><span class="line">docker config create site-v2.conf site.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新nginx服务以使用新配置。</span></span><br><span class="line">docker service update \</span><br><span class="line">  --config-rm site.conf \</span><br><span class="line">  --config-add <span class="built_in">source</span>=site-v2.conf,target=/etc/nginx/conf.d/site.conf,mode=0440 \</span><br><span class="line">  nginx</span><br></pre></td></tr></table></figure>
+
+<h2 id="Stack-多服务编排"><a href="#Stack-多服务编排" class="headerlink" title="Stack 多服务编排"></a>Stack 多服务编排</h2><p>之前 swarm 集群中 <code>docker service create</code> 一次只能部署一个微服务，我们可以使用 <code>docker stack + compose</code> 一次启动多个服务。</p>
+<p>stack 是一组相互关联的服务，它是服务的上一层，这些服务共享依赖关系，并且可以一起编排和缩放。单个 stack 能够定义和协调整个应用程序的功能，简单来说 stack 就是一组服务的集合。</p>
+<p>创建 docker-compose.yml，并创建 volumes 相关文件。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3.8"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">web:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">nginx:latest</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"8081:80"</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/timezone:/etc/timezone:ro</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">mode:</span> <span class="string">replicated</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">2</span></span><br><span class="line">      <span class="attr">restart_policy:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">on-failure</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">5s</span></span><br><span class="line">        <span class="attr">max_attempts:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">update_config:</span></span><br><span class="line">        <span class="attr">parallelism:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">10s</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">"0.5"</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">1024M</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">portainer:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">portainer/portainer:latest</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"9000:9000"</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/timezone:/etc/timezone:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/docker-data/portainer_data:/data</span></span><br><span class="line"></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span> <span class="string">[node.role</span> <span class="string">==</span> <span class="string">manager]</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">"0.5"</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">1024M</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">visualizer:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">dockersamples/visualizer:latest</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"9001:8080"</span></span><br><span class="line">    <span class="attr">stop_grace_period:</span> <span class="string">1m30s</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/timezone:/etc/timezone:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span> <span class="string">[node.role</span> <span class="string">==</span> <span class="string">manager]</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">"0.5"</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">1024M</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">xxx-service:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">xxx-server:1.0.0-RELEASE</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"8800:8080"</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">backend</span></span><br><span class="line">    <span class="attr">env_file:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./mysql.env</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/timezone:/etc/timezone:ro</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">mode:</span> <span class="string">replicated</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">2</span></span><br><span class="line">      <span class="attr">restart_policy:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">on-failure</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">5s</span></span><br><span class="line">        <span class="attr">max_attempts:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">update_config:</span></span><br><span class="line">        <span class="attr">order:</span> <span class="string">start-first</span></span><br><span class="line">        <span class="attr">parallelism:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">10s</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">"1"</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">1024M</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">backend:</span></span><br></pre></td></tr></table></figure>
+
+<p>mysql.env：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MYSQL_SERVICE_HOST&#x3D;mysql</span><br><span class="line">MYSQL_SERVICE_DB_NAME&#x3D;devtest</span><br><span class="line">MYSQL_SERVICE_PORT&#x3D;3306</span><br><span class="line">MYSQL_SERVICE_USER&#x3D;root</span><br><span class="line">MYSQL_SERVICE_PASSWORD&#x3D;123456</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：挂载时区避免时间不准，如果没有 timezone 文件，执行：<code>echo &quot;Asia/Shanghai&quot; &gt; /etc/timezone</code></p>
+</blockquote>
+<p>portainer 是 docker swarm 集群容器管理页面，可管理 Docker 容器、image、volume、network 等，当然我们还可以在其页面上添加多个 stack。</p>
+<p>visualizer 服务提供一个可视化页面，我们可以从浏览器中很直观的查看集群中各个服务的运行节点。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建 overlay 网络, --attachable 允许 docker run 的方式加入该网络</span></span><br><span class="line">docker network create --driver=overlay --attachable backend</span><br><span class="line"></span><br><span class="line"><span class="comment"># 部署或更新</span></span><br><span class="line">docker stack deploy -c docker-compose.yml <span class="built_in">test</span>-service</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果使用了私用镜像仓库先 login，再加入 --with-registry-auth</span></span><br><span class="line">docker stack deploy --with-registry-auth -c docker-compose.yml <span class="built_in">test</span>-service</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看</span></span><br><span class="line">docker stack ls</span><br><span class="line">docker stack ps <span class="built_in">test</span>-service</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果部署失败可以用 ps 查看错误</span></span><br><span class="line">docker stack ps <span class="built_in">test</span>-service --format <span class="string">"table &#123;&#123;.ID&#125;&#125;\t&#123;&#123;.Name&#125;&#125;\t&#123;&#123;.Error&#125;&#125;"</span> --no-trunc</span><br></pre></td></tr></table></figure>
+
+<p>访问 <a href="http://192.168.99.101:9000/" target="_blank" rel="noopener">http://192.168.99.101:9000/</a> 查看管理服务。<br>访问 <a href="http://192.168.99.101:9001/" target="_blank" rel="noopener">http://192.168.99.101:9001/</a> 查看监控服务。</p>
+<blockquote>
+<p>生产环境需要定期清理节点镜像，可以使用 crontab 定时执行 <code>docker image prune -f</code></p>
+</blockquote>
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><h3 id="docker-swarm-常用命令"><a href="#docker-swarm-常用命令" class="headerlink" title="docker swarm 常用命令"></a>docker swarm 常用命令</h3><ul>
+<li><code>docker swarm init</code> 初始化集群；</li>
+<li><code>docker swarm join-token worker</code> 查看工作节点的 token；</li>
+<li><code>docker swarm join-token manager</code> 查看管理节点的 token；</li>
+<li><code>docker swarm join</code> 加入集群中；</li>
+<li><code>docker swarm update --task-history-limit 2</code> 减少历史任务，节省资源；</li>
+</ul>
+<h3 id="docker-node-常用命令"><a href="#docker-node-常用命令" class="headerlink" title="docker node 常用命令"></a>docker node 常用命令</h3><ul>
+<li><code>docker node ls</code> 查看所有集群节点；</li>
+<li><code>docker node rm</code> 删除某个节点（-f 强制删除）；</li>
+<li><code>docker node inspect</code> 查看节点详情；</li>
+<li><code>docker node demote</code> 节点降级，由管理节点降级为工作节点；</li>
+<li><code>docker node promote</code> 节点升级，由工作节点升级为管理节点；</li>
+<li><code>docker node update</code> 更新节点；</li>
+<li><code>docker node ps</code> 查看节点中的 Task 任务；</li>
+<li><code>docker node update --availability drain manager</code> 管理阶段不部署服务 (“active”|”pause”|”drain”)</li>
+</ul>
+<h3 id="docker-service-常用命令"><a href="#docker-service-常用命令" class="headerlink" title="docker service 常用命令"></a>docker service 常用命令</h3><ul>
+<li><code>docker service create</code> 部署服务；</li>
+<li><code>docker service inspect</code> 查看服务详情；</li>
+<li><code>docker service logs</code> 产看某个服务日志；</li>
+<li><code>docker service ls</code> 查看所有服务详情；</li>
+<li><code>docker service rm</code> 删除某个服务（-f 强制删除）；</li>
+<li><code>docker service scale</code> 设置某个服务个数；</li>
+<li><code>docker service update</code> 更新某个服务；</li>
+<li><code>docker service rollback</code> 回滚某个服务；</li>
+</ul>
+<h3 id="docker-stack-常用命令"><a href="#docker-stack-常用命令" class="headerlink" title="docker stack 常用命令"></a>docker stack 常用命令</h3><ul>
+<li><code>docker stack deploy</code> 部署新的堆栈或更新现有堆栈；</li>
+<li><code>docker stack ls</code> 列出现有堆栈；</li>
+<li><code>docker stack ps</code> 列出堆栈中的任务；</li>
+<li><code>docker stack rm</code> 删除堆栈；</li>
+<li><code>docker stack services</code> 列出堆栈中的服务；</li>
+<li><code>docker stack down</code> 移除某个堆栈（不会删除数据）；</li>
+</ul>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><h3 id="Overlay-网络-ipvs-性能问题"><a href="#Overlay-网络-ipvs-性能问题" class="headerlink" title="Overlay 网络 ipvs 性能问题"></a>Overlay 网络 ipvs 性能问题</h3><p>并发压测性能极差，扩容服务也不能解决。</p>
+<ul>
+<li><a href="https://github.com/moby/moby/issues/35082/" target="_blank" rel="noopener">[SWARM]Very poor performance for ingress network with lots of parallel requests</a></li>
+<li><a href="https://github.com/moby/moby/issues/31746/" target="_blank" rel="noopener">Pauses/delays with overlay network on swarm</a></li>
+</ul>
+<p><strong>监控 ipvs 命令：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">nsenter --net=/var/run/docker/netns/ingress_sbox ipvsadm -l</span><br><span class="line"></span><br><span class="line">nsenter --net=/var/run/docker/netns/ingress_sbox cat /proc/net/ip_vs_conn | head</span><br><span class="line"></span><br><span class="line">watch -n 0.5 <span class="string">"sudo nsenter --net=/var/run/docker/netns/ingress_sbox cat /proc/net/ip_vs_conn | grep TIME_WAIT | wc -l"</span></span><br><span class="line"></span><br><span class="line">sysctl -a | egrep <span class="string">"net.ipv4.vs.conntrack|net.ipv4.vs.conn_reuse_mode|expire_nodest_conn"</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解决方案一：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo nsenter --net=/var/run/docker/netns/&#123;your_load_balancer&#125; sysctl -w net.ipv4.vs.conn_reuse_mode=0</span><br><span class="line">sudo nsenter --net=/var/run/docker/netns/&#123;your_load_balancer&#125; sysctl -w net.ipv4.vs.expire_nodest_conn=1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解决</span></span><br><span class="line"><span class="comment"># nsenter --net=/var/run/docker/netns/ingress_sbox</span></span><br><span class="line"><span class="comment"># sysctl -w net.netfilter.nf_conntrack_tcp_timeout_time_wait=3</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="deletion">- net.ipv4.vs.conn_reuse_mode = 1</span></span><br><span class="line"><span class="deletion">- net.ipv4.vs.conntrack = 0</span></span><br><span class="line"><span class="deletion">- net.ipv4.vs.expire_nodest_conn = 0</span></span><br><span class="line"></span><br><span class="line"><span class="addition">+ net.ipv4.vs.conntrack = 1</span></span><br><span class="line"><span class="addition">+ net.ipv4.vs.conn_reuse_mode = 0</span></span><br><span class="line"><span class="addition">+ net.ipv4.vs.expire_nodest_conn = 1</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解决方案二：</strong></p>
+<p>使用 dnsrr 网络模式</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">'3.8'</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">server:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">"server:latest"</span></span><br><span class="line">    <span class="attr">stop_grace_period:</span> <span class="string">10s</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">backend-network</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">2</span></span><br><span class="line">      <span class="attr">endpoint_mode:</span> <span class="string">dnsrr</span></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">backend-network:</span></span><br><span class="line">    <span class="attr">external:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注：dnsrr 不支持暴露端口。</p>
+</blockquote>
+<h3 id="【Docker】启动container的时候出现iptables-No-chain-target-match-by-that-name"><a href="#【Docker】启动container的时候出现iptables-No-chain-target-match-by-that-name" class="headerlink" title="【Docker】启动container的时候出现iptables: No chain/target/match by that name"></a>【Docker】启动container的时候出现iptables: No chain/target/match by that name</h3><p><strong>原因:</strong></p>
+<p>如果再启动docker service的时候网关是关闭的，那么docker管理网络的时候就不会操作网管的配置（chain docker），然后网关重新启动了，导致docker network无法对新container进行网络配置，也就是没有网管的操作权限，做重启处理</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart  docker</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>使用的centos7服务器，在部署docker的过程中，因端口问题有启停firewalld服务，在centos7里使用firewalld代替了iptables。在启动firewalld之后，iptables还会被使用，属于引用的关系。所以在docker run的时候，iptables list里没有docker chain，重启docker engine服务后会被加入到iptables list里面。</p>
+</blockquote>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.docker.com/engine/swarm/" target="_blank" rel="noopener">docker swarm</a></li>
+<li><a href="https://docs.docker.com/engine/swarm/admin_guide/" target="_blank" rel="noopener">swarm admin guide</a></li>
+<li><a href="https://yeasy.gitbooks.io/docker_practice/content/swarm_mode/overview.html" target="_blank" rel="noopener">docker practice</a></li>
+<li><a href="https://docs.docker.com/compose/compose-file/" target="_blank" rel="noopener">docker compose file</a></li>
+<li><a href="https://www.jianshu.com/p/dba9342071d8" target="_blank" rel="noopener">Docker Swarm - 服务发现和负载均衡原理</a></li>
+<li><a href="https://www.jianshu.com/p/1e6828fd8947/" target="_blank" rel="noopener">Docker Swarm - 配置管理</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/docker/" rel="tag"># docker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-machine/" rel="prev" title="Docker 三剑客之 Docker Machine">
+      <i class="fa fa-chevron-left"></i> Docker 三剑客之 Docker Machine
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-gitlab/" rel="next" title="使用 Docker 搭建 GitLab CE 实现 CI">
+      使用 Docker 搭建 GitLab CE 实现 CI <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#节点"><span class="nav-number">1.1.</span> <span class="nav-text">节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务和任务"><span class="nav-number">1.2.</span> <span class="nav-text">服务和任务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-swarm-集群"><span class="nav-number">2.</span> <span class="nav-text">创建 swarm 集群</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署服务"><span class="nav-number">3.</span> <span class="nav-text">部署服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理秘钥"><span class="nav-number">4.</span> <span class="nav-text">管理秘钥</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建-secret"><span class="nav-number">4.1.</span> <span class="nav-text">创建 secret</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理配置信息"><span class="nav-number">5.</span> <span class="nav-text">管理配置信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建-config"><span class="nav-number">5.1.</span> <span class="nav-text">创建 config</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#compose-file"><span class="nav-number">5.1.1.</span> <span class="nav-text">compose-file</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stack-多服务编排"><span class="nav-number">6.</span> <span class="nav-text">Stack 多服务编排</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">7.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#docker-swarm-常用命令"><span class="nav-number">7.1.</span> <span class="nav-text">docker swarm 常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#docker-node-常用命令"><span class="nav-number">7.2.</span> <span class="nav-text">docker node 常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#docker-service-常用命令"><span class="nav-number">7.3.</span> <span class="nav-text">docker service 常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#docker-stack-常用命令"><span class="nav-number">7.4.</span> <span class="nav-text">docker stack 常用命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题"><span class="nav-number">8.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Overlay-网络-ipvs-性能问题"><span class="nav-number">8.1.</span> <span class="nav-text">Overlay 网络 ipvs 性能问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#【Docker】启动container的时候出现iptables-No-chain-target-match-by-that-name"><span class="nav-number">8.2.</span> <span class="nav-text">【Docker】启动container的时候出现iptables: No chain&#x2F;target&#x2F;match by that name</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

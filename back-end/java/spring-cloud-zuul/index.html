@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Spring Cloud Zuul 是 Spring Cloud Netflix 子项目的核心组件之一，可以作为微服务架构中的 API 网关使用，支持动态路由与过滤功能。 为什么前面已经写了 Spring Cloud Gateway，还要在写 Zuul 呢？可能是周末闲的不能出去，反正已经学了，总得记下点什么不是…… 武汉加油！中国加油！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务架构之API网关：Spring Cloud Zuul">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/java/spring-cloud-zuul/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Spring Cloud Zuul 是 Spring Cloud Netflix 子项目的核心组件之一，可以作为微服务架构中的 API 网关使用，支持动态路由与过滤功能。 为什么前面已经写了 Spring Cloud Gateway，还要在写 Zuul 呢？可能是周末闲的不能出去，反正已经学了，总得记下点什么不是…… 武汉加油！中国加油！">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/8.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/9.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/10.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/11.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/12.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/13.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/14.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/15.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/16.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/18.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/19.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/20.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/21.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/22.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/23.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/24.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/25.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/26.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/27.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/28.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/29.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/30.jpg">
+<meta property="article:published_time" content="2020-02-22T15:32:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.391Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="MicroServices">
+<meta property="article:tag" content="SpringCloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/java/spring-cloud-zuul/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/java/spring-cloud-zuul/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>微服务架构之API网关：Spring Cloud Zuul | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/java/spring-cloud-zuul/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          微服务架构之API网关：Spring Cloud Zuul
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-22 15:32:00" itemprop="dateCreated datePublished" datetime="2020-02-22T15:32:00+00:00">2020-02-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Spring Cloud Zuul 是 Spring Cloud Netflix 子项目的核心组件之一，可以作为微服务架构中的 API 网关使用，支持动态路由与过滤功能。</p>
+<p>为什么前面已经写了 Spring Cloud Gateway，还要在写 Zuul 呢？可能是周末闲的不能出去，反正已经学了，总得记下点什么不是…… 武汉加油！中国加油！</p>
+<a id="more"></a>
+
+<h2 id="再介绍API网关"><a href="#再介绍API网关" class="headerlink" title="再介绍API网关"></a>再介绍API网关</h2><p>为什么要再次介绍网关？因为它在服务中真的很重要！</p>
+<h3 id="API网关是如何演化出来的？"><a href="#API网关是如何演化出来的？" class="headerlink" title="API网关是如何演化出来的？"></a>API网关是如何演化出来的？</h3><p><img src="/images/java/spring-cloud-zuul/1.jpg" alt="1"></p>
+<p>以前我们都采用单体架构，在单体应用时代，我们一般会把一些功能抽取出来放在过滤器当中。比如安全认证功能，一般会用 Spring Security 或者 Apache Shiro，它们都是通过过滤器实现的，可以截获请求然后做一些安全过滤的工作。</p>
+<p>那么到了微服务时代，我们之前的单体的业务逻辑被拆分成若干个小的微服务，这些小的微服务也有一些公共的跨横切面的功能逻辑，比如：安全、路由、日志等等。如果说让这些每个微服务都来处理这些功能话，这个微服务就会很复杂，开发人员不仅要去处理业务逻辑还要去处理这些公共逻辑，开发的负担就比较重。所有我们也会把这些公共的逻辑抽取出来，放在一个叫网关的这样一个独立组件（边界服务）上面，网关就是这样产生的。</p>
+<p>还有重要的一点，在单体应用的时代我们的应用一般是浏览器，现在我们应用的形态变的更多了，除了有浏览器还有H5的应用，无线的应用，除此之外一般企业还有开放平台，把业务能力以 API 的形式暴露出来，让第三方来调用开发，接入到企业的内部平台上，那么如果没有网关，让这些不同形态的应用去对接微服务就会产生一个非常服务的网状结构，使用网关以后，外面的这些形态只需对接一个入口。</p>
+<h3 id="API网关基本功能"><a href="#API网关基本功能" class="headerlink" title="API网关基本功能"></a>API网关基本功能</h3><p>网关是外面的客户端和内部各种微服务之间的中间环节（代理环节），它应该具备一些基本功能：</p>
+<p><img src="/images/java/spring-cloud-zuul/2.jpg" alt="2"></p>
+<ul>
+<li>单点入口：有了网关以后，客户端只看到一个单点入口，比如：api.com；</li>
+<li>路由转发：内部的微服务有很多，外面客户端只看到一个入口，那么外面请求来了以后到底对应的是哪个服务呢？网关就要负责做路由转发，根据请求的一些路径啊或者是 Header 转发到内部具体的微服务；</li>
+<li>限流熔断：微服务架构后台的每个服务都有可能出错或者产生延迟，如果没有限流熔断机制很容易造成客户端阻塞或者严重的雪崩效应，网关要做限流熔断保护后台服务；</li>
+<li>日志监控：所有的请求都经过网关，我们就可以对它进行日志收集和监控，整个系统健不健康，有没有人利用我们的服务做坏事情都可以通过网关做集中的监控；</li>
+<li>安全认证：请求都经过网关进入企业内部服务，网关就像是一个大门，每个请求进来要检查它是不是安全的有没有经过认证；</li>
+</ul>
+<h2 id="Netflix-Zuul-网关简介"><a href="#Netflix-Zuul-网关简介" class="headerlink" title="Netflix Zuul 网关简介"></a>Netflix Zuul 网关简介</h2><p>Netflix 于 2012 年初开源 Zuul 网关：</p>
+<ul>
+<li><a href="https://github.com/Netflix/zuul" target="_blank" rel="noopener">https://github.com/Netflix/zuul</a></li>
+<li>Zuul is an edge service that provides dynamic routing, monitoring, resiliency, security, and more；</li>
+<li>Zuul 在英文中是怪兽的意思，寓意看门神兽；</li>
+<li>2014 年被 Pivotal 集成入 Spring Cloud 体系中；</li>
+<li>亮点：可动态发布的过滤器机制，可动态插拔。</li>
+<li>缺点：性能一般，Zuul 1.0 使用阻塞API，不支持任何长连接，如 websocket。当然在 Zuul 2.0 中采用了 Netty实现异步非阻塞编程模型，性能已经提升很多（20%左右）。</li>
+</ul>
+<p>Netflix 架构体系和 Zuul：</p>
+<p><img src="/images/java/spring-cloud-zuul/3.jpg" alt="3"></p>
+<h2 id="架构原理"><a href="#架构原理" class="headerlink" title="架构原理"></a>架构原理</h2><p><img src="/images/java/spring-cloud-zuul/4.jpg" alt="4"></p>
+<p>Zuul 架构大概分是哪个模块，第一模块（绿色）网关过滤器管理模块，第二模块（粉红色）网关过滤器加载模块，第三模块（蓝色）核心运行时模块。</p>
+<ul>
+<li>过滤器管理模块：让开发人员或运维人员管理过滤器，主要是上传过滤器代码文件；</li>
+<li>过滤器加载模块：定期扫描过滤器存储数据库，看是否有变更，如果有变更，加载模块会先把过滤器拉到本地过滤器目录中，然后加载到运行时；</li>
+<li>网关过滤器运行时：本质是一个Http Servlet，当请求过来后，会先经过 servlet，然后到 filter runner 组件，整个请求过滤都是由 Runner 负责。请求会一次经过前置路由过滤器、路由过滤器、后置路由过滤器进行过滤；</li>
+<li>Request Context 组件：一个共享存储空间，请求在过滤器当中流转是，它们需要一些共享的信息，比如前置路由过滤器会设置一些信息给到路由过滤器去读取，那这个信息的交换是通过 Context 来完成，而且是线程安全的；</li>
+<li>过滤器文件：过滤器文件是 Groovy 脚本，可以被动态编译。</li>
+</ul>
+<h3 id="请求处理生命周期"><a href="#请求处理生命周期" class="headerlink" title="请求处理生命周期"></a>请求处理生命周期</h3><p><img src="/images/java/spring-cloud-zuul/5.jpg" alt="5"></p>
+<p>请求进来后会先走前置过滤器，然后路由过滤器，路由过滤器会去向后发起请求，resposne 会经过后置过滤器。这三个过滤器任何一个出错都会传给 错误过滤器。</p>
+<h3 id="过滤器关键概念"><a href="#过滤器关键概念" class="headerlink" title="过滤器关键概念"></a>过滤器关键概念</h3><h4 id="类型-Type"><a href="#类型-Type" class="headerlink" title="类型 Type"></a>类型 Type</h4><p>定义在路由流程中，过滤器被应用的阶段：pre、routing、post、error。</p>
+<p>标准过滤器类型：</p>
+<p><img src="/images/java/spring-cloud-zuul/6.jpg" alt="6"></p>
+<h4 id="执行顺序-Execution-Order"><a href="#执行顺序-Execution-Order" class="headerlink" title="执行顺序 Execution Order"></a>执行顺序 Execution Order</h4><p>在同一个 Type 中，定义过滤器执行的顺序，每个阶段都可能有很多个过滤器，那么可以指定这些过滤器的执行顺序。</p>
+<h4 id="条件-Criteria"><a href="#条件-Criteria" class="headerlink" title="条件 Criteria"></a>条件 Criteria</h4><p>过滤器被执行必须满足的条件。</p>
+<h4 id="动作-Action"><a href="#动作-Action" class="headerlink" title="动作 Action"></a>动作 Action</h4><p>如果条件满足，过滤器中将被执行的动作。</p>
+<h3 id="Zuul-1-0-VS-Zuul-2-0"><a href="#Zuul-1-0-VS-Zuul-2-0" class="headerlink" title="Zuul 1.0 VS Zuul 2.0"></a>Zuul 1.0 VS Zuul 2.0</h3><h4 id="Zuul-1-0-阻塞多线程模式"><a href="#Zuul-1-0-阻塞多线程模式" class="headerlink" title="Zuul 1.0 阻塞多线程模式"></a>Zuul 1.0 阻塞多线程模式</h4><p><img src="/images/java/spring-cloud-zuul/7.jpg" alt="7"></p>
+<p>Zuul 1.0 其实就是 Servlet，基于阻塞多线程模式，是比较常见的模式大部分 web 应用都是采用这种模式（如 Spring MVC）比较简单清晰。每个请求来个时候 Servlet 容器给它分配一个线程来处理这个请求，那这中间做 IO 操作的时候都会被阻塞这个线程。</p>
+<h4 id="Zuul-2-0-非阻塞异步模式"><a href="#Zuul-2-0-非阻塞异步模式" class="headerlink" title="Zuul 2.0 非阻塞异步模式"></a>Zuul 2.0 非阻塞异步模式</h4><p><img src="/images/java/spring-cloud-zuul/8.jpg" alt="8"></p>
+<p>Zuul 2.0 最大的变化就是非阻塞异步模式，事件机制或者说队列机制，每个请求来的时候会先放到事件总线中或者队列中，它的处理线程是一个事件环，每个 Core 上只有一个线程，这个线程对订阅在总线上，也会监听后台返回的事件。很多人误以为这个模式会提高性能，正确的说法应该是提高吞吐量，能接收的请求比较多，连接数比较多。</p>
+<h4 id="阻塞和非阻塞比较有劣"><a href="#阻塞和非阻塞比较有劣" class="headerlink" title="阻塞和非阻塞比较有劣"></a>阻塞和非阻塞比较有劣</h4><table>
+<thead>
+<tr>
+<th align="left">机制</th>
+<th align="left">优点</th>
+<th align="left">不足</th>
+<th align="left">适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">阻塞模式</td>
+<td align="left">编程模型简单； 开发调试运维简单</td>
+<td align="left">线程上下文切换开销；连接数限制；延迟阻塞耗尽线程连接资源</td>
+<td align="left">计算密集型(CPU bound)场景</td>
+</tr>
+<tr>
+<td align="left">非阻塞模式</td>
+<td align="left">线程开销少；连接数易扩展</td>
+<td align="left">编程模型复杂；开发调试运维复杂；ThreadLocak不work</td>
+<td align="left">IO密集型(IO bound)场景</td>
+</tr>
+</tbody></table>
+<p>Zuul 1.0 和 Zuul 2.0 <a href="https://github.com/strangeloop/StrangeLoop2017/blob/master/slides/ArthurGonigberg-ZuulsJourneyToNonBlocking.pdf" target="_blank" rel="noopener">性能比较</a>，其实并没有提高多少性能，官方的博文说大概提高20%，但是带来的却是高复杂度。Zuul 1.0 可以用 AsyncServlet 优化。</p>
+<h4 id="Zuul-2-0-架构"><a href="#Zuul-2-0-架构" class="headerlink" title="Zuul 2.0 架构"></a>Zuul 2.0 架构</h4><p><img src="/images/java/spring-cloud-zuul/9.jpg" alt="9"></p>
+<p>Zuul 2.0 架构的变化主要是前端，1.0 是 Servlet，2.0 是 Netty Server 是个异步 Server。对后端的调用 1.0 主要用 Apache HttpClient，2.0 改成了 Netty 的 Client 也是异步的。然后就是把三个过滤器名称改了。</p>
+<h4 id="Zuul-2-0-额外亮点"><a href="#Zuul-2-0-额外亮点" class="headerlink" title="Zuul 2.0 额外亮点"></a>Zuul 2.0 额外亮点</h4><p>支持比较新的服务器协议：</p>
+<ul>
+<li>HTTP/2</li>
+<li>Mutual TLS</li>
+</ul>
+<p>弹性：</p>
+<ul>
+<li>Adaptive Retries (自适应重试) ；</li>
+<li>Origin Concurrency Protection（源并发保护），最后台服务的并发保护；</li>
+</ul>
+<p>运维：</p>
+<ul>
+<li>Request Passport，主要解决异步调试问题；</li>
+<li>Status Categories (状态码分类）增加，也是方便调试；</li>
+<li>Request Attempts 跟踪请求重试；</li>
+</ul>
+<h2 id="Spring-Cloud-Zuul-简介"><a href="#Spring-Cloud-Zuul-简介" class="headerlink" title="Spring Cloud Zuul 简介"></a>Spring Cloud Zuul 简介</h2><p>2014 年 Spring 母公司 Pivotal 把 Zuul 集成入 Spring Cloud 体系中，只是通过 Spring boot 做了个包装，使用更简单，但是没有实现动态过滤器加载。对开发友好，但是对生产不是很友好。</p>
+<ul>
+<li>Netflix Zuul内核 + Spring Boot；</li>
+<li>EnableZuulProxy 标注；</li>
+<li>去掉了动态过滤器加载！</li>
+</ul>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>JDK：1.8</li>
+<li>Spring Boot：2.2.4.RELEASE</li>
+<li>Spring Cloud：Hoxton.SR1</li>
+</ul>
+<h2 id="创建一个-zuul-proxy-模块"><a href="#创建一个-zuul-proxy-模块" class="headerlink" title="创建一个 zuul-proxy 模块"></a>创建一个 zuul-proxy 模块</h2><p>zuul-proxy 模块来演示 zuul 的常用功能，在 pom.xml 中添加相关依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-netflix-eureka-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-netflix-zuul<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 application.yml 中进行配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8801</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">zuul-proxy</span></span><br><span class="line"><span class="attr">eureka:</span></span><br><span class="line">  <span class="attr">client:</span></span><br><span class="line">    <span class="attr">register-with-eureka:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">fetch-registry:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">service-url:</span></span><br><span class="line">      <span class="attr">defaultZone:</span> <span class="string">http://localhost:8001/eureka/</span></span><br></pre></td></tr></table></figure>
+
+<p>在启动类上添加 @EnableZuulProxy 注解来启用 Zuul 的 API 网关功能：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableZuulProxy</span></span><br><span class="line"><span class="meta">@EnableDiscoveryClient</span></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZuulProxyApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(ZuulProxyApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动 eureka-server，两个 user-service，feign-service 和 zuul-proxy 来演示 Zuul 的常用功能。</p>
+<h2 id="常用功能"><a href="#常用功能" class="headerlink" title="常用功能"></a>常用功能</h2><h3 id="配置路由规则"><a href="#配置路由规则" class="headerlink" title="配置路由规则"></a>配置路由规则</h3><p>通过修改 application.yml 中的配置来配置路由规则，将匹配 /userService/** 的请求路由到 user-service 服务上去，匹配 /feignService/** 的请求路由到 feign-service 上去。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">routes:</span> <span class="comment">#给服务配置路由</span></span><br><span class="line">    <span class="attr">user-service:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/userService/**</span></span><br><span class="line">    <span class="attr">feign-service:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/feignService/**</span></span><br></pre></td></tr></table></figure>
+
+<p>访问 <a href="http://localhost:8801/userService/user/1" target="_blank" rel="noopener">http://localhost:8801/userService/user/1</a> 可以发现请求路由到了 user-service 上了。</p>
+<p>访问 <a href="http://localhost:8801/feignService/user/1" target="_blank" rel="noopener">http://localhost:8801/feignService/user/1</a> 可以发现请求路由到了 feign-service上了。</p>
+<h3 id="默认路由规则"><a href="#默认路由规则" class="headerlink" title="默认路由规则"></a>默认路由规则</h3><p>Zuul 和 Eureka 结合使用，可以实现路由的自动配置，自动配置的路由以服务名称为匹配路径，相当于如下配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">routes:</span> <span class="comment">#给服务配置路由</span></span><br><span class="line">    <span class="attr">user-service:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/user-service/**</span></span><br><span class="line">    <span class="attr">feign-service:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/feign-service/**</span></span><br></pre></td></tr></table></figure>
+
+<p>访问 <a href="http://localhost:8801/user-service/user/1" target="_blank" rel="noopener">http://localhost:8801/user-service/user/1</a> 同样可以路由到了 user-service 上了。</p>
+<p>访问 <a href="http://localhost:8801/feign-service/user/1" target="_blank" rel="noopener">http://localhost:8801/feign-service/user/1</a> 同样可以路由到了feign-service 上了。</p>
+<p>如果不想使用默认的路由规则，可以添加以下配置来忽略默认路由配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">ignored-services:</span> <span class="string">user-service,feign-service</span> <span class="comment">#关闭默认路由配置</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="负载均衡功能"><a href="#负载均衡功能" class="headerlink" title="负载均衡功能"></a>负载均衡功能</h3><p>多次调用 <a href="http://localhost:8801/user-service/user/1" target="_blank" rel="noopener">http://localhost:8801/user-service/user/1</a> 进行测试，可以发现运行在 8201 和 8202 的 user-service 服务交替打印如下信息。</p>
+<h3 id="配置访问前缀"><a href="#配置访问前缀" class="headerlink" title="配置访问前缀"></a>配置访问前缀</h3><p>可以通过以下配置来给网关路径添加前缀，此处添加了 /proxy 前缀，这样需要访问 <a href="http://localhost:8801/proxy/user-service/user/1" target="_blank" rel="noopener">http://localhost:8801/proxy/user-service/user/1</a> 才能访问到 user-service 中的接口：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">prefix:</span> <span class="string">/proxy</span> <span class="comment">#给网关路由添加前缀</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Header-过滤及重定向添加-Host"><a href="#Header-过滤及重定向添加-Host" class="headerlink" title="Header 过滤及重定向添加 Host"></a>Header 过滤及重定向添加 Host</h3><p>Zuul 在请求路由时，默认会过滤掉一些敏感的头信息，以下配置可以防止路由时的 Cookie 及 Authorization 的丢失：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">sensitive-headers:</span> <span class="string">Cookie,Set-Cookie,Authorization</span> <span class="comment">#配置过滤敏感的请求头信息，设置为空就不会过滤</span></span><br></pre></td></tr></table></figure>
+
+<p>Zuul 在请求路由时，不会设置最初的 host 头信息，以下配置可以解决：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">add-host-header:</span> <span class="literal">true</span> <span class="comment">#设置为true重定向是会添加host请求头</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="查看路由信息"><a href="#查看路由信息" class="headerlink" title="查看路由信息"></a>查看路由信息</h3><p>通过 SpringBoot Actuator 来查看 Zuul 中的路由信息，在 pom.xml 中添加相关依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>修改 application.yaml 配置文件，开启查看路由的端点：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">web:</span></span><br><span class="line">      <span class="attr">exposure:</span></span><br><span class="line">        <span class="attr">include:</span> <span class="string">'routes'</span></span><br></pre></td></tr></table></figure>
+
+<p>通过访问 <a href="http://localhost:8801/actuator/routes" target="_blank" rel="noopener">http://localhost:8801/actuator/routes</a> 查看简单路由信息。</p>
+<p>通过访问 <a href="http://localhost:8801/actuator/routes/details" target="_blank" rel="noopener">http://localhost:8801/actuator/routes/details</a> 查看详细路由信息。</p>
+<h2 id="过滤器"><a href="#过滤器" class="headerlink" title="过滤器"></a>过滤器</h2><h3 id="自定义过滤器"><a href="#自定义过滤器" class="headerlink" title="自定义过滤器"></a>自定义过滤器</h3><h4 id="添加-PreLogFilter-类继承-ZuulFilter"><a href="#添加-PreLogFilter-类继承-ZuulFilter" class="headerlink" title="添加 PreLogFilter 类继承 ZuulFilter"></a>添加 PreLogFilter 类继承 ZuulFilter</h4><p>这是一个前置过滤器，用于在请求路由到目标服务前打印请求日志：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PreLogFilter</span> <span class="keyword">extends</span> <span class="title">ZuulFilter</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Logger LOGGER = LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 过滤器类型，有pre、routing、post、error四种。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">filterType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"pre"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 过滤器执行顺序，数值越小优先级越高。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">filterOrder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 是否进行过滤，返回true会执行过滤。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">shouldFilter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 自定义的过滤器逻辑，当shouldFilter()返回true时会执行。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">run</span><span class="params">()</span> <span class="keyword">throws</span> ZuulException </span>&#123;</span><br><span class="line">        RequestContext requestContext = RequestContext.getCurrentContext();</span><br><span class="line">        HttpServletRequest request = requestContext.getRequest();</span><br><span class="line">        String host = request.getRemoteHost();</span><br><span class="line">        String method = request.getMethod();</span><br><span class="line">        String uri = request.getRequestURI();</span><br><span class="line">        LOGGER.info(<span class="string">"Remote host:&#123;&#125;,method:&#123;&#125;,uri:&#123;&#125;"</span>, host, method, uri);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="核心过滤器"><a href="#核心过滤器" class="headerlink" title="核心过滤器"></a>核心过滤器</h3><table>
+<thead>
+<tr>
+<th align="left">过滤器名称</th>
+<th align="left">过滤类型</th>
+<th align="left">优先级</th>
+<th align="left">过滤器的作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">ServletDetectionFilter</td>
+<td align="left">pre</td>
+<td align="left">-3</td>
+<td align="left">检测当前请求是通过 DispatcherServlet 处理运行的还是ZuulServlet运行处理的。</td>
+</tr>
+<tr>
+<td align="left">Servlet30WrapperFilter</td>
+<td align="left">pre</td>
+<td align="left">-2</td>
+<td align="left">对原始的 HttpServletRequest 进行包装。</td>
+</tr>
+<tr>
+<td align="left">FormBodyWrapperFilter</td>
+<td align="left">pre</td>
+<td align="left">-1</td>
+<td align="left">将 Content-Type 为 application/x-www-form-urlencoded 或 multipart/form-data 的请求包装成 FormBodyRequestWrapper 对象。</td>
+</tr>
+<tr>
+<td align="left">DebugFilter</td>
+<td align="left">route</td>
+<td align="left">1</td>
+<td align="left">根据 zuul.debug.request 的配置来决定是否打印 debug 日志。</td>
+</tr>
+<tr>
+<td align="left">PreDecorationFilter</td>
+<td align="left">route</td>
+<td align="left">5</td>
+<td align="left">对当前请求进行预处理以便执行后续操作。</td>
+</tr>
+<tr>
+<td align="left">RibbonRoutingFilter</td>
+<td align="left">route</td>
+<td align="left">10</td>
+<td align="left">通过 Ribbon 和 Hystrix 来向服务实例发起请求，并将请求结果进行返回。</td>
+</tr>
+<tr>
+<td align="left">SimpleHostRoutingFilter</td>
+<td align="left">route</td>
+<td align="left">100</td>
+<td align="left">只对请求上下文中有 routeHost 参数的进行处理，直接使用 HttpClient 向 routeHost 对应的物理地址进行转发。</td>
+</tr>
+<tr>
+<td align="left">SendForwardFilter</td>
+<td align="left">route</td>
+<td align="left">500</td>
+<td align="left">只对请求上下文中有 forward.to 参数的进行处理，进行本地跳转。</td>
+</tr>
+<tr>
+<td align="left">SendErrorFilter</td>
+<td align="left">post</td>
+<td align="left">0</td>
+<td align="left">当其他过滤器内部发生异常时的会由它来进行处理，产生错误响应。</td>
+</tr>
+<tr>
+<td align="left">SendResponseFilter</td>
+<td align="left">post</td>
+<td align="left">1000</td>
+<td align="left">利用请求上下文的响应信息来组织请求成功的响应内容。</td>
+</tr>
+</tbody></table>
+<h3 id="禁用过滤器"><a href="#禁用过滤器" class="headerlink" title="禁用过滤器"></a>禁用过滤器</h3><p>可以对过滤器进行禁用的配置，配置格式如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">filterClassName:</span></span><br><span class="line">    <span class="attr">filter:</span></span><br><span class="line">      <span class="attr">disable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>以下是禁用 PreLogFilter 的示例配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">PreLogFilter:</span></span><br><span class="line">    <span class="attr">pre:</span></span><br><span class="line">      <span class="attr">disable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Ribbon-和-Hystrix-的支持"><a href="#Ribbon-和-Hystrix-的支持" class="headerlink" title="Ribbon 和 Hystrix 的支持"></a>Ribbon 和 Hystrix 的支持</h2><p>由于 Zuul 自动集成了 Ribbon 和 Hystrix，所以 Zuul 天生就有负载均衡和服务容错能力，可以通过 Ribbon 和 Hystrix 的配置来配置 Zuul 中的相应功能。</p>
+<p>使用 Hystrix 的配置来设置路由转发时 HystrixCommand 的执行超时时间：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">hystrix:</span></span><br><span class="line">  <span class="attr">command:</span> <span class="comment">#用于控制HystrixCommand的行为</span></span><br><span class="line">    <span class="attr">default:</span></span><br><span class="line">      <span class="attr">execution:</span></span><br><span class="line">        <span class="attr">isolation:</span></span><br><span class="line">          <span class="attr">thread:</span></span><br><span class="line">            <span class="attr">timeoutInMilliseconds:</span> <span class="number">1000</span> <span class="comment">#配置HystrixCommand执行的超时时间，执行超过该时间会进行服务降级处理</span></span><br></pre></td></tr></table></figure>
+
+<p>可以使用 Ribbon 的配置来设置路由转发时请求连接及处理的超时时间：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">ribbon:</span> <span class="comment">#全局配置</span></span><br><span class="line">  <span class="attr">ConnectTimeout:</span> <span class="number">1000</span> <span class="comment">#服务请求连接超时时间（毫秒）</span></span><br><span class="line">  <span class="attr">ReadTimeout:</span> <span class="number">3000</span> <span class="comment">#服务请求处理超时时间（毫秒）</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="常用配置"><a href="#常用配置" class="headerlink" title="常用配置"></a>常用配置</h2><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zuul:</span></span><br><span class="line">  <span class="attr">routes:</span> <span class="comment">#给服务配置路由</span></span><br><span class="line">    <span class="attr">user-service:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/userService/**</span></span><br><span class="line">    <span class="attr">feign-service:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/feignService/**</span></span><br><span class="line">  <span class="attr">ignored-services:</span> <span class="string">user-service,feign-service</span> <span class="comment">#关闭默认路由配置</span></span><br><span class="line">  <span class="attr">prefix:</span> <span class="string">/proxy</span> <span class="comment">#给网关路由添加前缀</span></span><br><span class="line">  <span class="attr">sensitive-headers:</span> <span class="string">Cookie,Set-Cookie,Authorization</span> <span class="comment">#配置过滤敏感的请求头信息，设置为空就不会过滤</span></span><br><span class="line">  <span class="attr">add-host-header:</span> <span class="literal">true</span> <span class="comment">#设置为true重定向是会添加host请求头</span></span><br><span class="line">  <span class="attr">retryable:</span> <span class="literal">true</span> <span class="comment"># 关闭重试机制</span></span><br><span class="line">  <span class="attr">PreLogFilter:</span></span><br><span class="line">    <span class="attr">pre:</span></span><br><span class="line">      <span class="attr">disable:</span> <span class="literal">false</span> <span class="comment">#控制是否启用过滤器</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><h3 id="Zuul-高级应用场景"><a href="#Zuul-高级应用场景" class="headerlink" title="Zuul 高级应用场景"></a>Zuul 高级应用场景</h3><h4 id="红绿部署"><a href="#红绿部署" class="headerlink" title="红绿部署"></a>红绿部署</h4><p><img src="/images/java/spring-cloud-zuul/10.jpg" alt="10"></p>
+<p>红绿部署就是蓝绿部署 Netflix 叫红绿部署，会有两个集群 v1 老集群和 v2 新集群，部署时红绿都会存在，通过网关来切流量，上线之前做金丝雀，切部分流量到v2集群，如果有问题切回 v1，没有问题就全部切到 v2。</p>
+<h4 id="开发者测试分支"><a href="#开发者测试分支" class="headerlink" title="开发者测试分支"></a>开发者测试分支</h4><p><img src="/images/java/spring-cloud-zuul/11.jpg" alt="11"></p>
+<p>有些功能比较关键，开发人员需要做线上的测试，测试用的并不是生产流量。网关会把内部开发人员的请求转发到测试集群上，这样既可以测试应用在生产环境的功能又不会影响生产环境的数据。</p>
+<h4 id="埋点测试"><a href="#埋点测试" class="headerlink" title="埋点测试"></a>埋点测试</h4><p><img src="/images/java/spring-cloud-zuul/12.jpg" alt="12"></p>
+<p>应用有埋点和不埋点的，比如：Metrics 埋点、Tracing 埋点等。埋点多了可能会有性能开销，但是埋点可以帮助我们了解应用的性能情况，那么就可以发布少量的详细埋点应用。也是在网关上进行切流量，如果是测试的流量就切到详细埋点的应用上或集群上。</p>
+<h4 id="压力测试"><a href="#压力测试" class="headerlink" title="压力测试"></a>压力测试</h4><p><img src="/images/java/spring-cloud-zuul/13.jpg" alt="13"></p>
+<p>在应用上线之前，会先部署到压力测试集群上，压力测试需要用到生产流量，但是这个流量是镜像 Copy 的，真实的生产流量还是会到生产集群当中，会复制一部分流量到压力测试集群上。因为这个流量是镜像的，那么 Response 后不会被反给客户端，会在网关上丢弃掉。</p>
+<h4 id="调试路由"><a href="#调试路由" class="headerlink" title="调试路由"></a>调试路由</h4><p><img src="/images/java/spring-cloud-zuul/14.jpg" alt="14"></p>
+<p>有些情况生产出现了问题，但是在测试环境不是很好调试或很难复现问题，那么开发人员就可以通过自己发送一些特殊的请求，比如加一些 Header，那网关就可以帮吧这些流量切到调试集群上，开发人员就可以做线上的调试。</p>
+<h4 id="金丝雀测试"><a href="#金丝雀测试" class="headerlink" title="金丝雀测试"></a>金丝雀测试</h4><p><img src="/images/java/spring-cloud-zuul/15.jpg" alt="15"></p>
+<p>通过网关切少量的流量到金丝雀集群，如果没问题就全量切换到新版本，有问题就切换回来。</p>
+<h4 id="粘性金丝雀"><a href="#粘性金丝雀" class="headerlink" title="粘性金丝雀"></a>粘性金丝雀</h4><p><img src="/images/java/spring-cloud-zuul/16.jpg" alt="16"></p>
+<p>本质也是一种金丝雀，如果不带粘性，请求会随机分给 baseline 和 canary 集群，做了粘性后下次的请求还会到金丝雀集群，可以黏住这个 ip 或用户的请求。</p>
+<h4 id="失败注入测试"><a href="#失败注入测试" class="headerlink" title="失败注入测试"></a>失败注入测试</h4><p><img src="/images/java/spring-cloud-zuul/18.jpg" alt="18"></p>
+<p>有的时候我们会对生产上的一些集群做主动的一些错误，看看它在出错情况的表现。</p>
+<h4 id="降级测试"><a href="#降级测试" class="headerlink" title="降级测试"></a>降级测试</h4><p><img src="/images/java/spring-cloud-zuul/19.jpg" alt="19"></p>
+<p>注入错误当中，还利用网关做降级测试。</p>
+<h4 id="Netflix-持续交付流水线"><a href="#Netflix-持续交付流水线" class="headerlink" title="Netflix 持续交付流水线"></a>Netflix 持续交付流水线</h4><p><img src="/images/java/spring-cloud-zuul/20.jpg" alt="20"></p>
+<p>整个流水线中的测试，都会用到网关来进行辅助完成。</p>
+<h4 id="跨区域高可用"><a href="#跨区域高可用" class="headerlink" title="跨区域高可用"></a>跨区域高可用</h4><p><img src="/images/java/spring-cloud-zuul/21.jpg" alt="21"></p>
+<p>网关还可以实现跨区域的 HA，双活或多活。在某个区域如果API服务或中间层服务出现问题了，网关能感知到这种错误，然后把流量调到其他的区域，这样就实现了跨域去的 HA。</p>
+<h4 id="防爬防攻击"><a href="#防爬防攻击" class="headerlink" title="防爬防攻击"></a>防爬防攻击</h4><p><img src="/images/java/spring-cloud-zuul/22.jpg" alt="22"></p>
+<p>在网关上做监控，经过后台的分析如果发现这个流量是恶意的爬虫或者攻击性的，那么后面就会拒绝请求，保护系统服务。</p>
+<h4 id="健康检查和屏蔽坏节点"><a href="#健康检查和屏蔽坏节点" class="headerlink" title="健康检查和屏蔽坏节点"></a>健康检查和屏蔽坏节点</h4><p><img src="/images/java/spring-cloud-zuul/23.jpg" alt="23"></p>
+<p>在网关上做健康检查，度量度量分析监控，如果某些微服务节点出错了或者不响应了，网关就可以把它摘除屏蔽掉。</p>
+<h3 id="网关生产级部署架构"><a href="#网关生产级部署架构" class="headerlink" title="网关生产级部署架构"></a>网关生产级部署架构</h3><p><img src="/images/java/spring-cloud-zuul/24.jpg" alt="24"></p>
+<h3 id="基于网关的两层路由体系，内网-Zuul-动态配置做法"><a href="#基于网关的两层路由体系，内网-Zuul-动态配置做法" class="headerlink" title="基于网关的两层路由体系，内网 Zuul 动态配置做法"></a>基于网关的两层路由体系，内网 Zuul 动态配置做法</h3><p><img src="/images/java/spring-cloud-zuul/25.jpg" alt="25"></p>
+<h3 id="网关和BFF的演化"><a href="#网关和BFF的演化" class="headerlink" title="网关和BFF的演化"></a>网关和BFF的演化</h3><p>BFF，即 Backend For Frontend（服务于前端的后端）也就是服务器设计 API 时会考虑前端的使用，并在服务端直接进行业务逻辑的处理，又称为用户体验适配器。BFF和网关是紧密关联的，有的公司网关就是BFF，下面来介绍一下它是怎么来的。</p>
+<h4 id="MyShop-SOA-V1"><a href="#MyShop-SOA-V1" class="headerlink" title="MyShop SOA V1"></a>MyShop SOA V1</h4><p><img src="/images/java/spring-cloud-zuul/26.jpg" alt="26"></p>
+<p>我们先把时间回到2011左右，假设有个 MyShop 电商互联网公司，在这个时间节点上它已经完成了单体业务拆分，内部应用已经完成了 SOA 化，架构如上图。</p>
+<h4 id="MyShop-SOA-V2"><a href="#MyShop-SOA-V2" class="headerlink" title="MyShop SOA V2"></a>MyShop SOA V2</h4><p><img src="/images/java/spring-cloud-zuul/27.jpg" alt="27"></p>
+<p>时间转眼来到了2012年，国内无线应用开始起风了，MyShop 公司也近跟市场趋势，开发了自己的无线原生 APP。为了尽快上线架构师提出了上图 V2 架构，将内部的服务通过 Nginx 直接暴露出来。</p>
+<p>经过架构评审发现这个架构是存在问题的：</p>
+<ul>
+<li>首先无线应用和内部的服务是强耦合关系（接口耦合、域名耦合）任何一边的变化会对另外一边造成影响；</li>
+<li>第二个问题：每个对外暴露的服务都需要一个域名；</li>
+<li>第三个问题：内部服务暴露在公网上有潜在的安全问；</li>
+<li>第四个问题：无线应用的 APP 端需要开发大量的聚合、裁剪和适配（可能需要支持协议转换，比如老的服务是  SOAP协议，前端是 JSON 的）的逻辑；</li>
+</ul>
+<h4 id="MyShop-SOA-V2-5"><a href="#MyShop-SOA-V2-5" class="headerlink" title="MyShop SOA V2.5"></a>MyShop SOA V2.5</h4><p><img src="/images/java/spring-cloud-zuul/28.jpg" alt="28"></p>
+<p>v2 版本问题太多，架构师决定在内部服务和外部设备之间引入新的角色：无线 BFF（为前端而开发的后端）。它主要由前端开发团队来开发，但是也属于后端的一个服务。BFF 可以认为是一种代理适配服务，它将后端的微服务进行适配（聚合、裁剪和适配），提供对设备友好统一的 API。</p>
+<p>这个架构的好处是无线 APP 和内部的服务不强耦合，通过引入这个中间层使得两边都可以进行变换，当前端有什么变换很多情况前端同学可以在 BFF 层就可以解决，后端有变换可以通过 BFF 对前端进行屏蔽。</p>
+<p>第二个好处是：无线 APP 只需要知道 BFF 的域名，不需要知道内部服务的域名和实现的细节。</p>
+<p>第三个就是内部服务躲在 BFF 后面不会暴露在公网上面，比较安全。第四个好处：聚合、裁剪和适配逻辑可以在 BFF 上实现，无线 APP 端可以大大的瘦身。</p>
+<blockquote>
+<p>计算机系统软件体系结构采用一种层的结构，有人说过一句名言：“计算机科学领域的任何问题都可以通过增加一个间接的中间层来解决” 。</p>
+</blockquote>
+<p>这个架构比较成功，支撑了 MyShop 公司很长一段时间业务的快速发展，但是随着业务量进一步增长，也随着研发团队的不断扩大 V2.5 架构也逐渐暴露出下面的一些问题：</p>
+<ul>
+<li>刚开始只有一个无线 BFF 集群，业务不断的增加，一方面 BFF 堆砌了大量的不同业务线的逻辑，变的非常的臃肿，升级维护变的越来越困难。另一方面根据“康威法则”单快的 BFF 和多团队之间就出现了不匹配的问题，团队直接沟通协调成本会比较高，交付效率会变低。</li>
+<li>第二个问题：无线 BFF 里面不仅有各个业务聚合、裁剪、适配还有业务逻辑，还进入了很多跨横切面的逻辑，比如说安全认证、日志监控，限流熔断等，代码变得越来越复杂，技术债越堆越多，开发效率不断下降。</li>
+<li>第三个问题：无线 BFF 集群是个失败单点，如果当中有代码缺陷或者来了个流量洪峰，会引发无线集群宕机，造成所有无线应用不可用。</li>
+</ul>
+<h4 id="MyShop-SOA-V3"><a href="#MyShop-SOA-V3" class="headerlink" title="MyShop SOA V3"></a>MyShop SOA V3</h4><p><img src="/images/java/spring-cloud-zuul/29.jpg" alt="29"></p>
+<p>V2.5 有诸多问题，架构师进一步的思考，决定对单快 BFF 进行解耦拆分，针对不同的业务线引入独立的 BFF 集群，另一方面在外部的设备和内部 BFF 之间在进入一个新的角色：API 网关。网关负责跨横切面的功能。</p>
+<p>BFF 按照团队或者业务线的边界进行拆分，每个业务线团队可以并行开发和交付各自负责的 BFF 微服务。网关由独立的框架团队开发和运维，它专注跨横切面的功能。</p>
+<h4 id="MyShop-SOA-V4"><a href="#MyShop-SOA-V4" class="headerlink" title="MyShop SOA V4"></a>MyShop SOA V4</h4><p><img src="/images/java/spring-cloud-zuul/30.jpg" alt="30"></p>
+<p>业务不断的发展，技术架构也仍然需要不断的调整来应对需求的变化，近年 MyShop 公司迎来了新的业务和需求，主要包括：</p>
+<ul>
+<li>第一个是开放内部的业务能力，建设 MyShop Open API 平台，借助第三方社区的力量在平台上进行创新进一步丰富 MyShop 应用和业务形态；</li>
+<li>第二个是单页 H5 应用是互联网时代前端的新趋势它提供更好的用户体验，它支持前端团队自治快速的迭代，MyShop 需要支持前后分离架构，支持 H5 SPA 单页应用能够实现快速交付和创新；</li>
+<li>第三个是原来架构中的反向代理 Nginx 这个技术比较偏运维对 DevOps 不太友好，严格它不能算是一种可编程网关而且 Nginx 和网关功能有部分重叠，所以考虑逐步废弃 Nginx，引入统一的可编程网关。一方面实现基于网关前后分离架构，另一方面基于可编程网关实现更灵活的微服务部署升级能力，比如提供金丝雀发布、灰度发布和蓝绿发布这些能力。</li>
+</ul>
+<p>V4 和 V3 架构差不多，只是引入了开放平台 BFF 和开发平台网关，H5 BFF 和 H5 网关。去掉老的 Nginx 集群，由网关统一负责路由，负载均衡，由原来反向代理的活都交给网关。</p>
+<h4 id="BFF-框架"><a href="#BFF-框架" class="headerlink" title="BFF 框架"></a>BFF 框架</h4><ul>
+<li><a href="https://graphql.org/" target="_blank" rel="noopener">https://graphql.org/</a></li>
+<li><a href="https://github.com/graphql/graphql-js/" target="_blank" rel="noopener">https://github.com/graphql/graphql-js/</a></li>
+</ul>
+<h3 id="其它开源网关产品"><a href="#其它开源网关产品" class="headerlink" title="其它开源网关产品"></a>其它开源网关产品</h3><ul>
+<li>APISIX(Apache 孵化中) <a href="https://github.com/apache/incubator-apisix" target="_blank" rel="noopener">https://github.com/apache/incubator-apisix</a></li>
+<li>Kong(核心开源) <a href="https://github.com/Kong/kong" target="_blank" rel="noopener">https://github.com/Kong/kong</a></li>
+<li>Tyk(核心开源) <a href="https://github.com/TykTechnologies/tyk" target="_blank" rel="noopener">https://github.com/TykTechnologies/tyk</a></li>
+<li>悟空API网关(部分开源+商业支持) <a href="https://github.com/eolinker/GoKu-API-Gateway" target="_blank" rel="noopener">https://github.com/eolinker/GoKu-API-Gateway</a></li>
+<li>小豹API网关(商业) <a href="http://www.xbgateway.com/" target="_blank" rel="noopener">http://www.xbgateway.com/</a></li>
+<li>Soul (开源，还有其他产品：事务框架和消息框架）<a href="https://github.com/Dromara/soul" target="_blank" rel="noopener">https://github.com/Dromara/soul</a></li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/Netflix/zuul/" target="_blank" rel="noopener">https://github.com/Netflix/zuul/</a></li>
+<li><a href="https://cloud.spring.io/spring-cloud-netflix/reference/html/" target="_blank" rel="noopener">https://cloud.spring.io/spring-cloud-netflix/reference/html/</a></li>
+<li><a href="https://juejin.im/post/5d9f2dea6fb9a04e3e724067/" target="_blank" rel="noopener">https://juejin.im/post/5d9f2dea6fb9a04e3e724067/</a></li>
+<li>《微服务架构实战》</li>
+<li>《Spring Boot &amp; Kubernetes 云原生微服务实践》</li>
+<li>《从0开始学微服务》</li>
+<li>《微服务设计》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MicroServices/" rel="tag"># MicroServices</a>
+              <a href="/tags/SpringCloud/" rel="tag"># SpringCloud</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/java/spring-cloud-hystrix/" rel="prev" title="微服务架构之服务容错：Spring Cloud Hystrix">
+      <i class="fa fa-chevron-left"></i> 微服务架构之服务容错：Spring Cloud Hystrix
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/java/spring-cloud-gateway-logging/" rel="next" title="Spring Cloud Gateway 之 请求响应日志打印过滤器">
+      Spring Cloud Gateway 之 请求响应日志打印过滤器 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#再介绍API网关"><span class="nav-number">1.</span> <span class="nav-text">再介绍API网关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#API网关是如何演化出来的？"><span class="nav-number">1.1.</span> <span class="nav-text">API网关是如何演化出来的？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#API网关基本功能"><span class="nav-number">1.2.</span> <span class="nav-text">API网关基本功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Netflix-Zuul-网关简介"><span class="nav-number">2.</span> <span class="nav-text">Netflix Zuul 网关简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构原理"><span class="nav-number">3.</span> <span class="nav-text">架构原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#请求处理生命周期"><span class="nav-number">3.1.</span> <span class="nav-text">请求处理生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#过滤器关键概念"><span class="nav-number">3.2.</span> <span class="nav-text">过滤器关键概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#类型-Type"><span class="nav-number">3.2.1.</span> <span class="nav-text">类型 Type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#执行顺序-Execution-Order"><span class="nav-number">3.2.2.</span> <span class="nav-text">执行顺序 Execution Order</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#条件-Criteria"><span class="nav-number">3.2.3.</span> <span class="nav-text">条件 Criteria</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#动作-Action"><span class="nav-number">3.2.4.</span> <span class="nav-text">动作 Action</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zuul-1-0-VS-Zuul-2-0"><span class="nav-number">3.3.</span> <span class="nav-text">Zuul 1.0 VS Zuul 2.0</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Zuul-1-0-阻塞多线程模式"><span class="nav-number">3.3.1.</span> <span class="nav-text">Zuul 1.0 阻塞多线程模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Zuul-2-0-非阻塞异步模式"><span class="nav-number">3.3.2.</span> <span class="nav-text">Zuul 2.0 非阻塞异步模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#阻塞和非阻塞比较有劣"><span class="nav-number">3.3.3.</span> <span class="nav-text">阻塞和非阻塞比较有劣</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Zuul-2-0-架构"><span class="nav-number">3.3.4.</span> <span class="nav-text">Zuul 2.0 架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Zuul-2-0-额外亮点"><span class="nav-number">3.3.5.</span> <span class="nav-text">Zuul 2.0 额外亮点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Cloud-Zuul-简介"><span class="nav-number">4.</span> <span class="nav-text">Spring Cloud Zuul 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境"><span class="nav-number">5.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建一个-zuul-proxy-模块"><span class="nav-number">6.</span> <span class="nav-text">创建一个 zuul-proxy 模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用功能"><span class="nav-number">7.</span> <span class="nav-text">常用功能</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置路由规则"><span class="nav-number">7.1.</span> <span class="nav-text">配置路由规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#默认路由规则"><span class="nav-number">7.2.</span> <span class="nav-text">默认路由规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡功能"><span class="nav-number">7.3.</span> <span class="nav-text">负载均衡功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置访问前缀"><span class="nav-number">7.4.</span> <span class="nav-text">配置访问前缀</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Header-过滤及重定向添加-Host"><span class="nav-number">7.5.</span> <span class="nav-text">Header 过滤及重定向添加 Host</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看路由信息"><span class="nav-number">7.6.</span> <span class="nav-text">查看路由信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过滤器"><span class="nav-number">8.</span> <span class="nav-text">过滤器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义过滤器"><span class="nav-number">8.1.</span> <span class="nav-text">自定义过滤器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#添加-PreLogFilter-类继承-ZuulFilter"><span class="nav-number">8.1.1.</span> <span class="nav-text">添加 PreLogFilter 类继承 ZuulFilter</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#核心过滤器"><span class="nav-number">8.2.</span> <span class="nav-text">核心过滤器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#禁用过滤器"><span class="nav-number">8.3.</span> <span class="nav-text">禁用过滤器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ribbon-和-Hystrix-的支持"><span class="nav-number">9.</span> <span class="nav-text">Ribbon 和 Hystrix 的支持</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用配置"><span class="nav-number">10.</span> <span class="nav-text">常用配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展"><span class="nav-number">11.</span> <span class="nav-text">扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Zuul-高级应用场景"><span class="nav-number">11.1.</span> <span class="nav-text">Zuul 高级应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#红绿部署"><span class="nav-number">11.1.1.</span> <span class="nav-text">红绿部署</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开发者测试分支"><span class="nav-number">11.1.2.</span> <span class="nav-text">开发者测试分支</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#埋点测试"><span class="nav-number">11.1.3.</span> <span class="nav-text">埋点测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#压力测试"><span class="nav-number">11.1.4.</span> <span class="nav-text">压力测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#调试路由"><span class="nav-number">11.1.5.</span> <span class="nav-text">调试路由</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#金丝雀测试"><span class="nav-number">11.1.6.</span> <span class="nav-text">金丝雀测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#粘性金丝雀"><span class="nav-number">11.1.7.</span> <span class="nav-text">粘性金丝雀</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#失败注入测试"><span class="nav-number">11.1.8.</span> <span class="nav-text">失败注入测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#降级测试"><span class="nav-number">11.1.9.</span> <span class="nav-text">降级测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Netflix-持续交付流水线"><span class="nav-number">11.1.10.</span> <span class="nav-text">Netflix 持续交付流水线</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#跨区域高可用"><span class="nav-number">11.1.11.</span> <span class="nav-text">跨区域高可用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#防爬防攻击"><span class="nav-number">11.1.12.</span> <span class="nav-text">防爬防攻击</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#健康检查和屏蔽坏节点"><span class="nav-number">11.1.13.</span> <span class="nav-text">健康检查和屏蔽坏节点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网关生产级部署架构"><span class="nav-number">11.2.</span> <span class="nav-text">网关生产级部署架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于网关的两层路由体系，内网-Zuul-动态配置做法"><span class="nav-number">11.3.</span> <span class="nav-text">基于网关的两层路由体系，内网 Zuul 动态配置做法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网关和BFF的演化"><span class="nav-number">11.4.</span> <span class="nav-text">网关和BFF的演化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MyShop-SOA-V1"><span class="nav-number">11.4.1.</span> <span class="nav-text">MyShop SOA V1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MyShop-SOA-V2"><span class="nav-number">11.4.2.</span> <span class="nav-text">MyShop SOA V2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MyShop-SOA-V2-5"><span class="nav-number">11.4.3.</span> <span class="nav-text">MyShop SOA V2.5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MyShop-SOA-V3"><span class="nav-number">11.4.4.</span> <span class="nav-text">MyShop SOA V3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MyShop-SOA-V4"><span class="nav-number">11.4.5.</span> <span class="nav-text">MyShop SOA V4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BFF-框架"><span class="nav-number">11.4.6.</span> <span class="nav-text">BFF 框架</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其它开源网关产品"><span class="nav-number">11.5.</span> <span class="nav-text">其它开源网关产品</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">12.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

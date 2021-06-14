@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="安装 Mac Window  基本使用常见符号所代表的意义如下  M(eta) 在 Mac 下为 Option 键； s(uper) 在 Mac 环境下为左 Command 键； S(Shift)； C(trl)； C-x 字符扩展。 C-x 之后输入另一个字符或者组合键； M-x 命令名扩展。M-x 之后输入一个命令名； C-g 用于终端取消之前的指令；">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Emacs 学习(一)">
+<meta property="og:url" content="https://blog.lichao.xin/tools/emacs/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="安装 Mac Window  基本使用常见符号所代表的意义如下  M(eta) 在 Mac 下为 Option 键； s(uper) 在 Mac 环境下为左 Command 键； S(Shift)； C(trl)； C-x 字符扩展。 C-x 之后输入另一个字符或者组合键； M-x 命令名扩展。M-x 之后输入一个命令名； C-g 用于终端取消之前的指令；">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-05-19T15:11:43.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.399Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="emacs">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/tools/emacs/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Emacs 学习(一) | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/tools/emacs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Emacs 学习(一)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-19 15:11:43" itemprop="dateCreated datePublished" datetime="2017-05-19T15:11:43+00:00">2017-05-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B7%A5%E6%AC%B2%E5%96%84%E5%85%B6%E4%BA%8B%E5%BF%85%E5%85%88%E5%88%A9%E5%85%B6%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">工欲善其事必先利其器</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ul>
+<li><a href="http://emacsformacosx.com/builds" target="_blank" rel="noopener">Mac</a></li>
+<li><a href="http://emacsbinw64.sourceforge.net/" target="_blank" rel="noopener">Window</a></li>
+</ul>
+<h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p>常见符号所代表的意义如下</p>
+<ul>
+<li><code>M(eta)</code> 在 Mac 下为 Option 键；</li>
+<li><code>s(uper)</code> 在 Mac 环境下为左 Command 键；</li>
+<li><code>S(Shift)</code>；</li>
+<li><code>C(trl)</code>；</li>
+<li><code>C-x</code> 字符扩展。 C-x 之后输入另一个字符或者组合键；</li>
+<li><code>M-x</code> 命令名扩展。M-x 之后输入一个命令名；</li>
+<li><code>C-g</code> 用于终端取消之前的指令；</li>
+</ul>
+<a id="more"></a>
+
+<p>光标的移动是编辑器中最常用的操作所以必须熟知。</p>
+<ul>
+<li><code>C-h t</code> 打开 Emacs 提供的官方教程(t 在这里代表 tutorial）；</li>
+<li><code>C-f</code> 为前移一个字符， f 代表 forward；</li>
+<li><code>C-b</code> 为后移一个字符， b 代表 backward；</li>
+<li><code>C-p</code> 为上移至前一行， p 代表 previous；</li>
+<li><code>C-n</code> 为上移至下一行， n 代表 next；</li>
+<li><code>C-a</code> 为移至行首， a 代表 ahead；</li>
+<li><code>C-e</code> 为移至行尾， e 代表 end；</li>
+<li><code>M-a</code> 为移至句首；</li>
+<li><code>M-e</code> 为移至句尾；</li>
+<li><code>M-f</code> 为前移一个单词，中文移动到下一个标点符号；</li>
+<li><code>M-b</code> 为后移一个单词；</li>
+<li><code>C-v</code> 向前移动一屏；</li>
+<li><code>M-v</code> 向后移动一屏；</li>
+<li><code>C-l</code> 重绘屏幕，并将光标所在行置于屏幕的中央；</li>
+<li><code>M-&lt;</code> 移动到页首；</li>
+<li><code>M-&gt;</code> 移动到页尾；</li>
+<li><code>C-u</code> 前缀参数，举例来说， C-u 8 C-f 会向前移动 8 个字符；</li>
+</ul>
+<p>文本操作</p>
+<ul>
+<li><code>&lt;DEL&gt;</code> 删除光标前的一个字符；</li>
+<li><code>C-d</code> 删除光标后的一个字符；</li>
+<li><code>M-&lt;DEL&gt;</code> 移除光标前的一个词；</li>
+<li><code>M-d</code> 移除光标后的一个词；</li>
+<li><code>C-k</code> 移除从光标到“行尾”间的字符；</li>
+<li><code>M-k</code> 移除从光标到“句尾”间的字符；</li>
+<li><code>C-w</code> 剪切需要先 Mark set；</li>
+<li><code>M-w</code> 复制需要先 Mark set；</li>
+<li><code>C-@,C-w</code> 剪切选中段，或者用<code>C-&lt;SPC&gt;</code>选中，一般这个键被输入法占用了；</li>
+<li><code>C-y</code> 召回最近一次（yank, 复制）被移除的文字；</li>
+<li><code>M-y</code> 按下 C-y 后, 可以连续召回前几次移除的文字；</li>
+<li><code>C-/</code> undo 命令，<code>C-/</code>, <code>C-_</code>, <code>C-x u</code>作用一致；</li>
+<li><code>C-s</code> 向前搜索；</li>
+<li><code>C-r</code> 向后搜索；</li>
+<li><code>M-%</code> 交互式替换，y or n；</li>
+<li><code>M-x repl s</code> <code>repl s&lt;TAB&gt;</code> 替换文本, 或输入<code>replace-string</code> 例如： M-x repl s<Return>changed<Return>altered<Return>；</li>
+</ul>
+<p>常用的文件操作快捷键组合也必须熟记。</p>
+<ul>
+<li><code>C-x C-f</code> 为打开目标文件， f 代表 find/file；</li>
+<li><code>C-x C-s</code> 为保存当前缓冲区（Buffer）, s 代表 save；</li>
+<li><code>C-x C-b</code> 列出缓冲区（buffer）；</li>
+<li><code>C-x b</code> 选中缓冲区；</li>
+<li><code>C-x s</code> 保存多个缓冲区；</li>
+</ul>
+<p>分屏操作</p>
+<ul>
+<li><code>C-x 1</code> 仅保留当前窗口；</li>
+<li><code>C-x 2</code> 将当前窗口分到上边；</li>
+<li><code>C-x 3</code> 将当前窗口分到右边；</li>
+<li><code>C-x 0</code> 将当前窗口关闭；</li>
+<li><code>C-M-v</code> 滚动下方的窗格。（如果你并没有 META 键，用 ESC C-v 也可以。）；</li>
+<li><code>C-M-S-v</code> 向上滚动；</li>
+<li><code>C-x o</code> 将光标转移到下方的窗格。（“o”指的是“其它（other）”）；</li>
+<li><code>C-x 4 C-f</code> 在新窗格中打开文件；</li>
+<li><code>M-x make-frame</code> 打开新的窗口；</li>
+<li><code>M-x delete-frame</code> 关闭选中窗口；</li>
+</ul>
+<p>获取帮助<br>Emacs 是一个富文档编辑器（Self document, extensible editor）而下面的三种方法在学 习 Emacs 的过程中也非常重要。他们分别是：</p>
+<ul>
+<li><code>C-h k</code> 寻找快捷键的帮助信息；</li>
+<li><code>C-h v</code> 寻找变量的帮助信息；</li>
+<li><code>C-h f</code> 寻找函数的帮助信息；</li>
+</ul>
+<p>其他</p>
+<ul>
+<li><code>C-x C-c</code> 离开 Emacs；</li>
+<li><code>C-h m</code> 来显示当前所有开启 的全部 Minor Mode 的信息；</li>
+<li><code>C-x C-e</code> 在代码块后面按键来编译 elisp；</li>
+<li><code>M-x eval-buffer</code> 编译当前文件 elisp；</li>
+<li><code>M-x recover file</code> 恢复你的自动保存文件；</li>
+<li><code>&lt;ESC&gt; &lt;ESC&gt; &lt;ESC&gt;</code> 退出递归编辑（RECURSIVE EDITING LEVELS）；</li>
+<li>(define-key global-map [C-return] ‘set-mark-command) 修改 mark set 快捷键为 C-return；</li>
+</ul>
+<h2 id="学习基础-Elisp"><a href="#学习基础-Elisp" class="headerlink" title="学习基础 Elisp"></a>学习基础 Elisp</h2><p>Emacs Lisp 为一个函数式的语言，所以它全部 功能都是由函数来实现的。</p>
+<ul>
+<li><a href="https://learnxinyminutes.com/docs/zh-cn/elisp-cn/" target="_blank" rel="noopener">Elisp 快速入门</a></li>
+</ul>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>Emacs 的配置文件默认保存在 ~/.emacs.d/init.el 文件中。如果其不存在可自行创建， 配置文件也可保存在 ~/.emacs 文件中</p>
+<p>建议使用前者，因为它有下面的两个优点</p>
+<ul>
+<li><p>它可以更好将所有 Emacs 相关的文件整合在一个目录内（干净的 HOME ，网盘备份等优点）；</p>
+</li>
+<li><p>更好的版本控制；<br><em>注意： 如果希望把配置放在 ~/.emacs.d/init.el 文件中，那么需要手工删除 ~/.emacs 文件。</em></p>
+</li>
+<li><p><a href="https://github.com/xinlc/dotfiles/tree/master/mac/emacs/zlsr" target="_blank" rel="noopener">配置文件</a>；</p>
+</li>
+</ul>
+<h2 id="常用插件"><a href="#常用插件" class="headerlink" title="常用插件"></a>常用插件</h2><ul>
+<li><a href="http://company-mode.github.io/" target="_blank" rel="noopener">company</a></li>
+<li><a href="https://github.com/nflath/hungry-delete" target="_blank" rel="noopener">hungry-delete</a></li>
+<li>[Smex])(<a href="https://github.com/nonsequitur/smex" target="_blank" rel="noopener">https://github.com/nonsequitur/smex</a>) (如果你使用 Counsel 来增强你的 M-x ，那么就不需要再安装 Smex 了)</li>
+<li><a href="https://github.com/abo-abo/swiper" target="_blank" rel="noopener">Swiper &amp; Counsel</a></li>
+<li><a href="https://github.com/Fuco1/smartparens" target="_blank" rel="noopener">smartparens</a></li>
+</ul>
+<h2 id="插件管理"><a href="#插件管理" class="headerlink" title="插件管理"></a>插件管理</h2><ul>
+<li><code>M-x package-list-packages</code> 或点击 Options -&gt; Manage Emacs Packages # 打开插件管理；</li>
+<li>在插件名上按 <code>i</code>标记安装, 按<code>u</code>取消；</li>
+<li>按 <code>d</code> 标记删除；</li>
+<li><code>U</code> 更新所有；</li>
+<li><code>x</code> 执行；</li>
+<li><code>C-s</code> 搜索；</li>
+<li><code>M-x package-autoremove</code> 删除没用的 packages；</li>
+</ul>
+<h2 id="Dired-Mode"><a href="#Dired-Mode" class="headerlink" title="Dired Mode"></a>Dired Mode</h2><p>Dired Mode 是一个强大的模式它能让我们完成和文件管理相关的所有操作。</p>
+<p>使用 C-x d 就可以进入 Dired Mode，这个模式类似于图形界面系统中的资源管理器。你 可以在其中查看文件和目录的详细信息，对他们进行各种操作，甚至复制粘贴缓冲区中的内 容。下面是一些常用的操作（下面的所有键均需在 Dired Mode 下使用），</p>
+<ul>
+<li><code>+</code> 创建目录；</li>
+<li><code>g</code> 刷新目录；</li>
+<li><code>C</code> 拷贝；</li>
+<li><code>D</code> 删除；</li>
+<li><code>R</code> 重命名；</li>
+<li><code>d</code> 标记删除；</li>
+<li><code>u</code> 取消标记；</li>
+<li><code>x</code> 执行所有的标记；</li>
+<li><code>Shift + 6</code> 跳转到上级目录；</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://emacswiki.org/" target="_blank" rel="noopener">Emacs wiki</a></li>
+<li><a href="https://zilongshanren.com/LearnEmacs/" target="_blank" rel="noopener">21 天学会 Emacs</a></li>
+<li><a href="http://list.youku.com/albumlist/show?id=26962151&ascending=1&page=1.html&spm=0.0.list1_1.5-3_5_A-3.I1iDe0" target="_blank" rel="noopener">视频</a></li>
+<li><a href="http://book.emacs-china.org" target="_blank" rel="noopener">Spacemacs Rocks 第二季</a></li>
+<li><a href="https://learnxinyminutes.com/" target="_blank" rel="noopener">Learn X in Y minutes</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/emacs/" rel="tag"># emacs</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/tools/git/" rel="prev" title="Git 常用命令">
+      <i class="fa fa-chevron-left"></i> Git 常用命令
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/tools/spacemacs/" rel="next" title="Emacs 学习(二)">
+      Emacs 学习(二) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本使用"><span class="nav-number">2.</span> <span class="nav-text">基本使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#学习基础-Elisp"><span class="nav-number">3.</span> <span class="nav-text">学习基础 Elisp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置"><span class="nav-number">4.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用插件"><span class="nav-number">5.</span> <span class="nav-text">常用插件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件管理"><span class="nav-number">6.</span> <span class="nav-text">插件管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dired-Mode"><span class="nav-number">7.</span> <span class="nav-text">Dired Mode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

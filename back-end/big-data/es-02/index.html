@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Elasticsearch 是使用 Java 编写的一种开源搜索引擎，它在内部使用 Luence 做索引与搜索，通过对 Lucene 的封装，提供了一套简单一致的 RESTful API。 Elasticsearch 也是一种分布式的搜索引擎架构，可以很简单地扩展到上百个服务节点，并支持 PB 级别的数据查询，使系统具备高可用和高并发性。 本文介绍 Elasticsearch 核心概念和索引写入过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重学 Elastic Stack 之 Elasticsearch 核心概念">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/big-data/es-02/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Elasticsearch 是使用 Java 编写的一种开源搜索引擎，它在内部使用 Luence 做索引与搜索，通过对 Lucene 的封装，提供了一套简单一致的 RESTful API。 Elasticsearch 也是一种分布式的搜索引擎架构，可以很简单地扩展到上百个服务节点，并支持 PB 级别的数据查询，使系统具备高可用和高并发性。 本文介绍 Elasticsearch 核心概念和索引写入过">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/big-data/es-02/8.jpg">
+<meta property="article:published_time" content="2021-01-31T13:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.379Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Elastic Stack">
+<meta property="article:tag" content="ES">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/big-data/es-02/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/big-data/es-02/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>重学 Elastic Stack 之 Elasticsearch 核心概念 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/big-data/es-02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          重学 Elastic Stack 之 Elasticsearch 核心概念
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-31 13:00:00" itemprop="dateCreated datePublished" datetime="2021-01-31T13:00:00+00:00">2021-01-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/BigData/" itemprop="url" rel="index"><span itemprop="name">BigData</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Elasticsearch 是使用 Java 编写的一种开源搜索引擎，它在内部使用 Luence 做索引与搜索，通过对 Lucene 的封装，提供了一套简单一致的 RESTful API。</p>
+<p>Elasticsearch 也是一种分布式的搜索引擎架构，可以很简单地扩展到上百个服务节点，并支持 PB 级别的数据查询，使系统具备高可用和高并发性。</p>
+<p>本文介绍 Elasticsearch 核心概念和索引写入过程。</p>
+<a id="more"></a>
+
+<h2 id="ES-核心概念"><a href="#ES-核心概念" class="headerlink" title="ES 核心概念"></a>ES 核心概念</h2><p>Elasticsearch 的核心概念如下：</p>
+<ul>
+<li><p><strong>Cluster</strong>：集群，由一个或多个 Elasticsearch 节点组成。</p>
+</li>
+<li><p><strong>Node</strong>：节点，组成 Elasticsearch 集群的服务单元，同一个集群内节点的名字不能重复。通常在一个节点上分配一个或者多个分片。</p>
+</li>
+<li><p><strong>Shards</strong>：分片，当索引上的数据量太大的时候，我们通常会将一个索引上的数据进行水平拆分，拆分出来的每个数据库叫作一个分片。</p>
+<ul>
+<li><p>在一个多分片的索引中写入数据时，通过路由来确定具体写入那一个分片中，所以在创建索引时需要指定分片的数量，并且分片的数量一旦确定就不能更改。</p>
+</li>
+<li><p>分片后的索引带来了规模上（数据水平切分）和性能上（并行执行）的提升。每个分片都是 Luence 中的一个索引文件，每个分片必须有一个主分片和零到多个副本分片。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Replicas</strong>：备份也叫作副本，是指对主分片的备份。主分片和备份分片都可以对外提供查询服务，写操作时先在主分片上完成，然后分发到备份上。</p>
+<ul>
+<li>当主分片不可用时，会在备份的分片中选举出一个作为主分片，所以备份不仅可以提升系统的高可用性能，还可以提升搜索时的并发性能。但是若副本太多的话，在写操作时会增加数据同步的负担。</li>
+</ul>
+</li>
+<li><p><strong>Index</strong>：索引，由一个和多个分片组成，通过索引的名字在集群内进行唯一标识。</p>
+</li>
+<li><p><strong>Type</strong>：类别，指索引内部的逻辑分区，通过 Type 的名字在索引内进行唯一标识。在查询时如果没有该值，则表示在整个索引中查询。</p>
+</li>
+<li><p><strong>Document</strong>：文档，索引中的每一条数据叫作一个文档，类似于关系型数据库中的一条数据通过 _id 在 Type 内进行唯一标识。</p>
+</li>
+<li><p><strong>Settings</strong>：对集群中索引的定义，比如一个索引默认的分片数、副本数等信息。</p>
+</li>
+<li><p><strong>Mapping</strong>：类似于关系型数据库中的表结构信息，用于定义索引中字段（Field）的存储类型、分词方式、是否存储等信息。Elasticsearch 中的 Mapping 是可以动态识别的。</p>
+<ul>
+<li>如果没有特殊需求，则不需要手动创建 Mapping，因为 Elasticsearch 会自动根据数据格式识别它的类型，但是当需要对某些字段添加特殊属性（比如：定义使用其他分词器、是否分词、是否存储等）时，就需要手动设置 Mapping 了。一个索引的 Mapping 一旦创建，若已经存储了数据，就不可修改了。</li>
+</ul>
+</li>
+<li><p><strong>Analyzer</strong>：字段的分词方式的定义。一个 Analyzer 通常由一个 Tokenizer、零到多个 Filter 组成。</p>
+<ul>
+<li>比如默认的标准 Analyzer 包含一个标准的 Tokenizer 和三个 Filter：Standard Token Filter、Lower Case Token Filter、Stop Token Filter。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Elasticsearch-的节点的分类如下"><a href="#Elasticsearch-的节点的分类如下" class="headerlink" title="Elasticsearch 的节点的分类如下"></a>Elasticsearch 的节点的分类如下</h2><p><strong>主节点（Master Node）</strong>：也叫作主节点，主节点负责创建索引、删除索引、分配分片、追踪集群中的节点状态等工作。Elasticsearch 中的主节点的工作量相对较轻。</p>
+<p>用户的请求可以发往任何一个节点，并由该节点负责分发请求、收集结果等操作，而并不需要经过主节点转发。</p>
+<p>通过在配置文件中设置 node.master=true 来设置该节点成为候选主节点（但该节点不一定是主节点，主节点是集群在候选节点中选举出来的），在 Elasticsearch 集群中只有候选节点才有选举权和被选举权。其他节点是不参与选举工作的。</p>
+<p><strong>数据节点（Data Node）</strong>：数据节点，负责数据的存储和相关具体操作，比如索引数据的创建、修改、删除、搜索、聚合。</p>
+<p>所以，数据节点对机器配置要求比较高，首先需要有足够的磁盘空间来存储数据，其次数据操作对系统 CPU、Memory 和 I/O 的性能消耗都很大。</p>
+<p>通常随着集群的扩大，需要增加更多的数据节点来提高可用性。通过在配置文件中设置 node.data=true 来设置该节点成为数据节点。</p>
+<p><strong>客户端节点（Client Node）</strong>：就是既不做候选主节点也不做数据节点的节点，只负责请求的分发、汇总等，也就是下面要说到的协调节点的角色。</p>
+<p>其实任何一个节点都可以完成这样的工作，单独增加这样的节点更多地是为了提高并发性。<br>可在配置文件中设置该节点成为数据节点：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node.master=<span class="literal">false</span></span><br><span class="line">node.data=<span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>部落节点（Tribe Node）</strong>：部落节点可以跨越多个集群，它可以接收每个集群的状态，然后合并成一个全局集群的状态。</p>
+<p>它可以读写所有集群节点上的数据，在配置文件中通过如下设置使节点成为部落节点：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tribe:</span>  </span><br><span class="line">  <span class="attr">one:</span> </span><br><span class="line">    <span class="attr">cluster.name:</span> <span class="string">cluster_one</span></span><br><span class="line">  <span class="attr">two:</span> </span><br><span class="line">    <span class="attr">cluster.name:</span> <span class="string">cluster_two</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>因为 Tribe Node 要在 Elasticsearch 7.0 以后移除，所以不建议使用。</p>
+</blockquote>
+<p><strong>协调节点（Coordinating Node）</strong>：协调节点，是一种角色，而不是真实的 Elasticsearch 的节点，我们没有办法通过配置项来配置哪个节点为协调节点。集群中的任何节点都可以充当协调节点的角色。</p>
+<p>当一个节点 A 收到用户的查询请求后，会把查询语句分发到其他的节点，然后合并各个节点返回的查询结果，最好返回一个完整的数据集给用户。</p>
+<p>在这个过程中，节点 A 扮演的就是协调节点的角色。由此可见，协调节点会对 CPU、Memory 和 I/O 要求比较高。</p>
+<p>集群的状态有 Green、Yellow 和 Red 三种，如下所述：</p>
+<ul>
+<li><p><strong>Green</strong>：绿色，健康。所有的主分片和副本分片都可正常工作，集群 100% 健康。</p>
+</li>
+<li><p><strong>Yellow</strong>：黄色，预警。所有的主分片都可以正常工作，但至少有一个副本分片是不能正常工作的。此时集群可以正常工作，但是集群的高可用性在某种程度上被弱化。</p>
+</li>
+<li><p><strong>Red</strong>：红色，集群不可正常使用。集群中至少有一个分片的主分片及它的全部副本分片都不可正常工作。</p>
+<ul>
+<li>这时虽然集群的查询操作还可以进行，但是也只能返回部分数据（其他正常分片的数据可以返回），而分配到这个分片上的写入请求将会报错，最终会导致数据的丢失。</li>
+</ul>
+</li>
+</ul>
+<h2 id="3C-和脑裂"><a href="#3C-和脑裂" class="headerlink" title="3C 和脑裂"></a>3C 和脑裂</h2><p><strong>共识性（Consensus）</strong></p>
+<p>共识性是分布式系统中最基础也最主要的一个组件，在分布式系统中的所有节点必须对给定的数据或者节点的状态达成共识。</p>
+<p>虽然现在有很成熟的共识算法如 Raft、Paxos 等，也有比较成熟的开源软件如 Zookeeper。</p>
+<p>但是 Elasticsearch 并没有使用它们，而是自己实现共识系统 zen discovery。</p>
+<p><strong>Elasticsearch 之父 Shay Banon 解释了其中主要的原因：</strong>“zen discovery 是 Elasticsearch 的一个核心的基础组件，zen discovery 不仅能够实现共识系统的选择工作，还能够很方便地监控集群的读写状态是否健康。当然，我们也不保证其后期会使用 Zookeeper 代替现在的 zen discovery”。</p>
+<p>zen discovery 模块以 “八卦传播”（Gossip）的形式实现了单播（Unicat）：单播不同于多播（Multicast）和广播（Broadcast）。节点间的通信方式是一对一的。</p>
+<p><strong>并发（Concurrency）</strong></p>
+<p>Elasticsearch 是一个分布式系统。写请求在发送到主分片时，同时会以并行的形式发送到备份分片，但是这些请求的送达时间可能是无序的。</p>
+<p>在这种情况下，Elasticsearch 用乐观并发控制（Optimistic Concurrency Control）来保证新版本的数据不会被旧版本的数据覆盖。</p>
+<p>乐观并发控制是一种乐观锁，另一种常用的乐观锁即多版本并发控制（Multi-Version Concurrency Control）。</p>
+<p>它们的主要区别如下：</p>
+<ul>
+<li><p><strong>乐观并发控制（OCC）</strong>：是一种用来解决写 - 写冲突的无锁并发控制，认为事务间的竞争不激烈时，就先进行修改，在提交事务前检查数据有没有变化，如果没有就提交，如果有就放弃并重试。乐观并发控制类似于自选锁，适用于低数据竞争且写冲突比较少的环境。</p>
+</li>
+<li><p><strong>多版本并发控制（MVCC）</strong>：是一种用来解决读 - 写冲突的无所并发控制，也就是为事务分配单向增长的时间戳，为每一个修改保存一个版本，版本与事务时间戳关联，读操作只读该事务开始前的数据库的快照。</p>
+<ul>
+<li>这样在读操作不用阻塞操作且写操作不用阻塞读操作的同时，避免了脏读和不可重复读。</li>
+</ul>
+</li>
+</ul>
+<p><strong>一致性（Consistency）</strong></p>
+<p>Elasticsearch 集群保证写一致性的方式是在写入前先检查有多少个分片可供写入，如果达到写入条件，则进行写操作，否则，Elasticsearch 会等待更多的分片出现，默认为一分钟。</p>
+<p>有如下三种设置来判断是否允许写操作：</p>
+<ul>
+<li><p><strong>One</strong>：只要主分片可用，就可以进行写操作。</p>
+</li>
+<li><p><strong>All</strong>：只有当主分片和所有副本都可用时，才允许写操作。</p>
+</li>
+<li><p><strong>Quorum（k-wu-wo/reng，法定人数）</strong>：是 Elasticsearch 的默认选项。当有大部分的分片可用时才允许写操作。其中，对 “大部分” 的计算公式为 int ((primary+number_of_replicas)/2)+1。</p>
+</li>
+</ul>
+<p>Elasticsearch 集群保证读写一致性的方式是，为了保证搜索请求的返回结果是最新版本的文档，备份可以被设置为 Sync（默认值），写操作在主分片和备份分片同时完成后才会返回写请求的结果。</p>
+<p>这样，无论搜索请求至哪个分片都会返回最新的文档。但是如果我们的应用对写要求很高，就可以通过设置 replication=async 来提升写的效率，如果设置 replication=async，则只要主分片的写完成，就会返回写成功。</p>
+<p><strong>脑裂</strong></p>
+<p>在 Elasticsearch 集群中主节点通过 Ping 命令来检查集群中的其他节点是否处于可用状态，同时非主节点也会通过 Ping 来检查主节点是否处于可用状态。</p>
+<p>当集群网络不稳定时，有可能会发生一个节点 Ping 不通 Master 节点，则会认为 Master 节点发生了故障，然后重新选出一个 Master 节点，这就会导致在一个集群内出现多个 Master 节点。</p>
+<p>当在一个集群中有多个 Master 节点时，就有可能会导致数据丢失。我们称这种现象为脑裂。</p>
+<h2 id="事务日志"><a href="#事务日志" class="headerlink" title="事务日志"></a>事务日志</h2><p>Lucene 为了加快写索引的速度，采用了延迟写入的策略。</p>
+<p>虽然这种策略提高了写入的效率，但其最大的弊端是，如果数据在内存中还没有持久化到磁盘上时发生了类似断电等不可控情况，就可能丢失数据。</p>
+<p>为了避免丢失数据，Elasticsearch 添加了事务日志（Translog），事务日志记录了所有还没有被持久化磁盘的数据。</p>
+<p>Elasticsearch 写索引的具体过程如下：首先，当有数据写入时，为了提升写入的速度，并没有数据直接写在磁盘上，而是先写入到内存中，但是为了防止数据的丢失，会追加一份数据到事务日志里。</p>
+<p>因为内存中的数据还会继续写入，所以内存中的数据并不是以段的形式存储的，是检索不到的。</p>
+<p>总之，Elasticsearch 是一个准实时的搜索引擎，而不是一个实时的搜索引擎。</p>
+<p>此时的状态如图所示：</p>
+<p><img src="/images/big-data/es-02/1.jpg" alt="1"></p>
+<p>然后，当达到默认的时间（1 秒钟）或者内存的数据达到一定量时，会触发一次刷新（Refresh）。</p>
+<p>刷新的主要步骤如下：</p>
+<ul>
+<li><p>将内存中的数据刷新到一个新的段中，但是该段并没有持久化到硬盘中，而是缓存在操作系统的文件缓存系统中。虽然数据还在内存中，但是内存里的数据和文件缓存系统里的数据有以下区别。</p>
+<ul>
+<li>内存使用的是 JVM 的内存，而文件缓存系统使用的是操作系统的内存；内存的数据不是以段的形式存储的，并且可以继续向内存里写数据。文件缓存系统中的数据是以段的形式存储的，所以只能读，不能写；内存中的数据是搜索不到，文件缓存系统中的数据是可以搜索的。</li>
+</ul>
+</li>
+<li><p>打开保存在文件缓存系统中的段，使其可被搜索。</p>
+</li>
+<li><p>清空内存，准备接收新的数据。日志不做清空处理。</p>
+</li>
+</ul>
+<p>此时的状态如图所示：</p>
+<p><img src="/images/big-data/es-02/2.jpg" alt="2"></p>
+<p>最后，刷新（Flush）。当日志数据的大小超过 512MB 或者时间超过 30 分钟时，需要触发一次刷新。</p>
+<p>刷新的主要步骤如下：</p>
+<ul>
+<li>在文件缓存系统中创建一个新的段，并把内存中的数据写入，使其可被搜索。</li>
+<li>清空内存，准备接收新的数据。</li>
+<li>将文件系统缓存中的数据通过 Fsync 函数刷新到硬盘中。</li>
+<li>生成提交点。</li>
+<li>删除旧的日志，创建一个空的日志。</li>
+</ul>
+<p>此时的状态如图所示：</p>
+<p><img src="/images/big-data/es-02/3.jpg" alt="3"></p>
+<p>由上面索引创建的过程可知，内存里面的数据并没有直接被刷新（Flush）到硬盘中，而是被刷新（Refresh）到了文件缓存系统中，这主要是因为持久化数据十分耗费资源，频繁地调用会使写入的性能急剧下降。</p>
+<p>所以 Elasticsearch，为了提高写入的效率，利用了文件缓存系统和内存来加速写入时的性能，并使用日志来防止数据的丢失。</p>
+<p>在需要重启时，Elasticsearch 不仅要根据提交点去加载已经持久化过的段，还需要根据 Translog 里的记录，把未持久化的数据重新持久化到磁盘上。</p>
+<p>根据上面对 Elasticsearch，写操作流程的介绍，我们可以整理出一个索引数据所要经历的几个阶段，以及每个阶段的数据的存储方式和作用，如图所示：</p>
+<p><img src="/images/big-data/es-02/4.jpg" alt="4"></p>
+<h2 id="在集群中写索引"><a href="#在集群中写索引" class="headerlink" title="在集群中写索引"></a>在集群中写索引</h2><p>假设我们有如图所示（图片来自官网）的一个集群，该集群由三个节点组成（Node 1、Node 2 和 Node 3），包含一个由两个主分片和每个主分片由两个副本分片组成的索引。</p>
+<p><img src="/images/big-data/es-02/5.jpg" alt="5"></p>
+<p>其中，标星号的 Node 1 是 Master 节点，负责管理整个集群的状态；p1 和 p2 是主分片；r0 和 r1 是副本分片。为了达到高可用，Master 节点避免将主分片和副本放在同一个节点。</p>
+<p>将数据分片是为了提高可处理数据的容量和易于进行水平扩展，为分片做副本是为了提高集群的稳定性和提高并发量。</p>
+<p>在主分片挂掉后，会从副本分片中选举出一个升级为主分片，当副本升级为主分片后，由于少了一个副本分片，所以集群状态会从 Green 改变为 Yellow，但是此时集群仍然可用。</p>
+<p>在一个集群中有一个分片的主分片和副本分片都挂掉后，集群状态会由 Yellow 改变为 Red，集群状态为 Red 时集群不可正常使用。</p>
+<p>由上面的步骤可知，副本分片越多，集群的可用性就越高，但是由于每个分片都相当于一个 Lucene 的索引文件，会占用一定的文件句柄、内存及 CPU，并且分片间的数据同步也会占用一定的网络带宽，所以，索引的分片数和副本数并不是越多越好。</p>
+<p>写索引时只能写在主分片上，然后同步到副本上，那么，一个数据应该被写在哪个分片上呢？</p>
+<p>如图所示，如何知道一个数据应该被写在 p0 还是 p1 上呢答案就是路由（routing），路由公式如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shard = <span class="built_in">hash</span>(routing)%number_of_primary_shards</span><br></pre></td></tr></table></figure>
+
+<p>其中，Routing 是一个可选择的值，默认是文档的 _id（文档的唯一主键，文档在创建时，如果文档的 _id 已经存在，则进行更新，如果不存在则创建）。</p>
+<p>后面会介绍如何通过自定义 Routing 参数使查询落在一个分片中，而不用查询所有的分片，从而提升查询的性能。</p>
+<p>Routing 通过 Hash 函数生成一个数字，将这个数字除以 number_of_primary_shards（分片的数量）后得到余数。</p>
+<p>这个分布在 0 到 number_of_primary_shards - 1 之间的余数，就是我们所寻求的文档所在分片的位置。</p>
+<p>这也就说明了一旦分片数定下来就不能再改变的原因，因为分片数改变之后，所有之前的路由值都会变得无效，前期创建的文档也就找不到了。</p>
+<p>由于在 Elasticsearch 集群中每个节点都知道集群中的文档的存放位置（通过路由公式定位），所以每个节点都有处理读写请求的能力。</p>
+<p>在一个写请求被发送到集群中的一个节点后，此时，该节点被称为协调点（Coordinating Node），协调点会根据路由公式计算出需要写到哪个分片上，再将请求转发到该分片的主分片节点上。</p>
+<p><img src="/images/big-data/es-02/6.jpg" alt="6"></p>
+<p>写操作的流程如下：</p>
+<ul>
+<li><p>客户端向 Node 1（协调节点）发送写请求。</p>
+</li>
+<li><p>Node 1 通过文档的 _id（默认是 _id，但不表示一定是 _id）确定文档属于哪个分片（在本例中是编号为 0 的分片）。请求会被转发到主分片所在的节点 Node 3 上。</p>
+</li>
+<li><p>Node 3 在主分片上执行请求，如果成功，则将请求并行转发到 Node 1 和 Node 2 的副本分片上。</p>
+</li>
+<li><p>一旦所有的副本分片都报告成功（默认），则 Node 3 将向协调节点报告成功，协调节点向客户端报告成功。</p>
+</li>
+</ul>
+<h2 id="集群中的查询流程"><a href="#集群中的查询流程" class="headerlink" title="集群中的查询流程"></a>集群中的查询流程</h2><p>根据 Routing 字段进行的单个文档的查询，在 Elasticsearch 集群中可以在主分片或者副本分片上进行。</p>
+<p><img src="/images/big-data/es-02/7.jpg" alt="7"></p>
+<p>查询字段刚好是 Routing 的分片字段如 “_id” 的查询流程如下：</p>
+<ul>
+<li><p>客户端向集群发送查询请求，集群再随机选择一个节点作为协调点（Node 1），负责处理这次查询。</p>
+</li>
+<li><p>Node 1 使用文档的 routing id 来计算要查询的文档在哪个分片上（在本例中落在了 0 分片上）分片 0 的副本分片存在所有的三个节点上。</p>
+</li>
+<li><p>在这种情况下，协调节点可以把请求转发到任意节点，本例将请求转发到 Node 2 上。</p>
+</li>
+<li><p>Node 2 执行查找，并将查找结果返回给协调节点 Node 1，Node 1 再将文档返回给客户端。</p>
+</li>
+</ul>
+<p>当一个搜索请求被发送到某个节点时，这个节点就变成了协调节点（Node 1）。</p>
+<p>协调节点的任务是广播查询请求到所有分片（主分片或者副本分片），并将它们的响应结果整合成全局排序后的结果集合。</p>
+<p>由上面步骤 3 所示，默认返回给协调节点并不是所有的数据，而是只有文档的 id 和得分 score，因为我们最后只返回给用户 size 条数据，所以这样做的好处是可以节省很多带宽，特别是 from 很大时。</p>
+<p>协调节点对收集回来的数据进行排序后，找到要返回的 size 条数据的 id，再根据 id 查询要返回的数据，比如 title、content 等。</p>
+<p><img src="/images/big-data/es-02/8.jpg" alt="8"></p>
+<p>取回数据等流程如下：</p>
+<ul>
+<li><p>Node 3 进行二次排序来找出要返回的文档 id，并向相关的分片提交多个获得文档详情的请求。</p>
+</li>
+<li><p>每个分片加载文档，并将文档返回给 Node 3。</p>
+</li>
+<li><p>一旦所有的文档都取回了，Node 3 就返回结果给客户端。</p>
+</li>
+</ul>
+<p>协调节点收集各个分片查询出来的数据，再进行二次排序，然后选择需要被取回的文档。</p>
+<p>例如，如果我们的查询指定了 {“from”: 20, “size”: 10}，那么我们需要在每个分片中查询出来得分最高的 20+10 条数据，协调节点在收集到 30×n（n 为分片数）条数据后再进行排序。</p>
+<p>排序位置在 0-20 的结果会被丢弃，只有从第 21 个开始的 10 个结果需要被取回。这些文档可能来自多个甚至全部分片。</p>
+<p>由上面的搜索策略可以知道，在查询时深翻（Deep Pagination）并不是一种好方法。</p>
+<p>因为深翻时，from 会很大，这时的排序过程可能会变得非常沉重，会占用大量的 CPU、内存和带宽。因为这个原因，所以强烈建议慎重使用深翻。</p>
+<p>分片可以减少每个片上的数据量，加快查询的速度，但是在查询时，协调节点要在收集数 (from+size)×n 条数据后再做一次全局排序。</p>
+<p>若这个数据量很大，则也会占用大量的 CPU、内存、带宽等，并且分片查询的速度取决于最慢的分片查询的速度，所以分片数并不是越多越好。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《Elasticsearch核心技术与实战》</li>
+</ul>
+<style>
+  img {
+    zoom: 50%;
+  }
+</style>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Elastic-Stack/" rel="tag"># Elastic Stack</a>
+              <a href="/tags/ES/" rel="tag"># ES</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/big-data/es-01/" rel="prev" title="重学 Elastic Stack 之 Elasticsearch 简介">
+      <i class="fa fa-chevron-left"></i> 重学 Elastic Stack 之 Elasticsearch 简介
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/big-data/es-03/" rel="next" title="重学 Elastic Stack 之 Elasticsearch 入门">
+      重学 Elastic Stack 之 Elasticsearch 入门 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ES-核心概念"><span class="nav-number">1.</span> <span class="nav-text">ES 核心概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Elasticsearch-的节点的分类如下"><span class="nav-number">2.</span> <span class="nav-text">Elasticsearch 的节点的分类如下</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3C-和脑裂"><span class="nav-number">3.</span> <span class="nav-text">3C 和脑裂</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事务日志"><span class="nav-number">4.</span> <span class="nav-text">事务日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在集群中写索引"><span class="nav-number">5.</span> <span class="nav-text">在集群中写索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群中的查询流程"><span class="nav-number">6.</span> <span class="nav-text">集群中的查询流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

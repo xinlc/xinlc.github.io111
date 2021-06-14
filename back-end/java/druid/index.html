@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Druid 是一个数据库连接池，一个高性能、功能强大为监控而生的数据库连接池。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Druid 简单使用">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/java/druid/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Druid 是一个数据库连接池，一个高性能、功能强大为监控而生的数据库连接池。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-07T18:45:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.387Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/java/druid/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Druid 简单使用 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/java/druid/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Druid 简单使用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-07 18:45:00" itemprop="dateCreated datePublished" datetime="2020-05-07T18:45:00+00:00">2020-05-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Druid 是一个数据库连接池，一个高性能、功能强大为监控而生的数据库连接池。</p>
+<a id="more"></a>
+
+<h2 id="什么是数据库连接池？"><a href="#什么是数据库连接池？" class="headerlink" title="什么是数据库连接池？"></a>什么是数据库连接池？</h2><p>数据库连接是一种关键的有限的昂贵的资源，这一点在多用户的网页应用程序中体现得尤为突出。对数据库连接的管理能显著影响到整个应用程序的伸缩性和健壮性，影响到程序的性能指标。数据库连接池正是针对这个问题提出来的。数据库连接池负责分配、管理和释放数据库连接，它允许应用程序重复使用一个现有的数据库连接，而不是再重新建立一个；释放空闲时间超过最大空闲时间的数据库连接来避免因为没有释放数据库连接而引起的数据库连接遗漏。这项技术能明显提高对数据库操作的性能。</p>
+<h2 id="常用配置"><a href="#常用配置" class="headerlink" title="常用配置"></a>常用配置</h2><p>DruidDataSource大部分属性都是参考DBCP，druid的常用配置项如下：</p>
+<table>
+<thead>
+<tr>
+<th align="left">配置</th>
+<th align="left">缺省值</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">name</td>
+<td align="left">无</td>
+<td align="left">配置这个属性的意义在于，如果存在多个数据源，监控的时候可以通过名字来区分开来。如果没有配置，将会生成一个名字，格式是： <code>&quot;DataSource-&quot; + System.identityHashCode(this)</code></td>
+</tr>
+<tr>
+<td align="left">jdbcUrl</td>
+<td align="left">无</td>
+<td align="left">连接数据库的url，不同数据库不一样。例如： <code>jdbc:mysql://localhost:3306/druid_test</code></td>
+</tr>
+<tr>
+<td align="left">username</td>
+<td align="left">无</td>
+<td align="left">连接数据库的用户名</td>
+</tr>
+<tr>
+<td align="left">password</td>
+<td align="left">无</td>
+<td align="left">连接数据库的密码。如果你不希望密码直接写在配置文件中，可以使用ConfigFilter。</td>
+</tr>
+<tr>
+<td align="left">driverClassName</td>
+<td align="left">根据url自动识别</td>
+<td align="left">这一项可配可不配，如果不配置druid会根据url自动识别dbType，然后选择相应的driverClassName</td>
+</tr>
+<tr>
+<td align="left">initialSize</td>
+<td align="left">0</td>
+<td align="left">初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时</td>
+</tr>
+<tr>
+<td align="left">asyncInit</td>
+<td align="left">false</td>
+<td align="left">asyncInit是1.1.4中新增加的配置，如果有initialSize数量较多时，打开会加快应用启动时间</td>
+</tr>
+<tr>
+<td align="left">maxActive</td>
+<td align="left">8</td>
+<td align="left">最大连接池数量</td>
+</tr>
+<tr>
+<td align="left">maxIdle</td>
+<td align="left">8</td>
+<td align="left">已经不再使用，配置了也没效果</td>
+</tr>
+<tr>
+<td align="left">minIdle</td>
+<td align="left">无</td>
+<td align="left">最小连接池数量</td>
+</tr>
+<tr>
+<td align="left">maxWait</td>
+<td align="left">无</td>
+<td align="left">获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁。</td>
+</tr>
+<tr>
+<td align="left">poolPreparedStatements</td>
+<td align="left">false</td>
+<td align="left">是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。在mysql5.5以下的版本中没有PSCache功能，建议关闭掉。5.5及以上版本有PSCache，建议开启。</td>
+</tr>
+<tr>
+<td align="left">maxOpenPreparedStatements</td>
+<td align="left">-1</td>
+<td align="left">要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发修改为true。在Druid中，不会存在Oracle下PSCache占用内存过多的问题，可以把这个数值配置大一些，比如说100。</td>
+</tr>
+<tr>
+<td align="left">validationQuery</td>
+<td align="left">无</td>
+<td align="left">用来检测连接是否有效的sql，要求是一个查询语句。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会其作用。在mysql中通常为 <code>select &#39;x&#39;</code></td>
+</tr>
+<tr>
+<td align="left">testOnBorrow</td>
+<td align="left">false</td>
+<td align="left">申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。</td>
+</tr>
+<tr>
+<td align="left">testOnReturn</td>
+<td align="left">false</td>
+<td align="left">归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。</td>
+</tr>
+<tr>
+<td align="left">testWhileIdle</td>
+<td align="left">false</td>
+<td align="left">建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。</td>
+</tr>
+<tr>
+<td align="left">timeBetweenEvictionRunsMillis</td>
+<td align="left">无</td>
+<td align="left">有两个含义：1. Destroy线程会检测连接的间隔时间。2. testWhileIdle的判断依据，详细看testWhileIdle属性的说明。</td>
+</tr>
+<tr>
+<td align="left">numTestsPerEvictionRun</td>
+<td align="left">无</td>
+<td align="left">不再使用，一个DruidDataSource只支持一个EvictionRun。</td>
+</tr>
+<tr>
+<td align="left">minEvictableIdleTimeMillis</td>
+<td align="left">无</td>
+<td align="left">Destory线程中如果检测到当前连接的最后活跃时间和当前时间的差值大于minEvictableIdleTimeMillis，则关闭当前连接。</td>
+</tr>
+<tr>
+<td align="left">connectionInitSqls</td>
+<td align="left">无</td>
+<td align="left">物理连接初始化的时候执行的sql。</td>
+</tr>
+<tr>
+<td align="left">exceptionSorter</td>
+<td align="left">根据dbType自动识别</td>
+<td align="left">当数据库抛出一些不可恢复的异常时，抛弃连接。</td>
+</tr>
+<tr>
+<td align="left">filters</td>
+<td align="left">无</td>
+<td align="left">属性类型是字符串，通过别名的方式配置扩展插件，常用的插件有：监控统计用的filter:stat，日志用的filter:log4j，防御sql注入的filter:wall。</td>
+</tr>
+<tr>
+<td align="left">proxyFilters</td>
+<td align="left">无</td>
+<td align="left">类型是 <code>List&lt;com.alibaba.druid.filter. Filter&gt;</code> ，如果同时配置了filters和proxyFilters，是组合关系，并非替换关系。</td>
+</tr>
+</tbody></table>
+<h2 id="Spring-Boot-2-集成-Druid"><a href="#Spring-Boot-2-集成-Druid" class="headerlink" title="Spring Boot 2 集成 Druid"></a>Spring Boot 2 集成 Druid</h2><p>添加依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>druid-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>1.1.22<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Druid 配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.druid.pool.DruidDataSource;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.druid.support.http.StatViewServlet;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.druid.support.http.WebStatFilter;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.druid.support.spring.stat.DruidStatInterceptor;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.SqlSessionFactory;</span><br><span class="line"><span class="keyword">import</span> org.mybatis.spring.SqlSessionFactoryBean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.aop.support.DefaultPointcutAdvisor;</span><br><span class="line"><span class="keyword">import</span> org.springframework.aop.support.JdkRegexpMethodPointcut;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Qualifier;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.context.properties.ConfigurationProperties;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.web.servlet.FilterRegistrationBean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.web.servlet.ServletRegistrationBean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Primary;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Scope;</span><br><span class="line"><span class="keyword">import</span> org.springframework.jdbc.datasource.DataSourceTransactionManager;</span><br><span class="line"><span class="keyword">import</span> javax.servlet.Filter;</span><br><span class="line"><span class="keyword">import</span> javax.servlet.Servlet;</span><br><span class="line"><span class="keyword">import</span> javax.sql.DataSource;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Druid 配置</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> Richard</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020.05.07</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConditionalOnProperty</span>(<span class="string">"spring.datasource.druid.initial-size"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DruidConfig</span> </span>&#123;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 因为默认是使用的java.sql.Datasource的类来获取属性的，有些属性datasource没有，</span></span><br><span class="line"><span class="comment">	 * 将所有前缀为spring.datasource下的配置项都加载DataSource中</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Primary</span></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="meta">@ConfigurationProperties</span>(prefix = <span class="string">"spring.datasource.druid"</span>)</span><br><span class="line">	<span class="function"><span class="keyword">public</span> DataSource <span class="title">druidDataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> DruidDataSourceBuilder.create().build();</span><br><span class="line"><span class="comment">//		return new DruidDataSource();</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//	@Bean(name = "TransactionManager")</span></span><br><span class="line"><span class="comment">//	@Primary</span></span><br><span class="line"><span class="comment">//	public DataSourceTransactionManager dbTransactionManager() &#123;</span></span><br><span class="line"><span class="comment">//		return new DataSourceTransactionManager(druidDataSource());</span></span><br><span class="line"><span class="comment">//	&#125;</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//	@Bean(name = "SqlSessionFactory")</span></span><br><span class="line"><span class="comment">//	@Primary</span></span><br><span class="line"><span class="comment">//	public SqlSessionFactory dbSqlSessionFactory(@Qualifier("druidDataSource") DataSource DataSource) throws Exception &#123;</span></span><br><span class="line"><span class="comment">//		final SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();</span></span><br><span class="line"><span class="comment">//		sessionFactory.setDataSource(DataSource);</span></span><br><span class="line"><span class="comment">//		return sessionFactory.getObject();</span></span><br><span class="line"><span class="comment">//	&#125;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 配置监控服务器</span></span><br><span class="line"><span class="comment">	 * http://localhost:8080/druid/login.html</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> 返回监控注册的servlet对象</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> ServletRegistrationBean&lt;Servlet&gt; <span class="title">statViewServlet</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">// druid 监控的配置处理</span></span><br><span class="line">		ServletRegistrationBean&lt;Servlet&gt; servletRegistrationBean = <span class="keyword">new</span> ServletRegistrationBean&lt;&gt;(<span class="keyword">new</span> StatViewServlet(), <span class="string">"/druid/*"</span>);</span><br><span class="line">		<span class="comment">// 添加IP白名单</span></span><br><span class="line"><span class="comment">//		servletRegistrationBean.addInitParameter("allow", "127.0.0.1");</span></span><br><span class="line">		<span class="comment">// 添加IP黑名单，当白名单和黑名单重复时，黑名单优先级更高</span></span><br><span class="line"><span class="comment">//		servletRegistrationBean.addInitParameter("deny", "127.0.0.1");</span></span><br><span class="line">		<span class="comment">// 添加控制台管理用户</span></span><br><span class="line">		servletRegistrationBean.addInitParameter(<span class="string">"loginUsername"</span>, <span class="string">"admin"</span>);</span><br><span class="line">		servletRegistrationBean.addInitParameter(<span class="string">"loginPassword"</span>, <span class="string">"admin"</span>);</span><br><span class="line">		<span class="comment">// 是否能够重置数据</span></span><br><span class="line">		servletRegistrationBean.addInitParameter(<span class="string">"resetEnable"</span>, <span class="string">"true"</span>);</span><br><span class="line">		<span class="keyword">return</span> servletRegistrationBean;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 配置web监控过滤器</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> 返回过滤器配置对象</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> FilterRegistrationBean&lt;Filter&gt; <span class="title">webStatFilter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		FilterRegistrationBean&lt;Filter&gt; filterRegistrationBean = <span class="keyword">new</span> FilterRegistrationBean&lt;&gt;(<span class="keyword">new</span> WebStatFilter());</span><br><span class="line"><span class="comment">//		filterRegistrationBean.setFilter(new WebStatFilter());</span></span><br><span class="line">		<span class="comment">// 添加过滤规则</span></span><br><span class="line">		<span class="comment">// 所有请求进行监控处理</span></span><br><span class="line">		filterRegistrationBean.addUrlPatterns(<span class="string">"/*"</span>);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 忽略过滤格式</span></span><br><span class="line">		filterRegistrationBean.addInitParameter(<span class="string">"exclusions"</span>, <span class="string">"*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*,"</span>);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 配置profileEnable能够监控单个url调用的sql列表。</span></span><br><span class="line">		filterRegistrationBean.addInitParameter(<span class="string">"profileEnable"</span>, <span class="string">"true"</span>);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// session 统计</span></span><br><span class="line">		filterRegistrationBean.addInitParameter(<span class="string">"sessionStatEnable"</span>, <span class="string">"true"</span>);</span><br><span class="line">		<span class="comment">// 配置principalSessionName，使得druid能够知道当前的session的用户是谁</span></span><br><span class="line">		<span class="comment">// 把其中的xxx.user修改为你user信息保存在session中的sessionName。</span></span><br><span class="line">		filterRegistrationBean.addInitParameter(<span class="string">"principalSessionName"</span>, <span class="string">"xxx.user"</span>);</span><br><span class="line"><span class="comment">//		 把其中的xxx.user修改为你user信息保存在cookie中的cookieName</span></span><br><span class="line">		filterRegistrationBean.addInitParameter(<span class="string">"principalCookieName"</span>, <span class="string">"xxx.user"</span>);</span><br><span class="line">		<span class="keyword">return</span> filterRegistrationBean;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 配置Druid关联spring监控 - 拦截器</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> DruidStatInterceptor <span class="title">druidStatInterceptor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		DruidStatInterceptor dsInterceptor = <span class="keyword">new</span> DruidStatInterceptor();</span><br><span class="line">		<span class="keyword">return</span> dsInterceptor;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 配置Druid关联spring监控 - AOP 正则表达式配置切点</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="meta">@Scope</span>(<span class="string">"prototype"</span>)</span><br><span class="line">	<span class="function"><span class="keyword">public</span> JdkRegexpMethodPointcut <span class="title">druidStatPointcut</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		JdkRegexpMethodPointcut pointcut = <span class="keyword">new</span> JdkRegexpMethodPointcut();</span><br><span class="line"><span class="comment">//		pointcut.setPattern("com.mycompany.dao.*");</span></span><br><span class="line">		pointcut.setPatterns(<span class="string">"com.mycompany.service.*"</span>, <span class="string">"com.mycompany.*.service.*"</span>, <span class="string">"com.mycompany.dao.*"</span>);</span><br><span class="line">		<span class="keyword">return</span> pointcut;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 配置Druid关联spring监控 - AOP 通知</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> druidStatInterceptor</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> druidStatPointcut</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> DefaultPointcutAdvisor <span class="title">druidStatAdvisor</span><span class="params">(DruidStatInterceptor druidStatInterceptor, JdkRegexpMethodPointcut druidStatPointcut)</span> </span>&#123;</span><br><span class="line">		DefaultPointcutAdvisor defaultPointAdvisor = <span class="keyword">new</span> DefaultPointcutAdvisor();</span><br><span class="line">		defaultPointAdvisor.setPointcut(druidStatPointcut);</span><br><span class="line">		defaultPointAdvisor.setAdvice(druidStatInterceptor);</span><br><span class="line">		<span class="keyword">return</span> defaultPointAdvisor;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>application.yml 配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">driver-class-name:</span> <span class="string">com.mysql.cj.jdbc.Driver</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false&amp;serverTimezone=GMT%2B8&amp;allowMultiQueries=true</span></span><br><span class="line">    <span class="attr">username:</span> <span class="string">root</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">root</span></span><br><span class="line">    <span class="attr">platform:</span> <span class="string">mysql</span></span><br><span class="line">    <span class="comment"># 下面为连接池的补充设置，应用到上面所有数据源中</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">com.alibaba.druid.pool.DruidDataSource</span></span><br><span class="line">    <span class="comment"># 初始化大小，最小，最大</span></span><br><span class="line">    <span class="attr">druid:</span></span><br><span class="line">      <span class="attr">initial-size:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">min-idle:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">max-active:</span> <span class="number">20</span></span><br><span class="line">      <span class="comment"># 配置获取连接等待超时的时间</span></span><br><span class="line">      <span class="attr">max-wait:</span> <span class="number">60000</span></span><br><span class="line">      <span class="comment"># 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒</span></span><br><span class="line">      <span class="attr">time-between-eviction-runs-millis:</span> <span class="number">60000</span></span><br><span class="line">      <span class="comment"># 配置一个连接在池中最小生存的时间，单位是毫秒</span></span><br><span class="line">      <span class="attr">min-evictable-idle-time-millis:</span> <span class="number">30000</span></span><br><span class="line">      <span class="attr">test-while-idle:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">test-on-borrow:</span> <span class="literal">false</span></span><br><span class="line">      <span class="attr">test-on-return:</span> <span class="literal">false</span></span><br><span class="line">      <span class="attr">validation-query:</span> <span class="string">SELECT</span> <span class="number">1</span></span><br><span class="line">      <span class="comment"># 打开PSCache，并且指定每个连接上PSCache的大小</span></span><br><span class="line">      <span class="attr">pool-prepared-statements:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">max-pool-prepared-statement-per-connection-size:</span> <span class="number">20</span></span><br><span class="line">      <span class="comment"># 合并多个DruidDataSource的监控数据</span></span><br><span class="line">      <span class="attr">use-global-data-source-stat:</span> <span class="literal">true</span></span><br><span class="line">      <span class="comment"># 定期把监控数据输出到日志中</span></span><br><span class="line">      <span class="comment"># time-between-log-stats-millis: 300000</span></span><br><span class="line">      <span class="comment"># 配置监控过滤器</span></span><br><span class="line">      <span class="attr">filter:</span></span><br><span class="line">        <span class="attr">stat:</span></span><br><span class="line">          <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">log-slow-sql:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">slow-sql-millis:</span> <span class="number">500</span></span><br><span class="line">          <span class="attr">merge-sql:</span> <span class="literal">true</span></span><br><span class="line">        <span class="attr">wall:</span></span><br><span class="line">         <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">        <span class="attr">slf4j:</span></span><br><span class="line">          <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">statement-executable-sql-log-enable:</span> <span class="literal">true</span></span><br><span class="line">      <span class="comment"># 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙</span></span><br><span class="line">      <span class="attr">filters:</span> <span class="string">stat,wall,slf4j</span></span><br><span class="line">      <span class="comment"># 通过connectProperties属性来打开mergeSql功能；慢SQL记录</span></span><br><span class="line">      <span class="attr">connection-properties:</span> <span class="string">druid.stat.mergeSql=true;druid.stat.slowSqlMillis=2000</span></span><br><span class="line">      <span class="comment"># 是否启用StatFilter默认值true</span></span><br><span class="line"><span class="comment">#      aop-patterns=.*service.*</span></span><br><span class="line"><span class="comment">#       web-stat-filter:</span></span><br><span class="line"><span class="comment">#         enabled: true</span></span><br><span class="line"><span class="comment">#         url-pattern: /*</span></span><br><span class="line"><span class="comment">#         exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"</span></span><br><span class="line"><span class="comment">#         session-stat-enable=false</span></span><br><span class="line"><span class="comment">#         principal-session-name=principal</span></span><br><span class="line"><span class="comment">#         principal-cookie-name=principal</span></span><br><span class="line"><span class="comment">#         session-stat-max-count: 1000</span></span><br><span class="line"><span class="comment">#         profile-enable: true</span></span><br><span class="line"><span class="comment">#       stat-view-servlet:</span></span><br><span class="line"><span class="comment">#         enabled: true</span></span><br><span class="line"><span class="comment">#         url-pattern: /druid/*</span></span><br><span class="line"><span class="comment">#         # IP 白名单，没有配置或者为空，则允许所有访问</span></span><br><span class="line"><span class="comment">#         allow: 127.0.0.1</span></span><br><span class="line"><span class="comment">#         # IP 黑名单，若白名单也存在，则优先使用</span></span><br><span class="line"><span class="comment"># #        deny: 127.0.0.1</span></span><br><span class="line"><span class="comment">#         # 允许清空统计数据</span></span><br><span class="line"><span class="comment">#         reset-enable:  true</span></span><br><span class="line"><span class="comment">#         login-username: admin</span></span><br><span class="line"><span class="comment">#         login-password: admin</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="attr">logging:</span></span><br><span class="line">  <span class="attr">level:</span></span><br><span class="line">    <span class="attr">root:</span> <span class="string">info</span></span><br><span class="line">    <span class="attr">org.springframework.boot.autoconfigure:</span> <span class="string">error</span></span><br><span class="line">    <span class="attr">druid.sql.Statement:</span> <span class="string">debug</span></span><br></pre></td></tr></table></figure>
+
+<p>访问：<a href="http://localhost:8080/druid/index.html" target="_blank" rel="noopener">http://localhost:8080/druid/index.html</a> 查看监控</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/alibaba/druid/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98" target="_blank" rel="noopener">Druid 常见问题</a></li>
+<li><a href="https://github.com/alibaba/druid/wiki/DruidDataSource%E9%85%8D%E7%BD%AE" target="_blank" rel="noopener">DruidDataSource配置</a></li>
+<li><a href="https://github.com/alibaba/druid/tree/master/druid-spring-boot-starter" target="_blank" rel="noopener">Druid Spring Boot Starter</a></li>
+<li><a href="https://github.com/alibaba/druid/wiki/%E9%85%8D%E7%BD%AE-wallfilter" target="_blank" rel="noopener">sql 防火墙配置</a></li>
+<li><a href="https://github.com/alibaba/druid/wiki/%E9%85%8D%E7%BD%AE_LogFilter" target="_blank" rel="noopener">日志配置</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/linux/lb-4-7/" rel="prev" title="四层负载均衡和七层负载均衡的区别">
+      <i class="fa fa-chevron-left"></i> 四层负载均衡和七层负载均衡的区别
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/ngxin-7788/" rel="next" title="Nginx 之 七七八八">
+      Nginx 之 七七八八 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是数据库连接池？"><span class="nav-number">1.</span> <span class="nav-text">什么是数据库连接池？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用配置"><span class="nav-number">2.</span> <span class="nav-text">常用配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Boot-2-集成-Druid"><span class="nav-number">3.</span> <span class="nav-text">Spring Boot 2 集成 Druid</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

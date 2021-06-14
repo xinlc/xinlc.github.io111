@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="NAT（Network Address Translation，网络地址转换），分为 DNAT（Destination）和 SNAT（Source）。 DNAT，使用 PREROUTING，用于外网访问内网里的主机服务器，透明转发或端口映射。 SNAT，使用 POSTROUTING ，用于内网里的主机，访问外网，即分享公网IP。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="阿里云专有网络 VPC 自建 NAT 网关">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/aliyun-nat/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="NAT（Network Address Translation，网络地址转换），分为 DNAT（Destination）和 SNAT（Source）。 DNAT，使用 PREROUTING，用于外网访问内网里的主机服务器，透明转发或端口映射。 SNAT，使用 POSTROUTING ，用于内网里的主机，访问外网，即分享公网IP。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/aliyun-nat/4.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/aliyun-nat/1.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/aliyun-nat/2.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/aliyun-nat/3.png">
+<meta property="article:published_time" content="2019-10-06T15:20:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="nat">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/linux/aliyun-nat/4.png">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/aliyun-nat/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>阿里云专有网络 VPC 自建 NAT 网关 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/aliyun-nat/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          阿里云专有网络 VPC 自建 NAT 网关
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-06 15:20:00" itemprop="dateCreated datePublished" datetime="2019-10-06T15:20:00+00:00">2019-10-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>NAT</code>（Network Address Translation，网络地址转换），分为 <code>DNAT</code>（Destination）和 <code>SNAT</code>（Source）。</p>
+<p><code>DNAT</code>，使用 <code>PREROUTING</code>，用于外网访问内网里的主机服务器，透明转发或端口映射。</p>
+<p><code>SNAT</code>，使用 <code>POSTROUTING</code> ，用于内网里的主机，访问外网，即分享公网IP。</p>
+<a id="more"></a>
+
+<h2 id="SLB、EIP、NAT网关之间区别"><a href="#SLB、EIP、NAT网关之间区别" class="headerlink" title="SLB、EIP、NAT网关之间区别"></a>SLB、EIP、NAT网关之间区别</h2><p>阿里云的公网入口产品共有三个，SLB、EIP、NAT网关，这几个产品都可以作为云上资源的公网入口，他们之间有何区别，又分别应该在什么场景下使用呢？</p>
+<h3 id="负载均衡SLB"><a href="#负载均衡SLB" class="headerlink" title="负载均衡SLB"></a>负载均衡SLB</h3><p>对多台云服务器进行流量分发的负载均衡服务，可以通过流量分发扩展应用系统对外的服务能力，通过消除单点故障提升应用系统的可用性。</p>
+<p>可见云计算中的负载均衡除了通过流量分发让后端的服务器负载均衡，还有两个重要的用途，一就是消除单点故障，因为一般负载均衡后端挂载有多台ecs服务器，当某一台不工作时，系统的可用性不会受到影响；二是通过多台后端服务器一起工作，以扩展应用系统的整体处理能力。</p>
+<p>拿刚刚过去的双十一举例，大家都知道，2017年双11又创造了新纪录，全天交易额1682亿，交易峰值32.5万笔/秒，支付峰值25.6W笔/秒，如此海量的访问请求，是再强大的服务器也无法支撑的，因此需要n多台服务器一起来提供服务，而这些服务器的调度都需要依赖负载均衡SLB，负载均衡SLB接收到用户的请求，智能调度到后端的服务器进行处理，并将处理后的结果返回给用户，完成了单台服务器不可能完成的任务。</p>
+<blockquote>
+<p>注意：负载均衡SLB仅提供被动访问公网的能力，即后端ECS只能在收到通过负载均衡SLB转发来的公网的请求时，才能访问公网回应该请求，不具备SNAT功能。</p>
+</blockquote>
+<h3 id="弹性公网IP（EIP）"><a href="#弹性公网IP（EIP）" class="headerlink" title="弹性公网IP（EIP）"></a>弹性公网IP（EIP）</h3><p>独立的公网IP资源，可以绑定到阿里云专有网络VPC类型的ECS、NAT网关、私网负载均衡SLB上，并可以动态解绑，实现公网IP和ECS、NAT网关、SLB的解耦，满足灵活管理的要求。</p>
+<p>早期的弹性公网IP，只能绑定ECS，其主要目的是为了解耦服务器IP与服务器实体之间的强关联，设想这样的情况。在业务发展初期，访问量较小，用户购买一个较小规格的ECS实例即可满足业务需求，但随着用户量和业务量逐渐攀升，不可避免的需要更换更大规格的ECS，或者使用SLB+ECS便于后续的扩展，如果没有弹性公网EIP，更换ECS意味更换实例IP，这样一来，不可避免的会出现业务的中断，而EIP的出现就很好的解决了这类问题。现在EIP不仅仅能够绑定ECS、还可以绑定SLB（私网SLB）和NATGW，并且能够使用共享带宽，和共享流量包，通过增强95带宽计费、闲时流量计费等特性，更加有效的节约云上公网的成本，更多EIP详细信息请参考弹性公网IP及帮助文档。</p>
+<blockquote>
+<p>注意：EIP只能绑定一台ECS，同时提供访问公网和被公网访问的能力。</p>
+</blockquote>
+<h3 id="NAT网关"><a href="#NAT网关" class="headerlink" title="NAT网关"></a>NAT网关</h3><p>帮助您在VPC环境下构建一个公网流量的出入口，通过自定义SNAT，DNAT规则灵活使用网络资源，支持多IP，支持共享公网带宽。</p>
+<p>当您的VPC中有众多ECS需要访问公网时，针对每个ECS购买公网带宽，或每个ECS都配置一个EIP，将是一件非常令人烦恼的事情，在配置和对账管理上都比较麻烦，NAT网关就是用来解决这个问题的，可以把NAT网关想象成您家中的路由器，不论是PC、手机、PAD、TV或任何需要连接Internet的设备，只要连到路由器，就可以通过路由器访问公网了，这就是NAT网关里面的SNAT功能。NAT网关还有DNAT功能，可以让VPC内的ECS实例通过NAT网关被Internet主动访问，这里不在展开，详情可以参考NAT网关产品及产品帮助文档。</p>
+<blockquote>
+<p>注意：NAT网关可以同时让多台ECS具有访问公网和被公网访问的能力，单没有流量分发、负载均衡的能力。</p>
+</blockquote>
+<h3 id="组网示意图及流量路径"><a href="#组网示意图及流量路径" class="headerlink" title="组网示意图及流量路径"></a>组网示意图及流量路径</h3><p><img src="/images/linux/aliyun-nat/4.png" alt="4"></p>
+<p>如上图所示，可以看到几种公网入口的流量路径，总体来说，满足如下原则：</p>
+<p>流量从哪里进来，就从哪里出去！</p>
+<ol>
+<li>通过负载均衡进入的流量在负载均衡SLB上限速/计费，仅收取出方向流量费用，入方向流量不收取（在未来可能会改变），SLB到ECS之间是阿里云内网通信，不收取流量费用。</li>
+<li>来自弹性公网IP/NAT网关的流量，分别在弹性公网IP/NAT网关上进行限速/计费，详情参考弹性公网IP和NAT网关；如果在购买ECS时选择了公网带宽，限速/计费点在ECS上。</li>
+<li>负载均衡SLB仅提供被动访问公网的能力，即后端ECS只能在收到通过负载均衡SLB转发来的公网的请求时，才能访问公网回应该请求，如后端ECS希望主动发起公网访问，则需要配置/购买ECS公网带宽、弹性公网IP或NAT网关来实现。</li>
+<li>ECS公网带宽（购买ECS时配置）、弹性公网IP、NAT网关均可以实现ECS的双向公网访问（访问或被访问），但没有流量分发和负载均衡的能力。</li>
+<li>SLB和后端ECS之间是通过内网进行通信的，所以如果ECS仅仅处理来自负载均衡的请求，那么可以不需要额外购买公网带宽（ECS公网带宽/弹性公网IP/NAT网关等）。</li>
+</ol>
+<p><a href="https://yq.aliyun.com/articles/391631" target="_blank" rel="noopener">请看云栖社区</a> 评论中有一段解释非常有趣哈哈哈……</p>
+<p>如果按照现实中（婚恋）的理解：</p>
+<ol>
+<li>早期的弹性ip（结婚）：只是用来一对男女之间互相获取婚恋关系，比如结婚。</li>
+<li>现在的弹性IP（结婚）：是除了婚恋关系（结婚），还会共享爱情（SLB）、各自的亲朋好友（NAT）、以及共享财产等。</li>
+<li>SLB负载均衡（婚恋网）：就类似现在的婚恋网，只有用户有需求（美女），婚恋网就会将用户的大量需求（身高、职业、长相等）去和后端的信息匹配（美女），从而找到合适的对象。</li>
+<li>NAT网关（处对象）：很多男女之间、各自都有自己的想要的婚姻，可以后很多单身男追很多单身女。都保持自己的路径。</li>
+</ol>
+<h2 id="阿里云专有网络-VPC-自建-NAT-网关"><a href="#阿里云专有网络-VPC-自建-NAT-网关" class="headerlink" title="阿里云专有网络 VPC 自建 NAT 网关"></a>阿里云专有网络 VPC 自建 NAT 网关</h2><p>这部分来源 <a href="https://amos-x.com/index.php/amos/archives/centos7-aliyun-nat/" target="_blank" rel="noopener">阿里云专有网络VPC自建NAT网关</a></p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在阿里云中购买服务器，可以免费自建专有网络VPC，就可以将购买的服务器放在一个网段中，成为互通的内网，加快内网中服务器的访问速度。但是专有网络中不是每一台服务器都有公网IP和带宽的，在访问服务器时，我们可以通过nginx，负载均衡等来实现对内网服务器的访问。但反过来，内网服务器要访问外网，就需要有NAT网关，但是阿里云的NAT网关是需要额外花钱购买共享带宽的，也就是专有网络中的服务器可以用购买的共享带宽来上网。但是，这要钱啊！</p>
+<p>在我们已经购买了公网IP和带宽的情况下，就可以利用现有的公网ip和带宽，在专有网络内，自建NAT网关，实现专有网络内所有服务器的上网。</p>
+<p>注意：在阿里云的传统网络中，是不支持自建NAT网关的。只有在专有网络VPC中，才可以，但是VPC是免费创建的！免费！ 很好，都不要钱。</p>
+<p>下面我们就记录介绍一下如何在阿里云的的VPC中，自建NAT网关，实现上网。另外，别的云服务，方法类似，可以借鉴参考。</p>
+<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><p>首先，你需要有如下条件：</p>
+<ul>
+<li>一台带公网IP和带宽的阿里云ECS</li>
+<li>一个VPC专有网络，并上面有IP和带宽的ECS放入专有网络内</li>
+</ul>
+<p>好了，下面进行自建NAT的步骤。</p>
+<h3 id="1-添加路由条目"><a href="#1-添加路由条目" class="headerlink" title="1. 添加路由条目"></a>1. 添加路由条目</h3><p>进入专有网络VPC中，进入路由表，进入路由表管理界面，选择添加路由条目</p>
+<p><img src="/images/linux/aliyun-nat/1.png" alt="1"><br><img src="/images/linux/aliyun-nat/2.png" alt="2"></p>
+<p>按如下配置新添加的路由条目，选择有公网IP和带宽的ECS实例作为下一跳。</p>
+<p><img src="/images/linux/aliyun-nat/3.png" alt="3"></p>
+<p>OK，阿里云控制台上只做这一个设置即可。</p>
+<h3 id="2-配置服务器"><a href="#2-配置服务器" class="headerlink" title="2. 配置服务器"></a>2. 配置服务器</h3><p>下面进入你刚才作为下一跳的ECS实例，按照如下进行操作配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 开启firewalld防火墙，默认是关闭的。</span></span><br><span class="line">$ systemctl <span class="built_in">enable</span> firewalld</span><br><span class="line">$ systemctl start firewalld</span><br><span class="line"></span><br><span class="line"><span class="comment"># 网卡默认是在public的zone内，也是默认zone。永久添加源地址转换功能</span></span><br><span class="line">$ firewall-cmd --add-masquerade --permanent</span><br><span class="line">$ firewall-cmd --reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加网卡的ip转发功能，添加如下配置到文件最后</span></span><br><span class="line">$ vim /etc/sysctl.conf</span><br><span class="line">----------------------------------------------------------------</span><br><span class="line">net.ipv4.ip_forward=1</span><br><span class="line">----------------------------------------------------------------</span><br><span class="line">  </span><br><span class="line"><span class="comment"># 重载网络配置生效</span></span><br><span class="line">$ sysctl -p</span><br></pre></td></tr></table></figure>
+
+<p>OK，到此，自建NAT网关成功，实现了内网主机通过这台机进行上网，而反向的访问，就可以使用nginx的反向代理进行实现。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://amos-x.com/index.php/amos/archives/centos7-aliyun-nat/" target="_blank" rel="noopener">阿里云专有网络VPC自建NAT网关</a></li>
+<li><a href="https://blog.csdn.net/subfate/article/details/52659446" target="_blank" rel="noopener">iptables学习笔记：端口转发之“外网访问内网”</a></li>
+<li><a href="https://yq.aliyun.com/articles/391631" target="_blank" rel="noopener">详解SLB、EIP、NAT网关之间区别， 合理选择云上公网入口</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/nat/" rel="tag"># nat</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/linux/jira-integration-confluence/" rel="prev" title="Jira Software 和 Confluence 集成">
+      <i class="fa fa-chevron-left"></i> Jira Software 和 Confluence 集成
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/centos-vs/" rel="next" title="CentOS 6 7 8版本对比">
+      CentOS 6 7 8版本对比 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#SLB、EIP、NAT网关之间区别"><span class="nav-number">1.</span> <span class="nav-text">SLB、EIP、NAT网关之间区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡SLB"><span class="nav-number">1.1.</span> <span class="nav-text">负载均衡SLB</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#弹性公网IP（EIP）"><span class="nav-number">1.2.</span> <span class="nav-text">弹性公网IP（EIP）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NAT网关"><span class="nav-number">1.3.</span> <span class="nav-text">NAT网关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组网示意图及流量路径"><span class="nav-number">1.4.</span> <span class="nav-text">组网示意图及流量路径</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阿里云专有网络-VPC-自建-NAT-网关"><span class="nav-number">2.</span> <span class="nav-text">阿里云专有网络 VPC 自建 NAT 网关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">2.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#正文"><span class="nav-number">2.2.</span> <span class="nav-text">正文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-添加路由条目"><span class="nav-number">2.3.</span> <span class="nav-text">1. 添加路由条目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-配置服务器"><span class="nav-number">2.4.</span> <span class="nav-text">2. 配置服务器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="简介Tmux 是一个终端复用器（terminal multiplexer），用于在一个终端窗口中运行多个终端会话, 一个会话（Session）可以包含多个窗口，一个窗口（Window）可以包含多个窗格（Pane)。   Tmux 使用 C&#x2F;S 模型构建，主要包括以下单元模块：  server 输入 tmux 命令时就开启了一个服务器（包含多个 session）； session 一个服务器可以包含">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tmux 简要说明">
+<meta property="og:url" content="https://blog.lichao.xin/tools/tmux/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="简介Tmux 是一个终端复用器（terminal multiplexer），用于在一个终端窗口中运行多个终端会话, 一个会话（Session）可以包含多个窗口，一个窗口（Window）可以包含多个窗格（Pane)。   Tmux 使用 C&#x2F;S 模型构建，主要包括以下单元模块：  server 输入 tmux 命令时就开启了一个服务器（包含多个 session）； session 一个服务器可以包含">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-06-27T10:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.399Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/tools/tmux/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Tmux 简要说明 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/tools/tmux/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Tmux 简要说明
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-06-27 10:00:00" itemprop="dateCreated datePublished" datetime="2017-06-27T10:00:00+00:00">2017-06-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B7%A5%E6%AC%B2%E5%96%84%E5%85%B6%E4%BA%8B%E5%BF%85%E5%85%88%E5%88%A9%E5%85%B6%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">工欲善其事必先利其器</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Tmux 是一个终端复用器（terminal multiplexer），用于在一个终端窗口中运行多个终端会话, 一个会话（Session）可以包含多个窗口，一个窗口（Window）可以包含多个窗格（Pane)。  </p>
+<p>Tmux 使用 C/S 模型构建，主要包括以下单元模块：</p>
+<ul>
+<li><code>server</code> 输入 tmux 命令时就开启了一个服务器（包含多个 session）；</li>
+<li><code>session</code> 一个服务器可以包含多个会话；</li>
+<li><code>window</code> 一个会话可以包含多个窗口；</li>
+<li><code>pane</code> 一个窗口可以包含多个面板；</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="会话与进程"><a href="#会话与进程" class="headerlink" title="会话与进程"></a>会话与进程</h2><p>命令行的典型使用方式是，打开一个终端窗口（terminal window，以下简称”窗口”），在里面输入命令。用户与计算机的这种临时的交互，称为一次”会话”（session） 。</p>
+<p>会话的一个重要特点是，窗口与其中启动的进程是连在一起的。打开窗口，会话开始；关闭窗口，会话结束，会话内部的进程也会随之终止，不管有没有运行完。</p>
+<p>一个典型的例子就是，SSH 登录远程计算机，打开一个远程窗口执行命令。这时，网络突然断线，再次登录的时候，是找不回上一次执行的命令的。因为上一次 SSH 会话已经终止了，里面的进程也随之消失了。</p>
+<p>为了解决这个问题，会话与窗口可以”解绑”：窗口关闭时，会话并不终止，而是继续运行，等到以后需要的时候，再让会话”绑定”其他窗口。</p>
+<h2 id="Tmux-的作用"><a href="#Tmux-的作用" class="headerlink" title="Tmux 的作用"></a>Tmux 的作用</h2><p>Tmux 就是会话与窗口的”解绑”工具，将它们彻底分离。</p>
+<ol>
+<li>它允许在单个窗口中，同时访问多个会话。这对于同时运行多个命令行程序很有用。</li>
+<li>它可以让新窗口”接入”已经存在的会话。</li>
+<li>它允许每个会话有多个连接窗口，因此可以多人实时共享会话。</li>
+<li>它还支持窗口任意的垂直和水平拆分。</li>
+</ol>
+<p>类似的终端复用器还有 GNU Screen。Tmux 与它功能相似，但是更易用，也更强大。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Ubuntu 或 Debian</span></span><br><span class="line">sudo apt-get install tmux</span><br><span class="line"></span><br><span class="line"><span class="comment"># CentOS 或 Fedora</span></span><br><span class="line">sudo yum install tmux</span><br><span class="line"></span><br><span class="line"><span class="comment"># Mac</span></span><br><span class="line">brew install tmux</span><br><span class="line">brew install reattach-to-user-namespace <span class="comment"># 让 Tmux 将文本复制到系统的剪贴板。</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><p>安装完成后，键入 <code>tmux</code> 命令，就进入了 Tmux 窗口。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 命令会启动 Tmux 窗口，底部有一个状态栏。状态栏的左侧是窗口信息（编号和名称），右侧是系统信息。</span></span><br><span class="line">$ tmux</span><br></pre></td></tr></table></figure>
+
+<p>按下 <code>Ctrl+d</code> 或者显式输入 <code>exit</code> 命令，就可以退出 Tmux 窗口。</p>
+<h3 id="前缀键"><a href="#前缀键" class="headerlink" title="前缀键"></a>前缀键</h3><p>Tmux 窗口有大量的快捷键。所有快捷键都要通过前缀键唤起。默认的前缀键是<code>Ctrl+b</code>，即先按下<code>Ctrl+b</code>，快捷键才会生效。</p>
+<p>举例来说，帮助命令的快捷键是<code>Ctrl+b ?</code>。它的用法是，在 Tmux 窗口中，先按下<code>Ctrl+b</code>，再按下<code>?</code>，就会显示帮助信息。</p>
+<p>然后，按下 <code>ESC</code> 键或<code>q</code>键，就可以退出帮助。</p>
+<h2 id="会话管理"><a href="#会话管理" class="headerlink" title="会话管理"></a>会话管理</h2><h3 id="新建会话"><a href="#新建会话" class="headerlink" title="新建会话"></a>新建会话</h3><p>第一个启动的 Tmux 窗口，编号是<code>0</code>，第二个窗口的编号是<code>1</code>，以此类推。这些窗口对应的会话，就是 0 号会话、1 号会话。</p>
+<p>使用编号区分会话，不太直观，更好的方法是为会话起名。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux new -s &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+
+<p>上面命令新建一个指定名称的会话。</p>
+<h3 id="分离会话"><a href="#分离会话" class="headerlink" title="分离会话"></a>分离会话</h3><p>在 Tmux 窗口中，按下<code>Ctrl+b d</code>或者输入<code>tmux detach</code>命令，就会将当前会话与窗口分离。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux detach</span><br></pre></td></tr></table></figure>
+
+<p>上面命令执行后，就会退出当前 Tmux 窗口，但是会话和里面的进程仍然在后台运行。</p>
+<p><code>tmux ls</code>命令可以查看当前所有的 Tmux 会话。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tmux ls</span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">tmux list-session</span><br></pre></td></tr></table></figure>
+
+<h3 id="接入会话"><a href="#接入会话" class="headerlink" title="接入会话"></a>接入会话</h3><p><code>tmux attach</code>命令用于重新接入某个已存在的会话。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用会话编号</span></span><br><span class="line">tmux attach -t 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用会话名称</span></span><br><span class="line">tmux attach -t &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="杀死会话"><a href="#杀死会话" class="headerlink" title="杀死会话"></a>杀死会话</h3><p><code>tmux kill-session</code>命令用于杀死某个会话。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用会话编号</span></span><br><span class="line">tmux <span class="built_in">kill</span>-session -t 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用会话名称</span></span><br><span class="line">tmux <span class="built_in">kill</span>-session -t &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="切换会话"><a href="#切换会话" class="headerlink" title="切换会话"></a>切换会话</h3><p><code>tmux switch</code>命令用于切换会话。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用会话编号</span></span><br><span class="line">tmux switch -t 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用会话名称</span></span><br><span class="line">tmux switch -t &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="重命名会话"><a href="#重命名会话" class="headerlink" title="重命名会话"></a>重命名会话</h3><p><code>tmux rename-session</code>命令用于重命名会话。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux rename-session -t 0 &lt;new-name&gt;</span><br></pre></td></tr></table></figure>
+
+<p>上面命令将0号会话重命名。</p>
+<h3 id="会话快捷键"><a href="#会话快捷键" class="headerlink" title="会话快捷键"></a>会话快捷键</h3><p>下面是一些会话相关的快捷键。</p>
+<ul>
+<li><code>Ctrl+b d</code>：分离当前会话。</li>
+<li><code>Ctrl+b s</code>：列出所有会话。</li>
+<li><code>Ctrl+b $</code>：重命名当前会话。</li>
+</ul>
+<h3 id="最简操作流程"><a href="#最简操作流程" class="headerlink" title="最简操作流程"></a>最简操作流程</h3><p>综上所述，以下是 Tmux 的最简操作流程。</p>
+<ol>
+<li>新建会话<code>tmux new -s my_session</code>。</li>
+<li>在 Tmux 窗口运行所需的程序。</li>
+<li>按下快捷键<code>Ctrl+b d</code>将会话分离。</li>
+<li>下次使用时，重新连接到会话<code>tmux attach-session -t my_session</code>。</li>
+</ol>
+<h2 id="窗格操作"><a href="#窗格操作" class="headerlink" title="窗格操作"></a>窗格操作</h2><p>Tmux 可以将窗口分成多个窗格（pane），每个窗格运行不同的命令。以下命令都是在 Tmux 窗口中执行。</p>
+<h3 id="划分窗格"><a href="#划分窗格" class="headerlink" title="划分窗格"></a>划分窗格</h3><p><code>tmux split-window</code>命令用来划分窗格。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 划分上下两个窗格</span></span><br><span class="line">tmux split-window</span><br><span class="line"></span><br><span class="line"><span class="comment"># 划分左右两个窗格</span></span><br><span class="line">tmux split-window -h</span><br></pre></td></tr></table></figure>
+
+<h3 id="移动光标"><a href="#移动光标" class="headerlink" title="移动光标"></a>移动光标</h3><p><code>tmux select-pane</code> 命令用来移动光标位置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 光标切换到上方窗格</span></span><br><span class="line">tmux select-pane -U</span><br><span class="line"></span><br><span class="line"><span class="comment"># 光标切换到下方窗格</span></span><br><span class="line">tmux select-pane -D</span><br><span class="line"></span><br><span class="line"><span class="comment"># 光标切换到左边窗格</span></span><br><span class="line">tmux select-pane -L</span><br><span class="line"></span><br><span class="line"><span class="comment"># 光标切换到右边窗格</span></span><br><span class="line">tmux select-pane -R</span><br></pre></td></tr></table></figure>
+
+<h3 id="交换窗格位置"><a href="#交换窗格位置" class="headerlink" title="交换窗格位置"></a>交换窗格位置</h3><p><code>tmux swap-pane</code>命令用来交换窗格位置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 当前窗格上移</span></span><br><span class="line">tmux swap-pane -U</span><br><span class="line"></span><br><span class="line"><span class="comment"># 当前窗格下移</span></span><br><span class="line">tmux swap-pane -D</span><br></pre></td></tr></table></figure>
+
+<h3 id="窗格快捷键"><a href="#窗格快捷键" class="headerlink" title="窗格快捷键"></a>窗格快捷键</h3><p>下面是一些窗格操作的快捷键。</p>
+<ul>
+<li><code>Ctrl+b %</code>：划分左右两个窗格。</li>
+<li><code>Ctrl+b &quot;</code>：划分上下两个窗格。</li>
+<li><code>Ctrl+b &lt;arrow key&gt;</code>：光标切换到其他窗格。<code>&lt;arrow key&gt;</code>是指向要切换到的窗格的方向键，比如切换到下方窗格，就按方向键↓。</li>
+<li><code>Ctrl+b ;</code>：光标切换到上一个窗格。</li>
+<li><code>Ctrl+b o</code>：光标切换到下一个窗格。</li>
+<li><code>Ctrl+b {</code>：当前窗格与上一个窗格交换位置。</li>
+<li><code>Ctrl+b }</code>：当前窗格与下一个窗格交换位置。</li>
+<li><code>Ctrl+b Ctrl+o</code>：所有窗格向前移动一个位置，第一个窗格变成最后一个窗格。</li>
+<li><code>Ctrl+b Alt+o</code>：所有窗格向后移动一个位置，最后一个窗格变成第一个窗格。</li>
+<li><code>Ctrl+b x</code>：关闭当前窗格。</li>
+<li><code>Ctrl+b !</code>：将当前窗格拆分为一个独立窗口。</li>
+<li><code>Ctrl+b z</code>：当前窗格全屏显示，再使用一次会变回原来大小。</li>
+<li><code>Ctrl+b Ctrl+&lt;arrow key&gt;</code>：按箭头方向调整窗格大小。</li>
+<li><code>Ctrl+b q</code>：显示窗格编号。</li>
+</ul>
+<h2 id="窗口管理"><a href="#窗口管理" class="headerlink" title="窗口管理"></a>窗口管理</h2><p>除了将一个窗口划分成多个窗格，Tmux 也允许新建多个窗口。</p>
+<h3 id="新建窗口"><a href="#新建窗口" class="headerlink" title="新建窗口"></a>新建窗口</h3><p><code>tmux new-window</code> 命令用来创建新窗口。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tmux new-window</span><br><span class="line"></span><br><span class="line"><span class="comment"># 新建一个指定名称的窗口</span></span><br><span class="line">tmux new-window -n &lt;window-name&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="切换窗口"><a href="#切换窗口" class="headerlink" title="切换窗口"></a>切换窗口</h3><p><code>tmux select-window</code>命令用来切换窗口。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 切换到指定编号的窗口</span></span><br><span class="line">tmux select-window -t &lt;window-number&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换到指定名称的窗口</span></span><br><span class="line">tmux select-window -t &lt;window-name&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="重命名窗口"><a href="#重命名窗口" class="headerlink" title="重命名窗口"></a>重命名窗口</h3><p><code>tmux rename-window</code>命令用于为当前窗口起名（或重命名）。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux rename-window &lt;new-name&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="窗口快捷键"><a href="#窗口快捷键" class="headerlink" title="窗口快捷键"></a>窗口快捷键</h3><p>下面是一些窗口操作的快捷键。</p>
+<ul>
+<li><code>Ctrl+b c</code>：创建一个新窗口，状态栏会显示多个窗口的信息。</li>
+<li><code>Ctrl+b p</code>：切换到上一个窗口（按照状态栏上的顺序）。</li>
+<li><code>Ctrl+b n</code>：切换到下一个窗口。</li>
+<li><code>Ctrl+b &lt;number&gt;</code>：切换到指定编号的窗口，其中的<code>&lt;number&gt;</code>是状态栏上的窗口编号。</li>
+<li><code>Ctrl+b w</code>：从列表中选择窗口。</li>
+<li><code>Ctrl+b ,</code>：窗口重命名。</li>
+</ul>
+<h2 id="其他命令"><a href="#其他命令" class="headerlink" title="其他命令"></a>其他命令</h2><p>下面是一些其他命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有快捷键，及其对应的 Tmux 命令</span></span><br><span class="line">tmux list-keys</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有 Tmux 命令及其参数</span></span><br><span class="line">tmux list-commands</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出当前所有 Tmux 会话的信息</span></span><br><span class="line">tmux info</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新加载当前的 Tmux 配置</span></span><br><span class="line">tmux <span class="built_in">source</span>-file ~/.tmux.conf</span><br></pre></td></tr></table></figure>
+
+<h2 id="常用操作整理"><a href="#常用操作整理" class="headerlink" title="常用操作整理"></a>常用操作整理</h2><h3 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h3><ul>
+<li><code>tmux new -s &lt;name-of-my-session&gt;</code> 创建 session, 可以指定 Session 名；</li>
+<li><code>tmux attach-session -t &lt;name-of-my-session&gt;</code> 重新连接此会话；</li>
+<li><code>tmux attach</code> 连接会话(只有一个)；</li>
+<li><code>tmux a -t 0</code> 连接第一个会话；</li>
+<li><code>tmux ls</code> or <code>tmux list-session</code> 查看已有会话列表；</li>
+<li><code>tmux detach</code> 分离会话；</li>
+<li><code>tmux kill-session -t</code> 杀掉会话；</li>
+<li><code>&lt;PREFIX&gt; + : new -s &lt;name-of-my-session&gt;</code> 在 tmux 中创建一个会话；</li>
+<li><code>&lt;PREFIX&gt; + $</code> 重命名会话；</li>
+<li><code>&lt;PREFIX&gt; + : kill-session</code> 在 tmux 中杀掉当前会话；</li>
+<li><code>&lt;PREFIX&gt; + ,</code> 重命名一个窗口, 之后输入名字回车；</li>
+<li><code>exit</code> 退出窗口或 pane；</li>
+</ul>
+<h3 id="操作"><a href="#操作" class="headerlink" title="操作"></a>操作</h3><p>为了使自身的快捷键和其他软件的快捷键互不干扰，Tmux 提供了一个快捷键前缀（Prefix）。<br>当想要使用快捷键时，需要先按下快捷键前缀，然后再按下快捷键。Tmux 所使用的快捷键前缀默认是组合键 <code>Ctrl-b</code>。</p>
+<h4 id="系统操作"><a href="#系统操作" class="headerlink" title="系统操作"></a>系统操作</h4><ul>
+<li><code>?</code> 列出所有快捷键；按 q 返回；</li>
+<li><code>d</code> 脱离当前会话；这样可以暂时返回 Shell 界面，输入 tmux attach 能够重新进入之前的会话；</li>
+<li><code>D</code> 选择要脱离的会话；在同时开启了多个会话时使用；</li>
+<li><code>Ctrl+z</code> 挂起当前会话；</li>
+<li><code>r</code> 强制重绘未脱离的会话；</li>
+<li><code>s</code> 选择并切换会话；在同时开启了多个会话时使用；</li>
+<li><code>:</code> 进入命令行模式；此时可以输入支持的命令，例如 kill-server 可以关闭服务器；</li>
+<li><code>[</code> 进入复制模式(copy-mode)；此时的操作与 vi/emacs 相同，按 q/Esc 退出；</li>
+<li><code>~</code> 列出提示信息缓存；其中包含了之前 tmux 返回的各种提示信息；</li>
+</ul>
+<h4 id="窗口操作"><a href="#窗口操作" class="headerlink" title="窗口操作"></a>窗口操作</h4><ul>
+<li><code>c</code> 创建新窗口；</li>
+<li><code>&amp;</code> 关闭当前窗口；</li>
+<li><code>数字键</code> 切换至指定窗口；</li>
+<li><code>p</code> 切换至上一窗口；</li>
+<li><code>n</code> 切换至下一窗口；</li>
+<li><code>l</code> 在前后两个窗口间互相切换；</li>
+<li><code>w</code> 通过窗口列表切换窗口；</li>
+<li><code>,</code> 重命名当前窗口；这样便于识别；</li>
+<li><code>.</code> 修改当前窗口编号；相当于窗口重新排序；</li>
+<li><code>f</code> 在所有窗口中查找指定文本；</li>
+<li><code>a</code> 切换到最近的窗口；</li>
+<li><code>space</code> 切换布局方式；</li>
+</ul>
+<h4 id="面板操作"><a href="#面板操作" class="headerlink" title="面板操作"></a>面板操作</h4><ul>
+<li><code>“</code> 将当前面板平分为上下两块；</li>
+<li><code>%</code> 将当前面板平分为左右两块；</li>
+<li><code>x</code> 关闭当前面板；</li>
+<li><code>!</code> 将当前面板置于新窗口；即新建一个窗口，其中仅包含当前面板；</li>
+<li><code>Ctrl+方向键</code> 以 1 个单元格为单位移动边缘以调整当前面板大小；</li>
+<li><code>Alt+方向键</code> 以 5 个单元格为单位移动边缘以调整当前面板大小；</li>
+<li><code>Space</code> 在预置的面板布局中循环切换；依次包括 even-horizontal、even-vertical、main-horizontal、main-vertical、tiled；</li>
+<li><code>q</code> 显示面板编；</li>
+<li><code>;</code> 光标切换到上一个面板；</li>
+<li><code>o</code> 在当前窗口中选择下一面板；</li>
+<li><code>方向键</code> 移动光标以选择面板；</li>
+<li><code>{</code> 向前置换当前面板；</li>
+<li><code>}</code> 向后置换当前面板；</li>
+<li><code>Alt+o</code> 逆时针旋转当前窗口的面板；</li>
+<li><code>Ctrl+o</code> 顺时针旋转当前窗口的面板；</li>
+<li><code>z</code> 进入全屏，再按一次恢复；</li>
+</ul>
+<h3 id="复制粘贴"><a href="#复制粘贴" class="headerlink" title="复制粘贴"></a>复制粘贴</h3><ul>
+<li><code>&lt;PREFIX&gt; + [</code> 进入复制模式；</li>
+<li><code>space/v</code> 开始选择；</li>
+<li><code>Ctrl-v</code> 整块选择；</li>
+<li><code>hjkl</code> 方向键移动；</li>
+<li><code>w/b</code> 向前向后移动一个单词；</li>
+<li><code>fx/Fx</code> 行内移动到下一个字符位置；</li>
+<li><code>ctrl-b/f</code> 在缓冲区里面翻页；</li>
+<li><code>g/G</code> 到缓冲区最顶/底端；</li>
+<li><code>/ ?</code> 向下, 向上查找；</li>
+<li><code>n/N</code> 查找后下一个, 上一个；</li>
+<li><code>Enter/y</code> 复制；</li>
+<li><code>&lt;PREFIX&gt;&gt; + ]</code> 粘贴；</li>
+</ul>
+<h2 id="Tmuxinator"><a href="#Tmuxinator" class="headerlink" title="Tmuxinator"></a>Tmuxinator</h2><p>Tmuxinator 是一个 Ruby 的 gem 包，可用于创建 Tmux 的会话。它的工作方式是先在配置文件中定义会话中的细节，然后用 1 条命令创建出这些会话。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem install tmuxinator <span class="comment"># 安装</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="基础设置"><a href="#基础设置" class="headerlink" title="基础设置"></a>基础设置</h3><h4 id="bash-版"><a href="#bash-版" class="headerlink" title="bash 版"></a>bash 版</h4><p>将下述文本保存为$HOME/.tmuxinator/.tmuxinator.bash，提供 bash 的 tab 键提示功能</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env bash</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">_tmuxinator</span></span>() &#123;</span><br><span class="line">    COMPREPLY=()</span><br><span class="line">    <span class="built_in">local</span> word</span><br><span class="line">    word=<span class="string">"<span class="variable">$&#123;COMP_WORDS[COMP_CWORD]&#125;</span>"</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> [ <span class="string">"<span class="variable">$COMP_CWORD</span>"</span> -eq 1 ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">local</span> commands=<span class="string">"<span class="variable">$(compgen -W "$(tmuxinator commands)</span>"</span> -- <span class="string">"<span class="variable">$word</span>"</span>)<span class="string">"</span></span><br><span class="line"><span class="string">        local projects="</span>$(compgen -W <span class="string">"<span class="variable">$(tmuxinator completions start)</span>"</span> -- <span class="string">"<span class="variable">$word</span>"</span>)<span class="string">"</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        COMPREPLY=( <span class="variable">$commands</span> <span class="variable">$projects</span> )</span></span><br><span class="line"><span class="string">    elif [ "</span><span class="variable">$COMP_CWORD</span><span class="string">" -eq 2 ]; then</span></span><br><span class="line"><span class="string">        local words</span></span><br><span class="line"><span class="string">        words=("</span><span class="variable">$&#123;COMP_WORDS[@]&#125;</span><span class="string">")</span></span><br><span class="line"><span class="string">        unset words[0]</span></span><br><span class="line"><span class="string">        unset words[<span class="variable">$COMP_CWORD</span>]</span></span><br><span class="line"><span class="string">        local completions</span></span><br><span class="line"><span class="string">        completions=<span class="variable">$(tmuxinator completions "$&#123;words[@]&#125;")</span></span></span><br><span class="line"><span class="string">        COMPREPLY=( <span class="variable">$(compgen -W "$completions" -- "$word")</span> )</span></span><br><span class="line"><span class="string">    fi</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">complete -F _tmuxinator tmuxinator mux</span></span><br><span class="line"><span class="string">alias mux="</span>tmuxinator<span class="string">"</span></span><br></pre></td></tr></table></figure>
+
+<p>$HOME/.bashrc 下增加下述内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> <span class="variable">$HOME</span>/.tmuxinator/.tmuxinator.bash</span><br><span class="line"><span class="built_in">export</span> EDITOR=<span class="string">'vim'</span></span><br></pre></td></tr></table></figure>
+
+<p>source $HOME/.bashrc 使其生效。</p>
+<h4 id="zsh-版"><a href="#zsh-版" class="headerlink" title="zsh 版"></a>zsh 版</h4><p>将下述文本保存为$HOME/.tmuxinator/.tmuxinator.zsh，提供 zsh 的 tab 键提示功能</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">_tmuxinator</span></span>() &#123;</span><br><span class="line">  <span class="built_in">local</span> commands projects</span><br><span class="line">  commands=(<span class="variable">$&#123;(f)"$(tmuxinator commands zsh)"&#125;</span>)</span><br><span class="line">  projects=(<span class="variable">$&#123;(f)"$(tmuxinator completions start)"&#125;</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (( CURRENT == 2 )); <span class="keyword">then</span></span><br><span class="line">    _describe -t commands <span class="string">"tmuxinator subcommands"</span> commands</span><br><span class="line">    _describe -t projects <span class="string">"tmuxinator projects"</span> projects</span><br><span class="line">  <span class="keyword">elif</span> (( CURRENT == 3)); <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$words</span>[2] <span class="keyword">in</span></span><br><span class="line">      copy|debug|delete|open|start)</span><br><span class="line">        _arguments <span class="string">'*:projects:($projects)'</span></span><br><span class="line">      ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">return</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">compdef _tmuxinator tmuxinator mux</span><br><span class="line"><span class="built_in">alias</span> mux=<span class="string">"tmuxinator"</span></span><br></pre></td></tr></table></figure>
+
+<p>$HOME/.zshrc 下增加下述内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> <span class="variable">$HOME</span>/.tmuxinator/.tmuxinator.zsh</span><br><span class="line"><span class="built_in">export</span> EDITOR=<span class="string">'vim'</span></span><br></pre></td></tr></table></figure>
+
+<p>source $HOME/.zshrc 使其生效。</p>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p>Tmuxinator 的一个工程(Project)对应 tmux 的一个 session。<br>tmuxinator 命令已 alias 为 mux。<br>new 简写为 n，open 简写为 o，edit 简写为 e，list 简写为 l，copy 简写为 c，delete 简写为 d。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mux n ws      <span class="comment"># 创建工程ws</span></span><br><span class="line">mux o ws      <span class="comment"># 打开工程ws的配置文件</span></span><br><span class="line">mux e ws      <span class="comment"># 同上</span></span><br><span class="line">mux c ws ws1  <span class="comment"># 复制ws工程到ws1</span></span><br><span class="line">mux d ws      <span class="comment"># 删除ws工程</span></span><br><span class="line">mux l         <span class="comment"># 显示所有工程</span></span><br><span class="line">mux ws        <span class="comment"># 开启ws工程</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>当 new 一个工程后，会出现如下信息(省略注释)。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">ws</span> <span class="comment"># session名称</span></span><br><span class="line"><span class="attr">root:</span> <span class="string">~/</span> <span class="comment"># 工程根目录，活动Pane会首先cd到此目录</span></span><br><span class="line"></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">editor:</span> <span class="comment"># 第1个名为Editor的Window</span></span><br><span class="line">      <span class="attr">layout:</span> <span class="string">main-vertical</span> <span class="comment"># Pane的布局</span></span><br><span class="line">      <span class="attr">panes:</span> <span class="comment"># 各个Pane</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">vim</span> <span class="comment"># 第一个Pane运行vim命令</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">guard</span> <span class="comment"># 第二个Pane运行guard命令</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">server:</span> <span class="string">bundle</span> <span class="string">exec</span> <span class="string">rails</span> <span class="string">s</span> <span class="comment"># 第2个名为server的Window，运行命令为bundle</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">logs:</span> <span class="string">tail</span> <span class="string">-f</span> <span class="string">log/development.log</span> <span class="comment"># 第3个名为logs的Window，运行命令为tail</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="自定义-layout"><a href="#自定义-layout" class="headerlink" title="自定义 layout"></a>自定义 layout</h3><p>工程配置中的 layout 项，有 5 个默认的值。</p>
+<ul>
+<li>even-horizontal</li>
+<li>even-vertical</li>
+<li>main-horizontal</li>
+<li>main-vertical</li>
+<li>tiled<br>开启 tmux 后，可以使用快捷键 prefix space 切换 layout，建议开启 4 个 Pane 进行测试。例如：</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">panes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">top</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">top</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">vim</span> <span class="string">.</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">vim</span> <span class="string">.</span></span><br></pre></td></tr></table></figure>
+
+<p>如果不满足 layout 默认值，layout 项可以自定义值。<br>首先调整好窗口的 Pane，prefix d 关闭 Session。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ tmux list-windows</span><br><span class="line">1: bash* (4 panes) [211x47] [layout 9a0a,211x47,0,0&#123;110x47,0,0,12,100x47,111,0[100x23,111,0,13,100x23,111,24&#123;49x23,111,24,14,50x23,161,24,15&#125;]&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将上述 layout 之后的信息(到最后一个]前)，复制到工程配置中的 layout 项即可。注意 pane 的个数必须与执行命令的个数对应。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">editor:</span></span><br><span class="line">      <span class="attr">layout:</span> <span class="string">9a0a,211x47,0,0&#123;110x47,0,0,12,100x47,111,0[100x23,111,0,13,100x23,111,24&#123;49x23,111,24,14,50x23,161,24,15&#125;]&#125;</span></span><br><span class="line">        <span class="bullet">-</span> <span class="comment"># empty</span></span><br><span class="line">        <span class="bullet">-</span> <span class="comment"># empty</span></span><br><span class="line">        <span class="bullet">-</span> <span class="comment"># empty</span></span><br><span class="line">        <span class="bullet">-</span> <span class="comment"># empty</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="多命令"><a href="#多命令" class="headerlink" title="多命令"></a>多命令</h3><p>当某个 Pane 需要执行多命令时，官方不推荐使用&amp;&amp;或;的形式。可以采用如下方式发送命令。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">editor:</span></span><br><span class="line">      <span class="attr">layout:</span> <span class="string">main-vertical</span></span><br><span class="line">      <span class="attr">panes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">list:</span> <span class="comment"># 多命令方式</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">cd</span> <span class="string">~/temp</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">ls</span> <span class="string">-la</span></span><br><span class="line">        <span class="bullet">-</span>  <span class="comment"># empty</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="vim-插件"><a href="#vim-插件" class="headerlink" title="vim 插件"></a>vim 插件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">christoomey/vim-tmux-navigator, 安装更便捷的导航跳转</span><br></pre></td></tr></table></figure>
+
+<h2 id="Tmate"><a href="#Tmate" class="headerlink" title="Tmate"></a>Tmate</h2><p>Tmate 是一个 Tmux 的管理工具，使用它不但能够轻松地创建 Tmux 会话而且还能够通过互联网把该会话共享给其他人</p>
+<h3 id="安装和使用"><a href="#安装和使用" class="headerlink" title="安装和使用"></a>安装和使用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ brew install mate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 Tmate 开启一个新的 session，从 Tmux 的会话中复制由 Tmate 产生的 SSH URL，其他人可以使用SSH访问 session</span></span><br><span class="line">$ tmate</span><br></pre></td></tr></table></figure>
+
+<h2 id="我的配置"><a href="#我的配置" class="headerlink" title="我的配置"></a>我的配置</h2><ul>
+<li><a href="https://github.com/xinlc/dotfiles/blob/master/mac/macbook/.tmux.conf" target="_blank" rel="noopener">我的配置文件</a></li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/tmux/tmux" target="_blank" rel="noopener">tmux</a></li>
+<li><a href="https://github.com/tmuxinator/tmuxinator" target="_blank" rel="noopener">tmuxinator</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2019/10/tmux.html" target="_blank" rel="noopener">Tmux 使用教程</a></li>
+<li><a href="http://blog.csdn.net/u014717036/article/details/60139776" target="_blank" rel="noopener">tmux 进阶之 tmuxinator</a></li>
+<li><a href="http://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/" target="_blank" rel="noopener">A Quick and Easy Guide to tmux</a></li>
+<li><a href="https://robots.thoughtbot.com/a-tmux-crash-course" target="_blank" rel="noopener">A tmux Crash Course</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-cmd/" rel="prev" title="Docker 命令指令详情">
+      <i class="fa fa-chevron-left"></i> Docker 命令指令详情
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/tools/mac-terminal/" rel="next" title="Mac Terminal 配置">
+      Mac Terminal 配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#会话与进程"><span class="nav-number">2.</span> <span class="nav-text">会话与进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tmux-的作用"><span class="nav-number">3.</span> <span class="nav-text">Tmux 的作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">4.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本用法"><span class="nav-number">5.</span> <span class="nav-text">基本用法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前缀键"><span class="nav-number">5.1.</span> <span class="nav-text">前缀键</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#会话管理"><span class="nav-number">6.</span> <span class="nav-text">会话管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新建会话"><span class="nav-number">6.1.</span> <span class="nav-text">新建会话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分离会话"><span class="nav-number">6.2.</span> <span class="nav-text">分离会话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接入会话"><span class="nav-number">6.3.</span> <span class="nav-text">接入会话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#杀死会话"><span class="nav-number">6.4.</span> <span class="nav-text">杀死会话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#切换会话"><span class="nav-number">6.5.</span> <span class="nav-text">切换会话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重命名会话"><span class="nav-number">6.6.</span> <span class="nav-text">重命名会话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#会话快捷键"><span class="nav-number">6.7.</span> <span class="nav-text">会话快捷键</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最简操作流程"><span class="nav-number">6.8.</span> <span class="nav-text">最简操作流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#窗格操作"><span class="nav-number">7.</span> <span class="nav-text">窗格操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#划分窗格"><span class="nav-number">7.1.</span> <span class="nav-text">划分窗格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移动光标"><span class="nav-number">7.2.</span> <span class="nav-text">移动光标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#交换窗格位置"><span class="nav-number">7.3.</span> <span class="nav-text">交换窗格位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#窗格快捷键"><span class="nav-number">7.4.</span> <span class="nav-text">窗格快捷键</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#窗口管理"><span class="nav-number">8.</span> <span class="nav-text">窗口管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新建窗口"><span class="nav-number">8.1.</span> <span class="nav-text">新建窗口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#切换窗口"><span class="nav-number">8.2.</span> <span class="nav-text">切换窗口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重命名窗口"><span class="nav-number">8.3.</span> <span class="nav-text">重命名窗口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#窗口快捷键"><span class="nav-number">8.4.</span> <span class="nav-text">窗口快捷键</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他命令"><span class="nav-number">9.</span> <span class="nav-text">其他命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用操作整理"><span class="nav-number">10.</span> <span class="nav-text">常用操作整理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令"><span class="nav-number">10.1.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#操作"><span class="nav-number">10.2.</span> <span class="nav-text">操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#系统操作"><span class="nav-number">10.2.1.</span> <span class="nav-text">系统操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#窗口操作"><span class="nav-number">10.2.2.</span> <span class="nav-text">窗口操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#面板操作"><span class="nav-number">10.2.3.</span> <span class="nav-text">面板操作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#复制粘贴"><span class="nav-number">10.3.</span> <span class="nav-text">复制粘贴</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tmuxinator"><span class="nav-number">11.</span> <span class="nav-text">Tmuxinator</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基础设置"><span class="nav-number">11.1.</span> <span class="nav-text">基础设置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bash-版"><span class="nav-number">11.1.1.</span> <span class="nav-text">bash 版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#zsh-版"><span class="nav-number">11.1.2.</span> <span class="nav-text">zsh 版</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用命令"><span class="nav-number">11.2.</span> <span class="nav-text">常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置"><span class="nav-number">11.3.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义-layout"><span class="nav-number">11.4.</span> <span class="nav-text">自定义 layout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多命令"><span class="nav-number">11.5.</span> <span class="nav-text">多命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vim-插件"><span class="nav-number">11.6.</span> <span class="nav-text">vim 插件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tmate"><span class="nav-number">12.</span> <span class="nav-text">Tmate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装和使用"><span class="nav-number">12.1.</span> <span class="nav-text">安装和使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#我的配置"><span class="nav-number">13.</span> <span class="nav-text">我的配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">14.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

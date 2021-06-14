@@ -1,0 +1,2605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="选项配置说明   选项书写格式 选项说明    :se[t] 显示所有被改动的选项   :se[t] all 显示所有非 termcap 选项   :se[t] termcap 显示所有 termcap 选项   :se[t] {option} 置位布尔选项(开启) 显示字符串或数值选项   :se[t] no{option} 复位布尔选项(关闭)   :se[t] inv{option} 逆转布">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vim 配置选项">
+<meta property="og:url" content="https://blog.lichao.xin/tools/vim-options/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="选项配置说明   选项书写格式 选项说明    :se[t] 显示所有被改动的选项   :se[t] all 显示所有非 termcap 选项   :se[t] termcap 显示所有 termcap 选项   :se[t] {option} 置位布尔选项(开启) 显示字符串或数值选项   :se[t] no{option} 复位布尔选项(关闭)   :se[t] inv{option} 逆转布">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-09-13T07:40:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.399Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="vim">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/tools/vim-options/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Vim 配置选项 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/tools/vim-options/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vim 配置选项
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-13 07:40:00" itemprop="dateCreated datePublished" datetime="2017-09-13T07:40:00+00:00">2017-09-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B7%A5%E6%AC%B2%E5%96%84%E5%85%B6%E4%BA%8B%E5%BF%85%E5%85%88%E5%88%A9%E5%85%B6%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">工欲善其事必先利其器</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="选项配置说明"><a href="#选项配置说明" class="headerlink" title="选项配置说明"></a>选项配置说明</h2><table>
+<thead>
+<tr>
+<th>选项书写格式</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>:se[t]</code></td>
+<td><code>显示所有被改动的选项</code></td>
+</tr>
+<tr>
+<td><code>:se[t] all</code></td>
+<td><code>显示所有非 termcap 选项</code></td>
+</tr>
+<tr>
+<td><code>:se[t] termcap</code></td>
+<td><code>显示所有 termcap 选项</code></td>
+</tr>
+<tr>
+<td><code>:se[t] {option}</code></td>
+<td><code>置位布尔选项(开启) 显示字符串或数值选项</code></td>
+</tr>
+<tr>
+<td><code>:se[t] no{option}</code></td>
+<td><code>复位布尔选项(关闭)</code></td>
+</tr>
+<tr>
+<td><code>:se[t] inv{option}</code></td>
+<td><code>逆转布尔选项的值</code></td>
+</tr>
+<tr>
+<td><code>:se[t] {option}={value}</code></td>
+<td><code>将 {value} 附加到字符串选项里, {value} 加到数值选项上</code></td>
+</tr>
+<tr>
+<td><code>:se[t] {option}+={value}</code></td>
+<td><code>将 {value} 附加到字符串选项里， {value} 加到数值选项上</code></td>
+</tr>
+<tr>
+<td><code>:se[t] {option}-={value}</code></td>
+<td><code>从 {value} 从字符串选项里删除 ，数值选项里减去</code></td>
+</tr>
+<tr>
+<td><code>:se[t] {option}?</code></td>
+<td><code>显示 {option} 的值</code></td>
+</tr>
+<tr>
+<td><code>:se[t] {option}&amp;</code></td>
+<td><code>重置 {option} 为其缺省值</code></td>
+</tr>
+<tr>
+<td><code>:setl[ocal]</code></td>
+<td><code>同 &quot;:set&quot; ，但对局部选项只设定局部值</code></td>
+</tr>
+<tr>
+<td><code>:setg[lobal]</code></td>
+<td><code>同 &quot;:set&quot; ，但对局部选项设定其全局值</code></td>
+</tr>
+<tr>
+<td><code>:fix[del]</code></td>
+<td><code>根据 &#39;t_kb&#39; 的值设置 &#39;t_kD&#39;</code></td>
+</tr>
+<tr>
+<td><code>:opt[ions]</code></td>
+<td><code>打开一个新窗口，用来参看并设置选项，选项们以功能分组，有单行的解释，并有指向帮助的链接</code></td>
+</tr>
+</tbody></table>
+<a id="more"></a>
+
+<h2 id="各选项的简短说明"><a href="#各选项的简短说明" class="headerlink" title="各选项的简短说明"></a>各选项的简短说明</h2><h3 id="A"><a href="#A" class="headerlink" title="A"></a>A</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>aleph</code></td>
+<td><code>al</code></td>
+<td><code>Aleph 字母(希伯来语) 的 ASCII 代码</code></td>
+</tr>
+<tr>
+<td><code>allowrevins</code></td>
+<td><code>ari</code></td>
+<td><code>允许插入和命令行模式的 CTRL-_</code></td>
+</tr>
+<tr>
+<td><code>altkeymap</code></td>
+<td><code>akm</code></td>
+<td><code>缺省的第二语言(波斯语/希伯来语)</code></td>
+</tr>
+<tr>
+<td><code>ambiwidth</code></td>
+<td><code>ambw</code></td>
+<td><code>如何处理有多种宽度的 Unicode 字符</code></td>
+</tr>
+<tr>
+<td><code>antialias</code></td>
+<td><code>anti</code></td>
+<td><code>Mac OS X:用平滑反锯齿的字体</code></td>
+</tr>
+<tr>
+<td><code>autochdir</code></td>
+<td><code>acd</code></td>
+<td><code>根据当前窗口的文件切换目录</code></td>
+</tr>
+<tr>
+<td><code>arabic</code></td>
+<td><code>arab</code></td>
+<td><code>使用阿拉伯语为缺省的第二语言</code></td>
+</tr>
+<tr>
+<td><code>arabicshape</code></td>
+<td><code>arshape</code></td>
+<td><code>阿拉伯语的字型重整</code></td>
+</tr>
+<tr>
+<td><code>autoindent</code></td>
+<td><code>ai</code></td>
+<td><code>根据上一行决定新行的缩进</code></td>
+</tr>
+<tr>
+<td><code>autoread</code></td>
+<td><code>ar</code></td>
+<td><code>有 Vim 之外的改动时自动重读文件</code></td>
+</tr>
+<tr>
+<td><code>autowrite</code></td>
+<td><code>aw</code></td>
+<td><code>有改动时自动回写文件</code></td>
+</tr>
+<tr>
+<td><code>autowriteall</code></td>
+<td><code>awa</code></td>
+<td><code>类似于 &#39;autowrite&#39; ，但适用于更多命令</code></td>
+</tr>
+</tbody></table>
+<h3 id="B"><a href="#B" class="headerlink" title="B"></a>B</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>background</code></td>
+<td><code>bg</code></td>
+<td><code>&quot;dark&quot; 或 &quot;light&quot; ，用于色彩的高亮</code></td>
+</tr>
+<tr>
+<td><code>backspace</code></td>
+<td><code>bs</code></td>
+<td><code>在一行开关按退格键如何处理</code></td>
+</tr>
+<tr>
+<td><code>backup</code></td>
+<td><code>bk</code></td>
+<td><code>覆盖文件时保留备份文件</code></td>
+</tr>
+<tr>
+<td><code>backupcopy</code></td>
+<td><code>bkc</code></td>
+<td><code>文件备份使用复制而不是换名</code></td>
+</tr>
+<tr>
+<td><code>backupdir</code></td>
+<td><code>bdir</code></td>
+<td><code>备份文件使用的目录列表</code></td>
+</tr>
+<tr>
+<td><code>backupext</code></td>
+<td><code>bex</code></td>
+<td><code>备份文件使用的扩展名</code></td>
+</tr>
+<tr>
+<td><code>backupskip</code></td>
+<td><code>bsk</code></td>
+<td><code>匹配这些模式的文件不予备份</code></td>
+</tr>
+<tr>
+<td><code>balloondelay</code></td>
+<td><code>bdlay</code></td>
+<td><code>弹出气泡之前的延迟(以毫秒计)</code></td>
+</tr>
+<tr>
+<td><code>ballooneval</code></td>
+<td><code>beval</code></td>
+<td><code>打开气泡表达式求值功能</code></td>
+</tr>
+<tr>
+<td><code>balloonexpr</code></td>
+<td><code>bexpr</code></td>
+<td><code>计算气泡显示内容的表达式</code></td>
+</tr>
+<tr>
+<td><code>binary</code></td>
+<td><code>bin</code></td>
+<td><code>二进制方式读/写/编辑文件</code></td>
+</tr>
+<tr>
+<td><code>bioskey</code></td>
+<td><code>biosk</code></td>
+<td><code>MS-DOS ：用 bios 调用取得字符输入</code></td>
+</tr>
+<tr>
+<td><code>bomb</code></td>
+<td></td>
+<td><code>文件头附加字节顺序标记(Byte Order Mark)</code></td>
+</tr>
+<tr>
+<td><code>breakat</code></td>
+<td><code>brk</code></td>
+<td><code>可以在此断行的字符</code></td>
+</tr>
+<tr>
+<td><code>brosedir</code></td>
+<td><code>bsdir</code></td>
+<td><code>开始浏览文件的目录</code></td>
+</tr>
+<tr>
+<td><code>bufhidden</code></td>
+<td><code>bh</code></td>
+<td><code>缓冲区不再在窗口显示时的行为</code></td>
+</tr>
+<tr>
+<td><code>buflisted</code></td>
+<td><code>bl</code></td>
+<td><code>缓冲区是否显示在缓冲区列表中</code></td>
+</tr>
+<tr>
+<td><code>buftype</code></td>
+<td><code>bt</code></td>
+<td><code>缓冲区的特殊类型</code></td>
+</tr>
+</tbody></table>
+<h3 id="C"><a href="#C" class="headerlink" title="C"></a>C</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>casemap</code></td>
+<td><code>cmp</code></td>
+<td><code>指定字母大小写如何改变</code></td>
+</tr>
+<tr>
+<td><code>cdpath</code></td>
+<td><code>cd</code></td>
+<td><code>&quot;:cd&quot; 搜索的目录列表</code></td>
+</tr>
+<tr>
+<td><code>cedit</code></td>
+<td></td>
+<td><code>打开命令行窗口的键</code></td>
+</tr>
+<tr>
+<td><code>charconvert</code></td>
+<td><code>ccv</code></td>
+<td><code>完成字符编码转换的表达式</code></td>
+</tr>
+<tr>
+<td><code>cindent</code></td>
+<td><code>cin</code></td>
+<td><code>实现 C 程序的缩进</code></td>
+</tr>
+<tr>
+<td><code>cinkeys</code></td>
+<td><code>cink</code></td>
+<td><code>设置 &#39;cindent&#39; 时启动缩进的键</code></td>
+</tr>
+<tr>
+<td><code>cinoptions</code></td>
+<td><code>cino</code></td>
+<td><code>设置 &#39;cindent&#39; 时如何缩进</code></td>
+</tr>
+<tr>
+<td><code>cinwords</code></td>
+<td><code>cinw</code></td>
+<td><code>&#39;si&#39; 和 &#39;cin&#39; 在这些词后加入额外的缩进</code></td>
+</tr>
+<tr>
+<td><code>clipboard</code></td>
+<td><code>cb</code></td>
+<td><code>使用剪贴板作为无名的寄存器</code></td>
+</tr>
+<tr>
+<td><code>cmdheight</code></td>
+<td><code>ch</code></td>
+<td><code>命令行使用的行数</code></td>
+</tr>
+<tr>
+<td><code>cmdwinheight</code></td>
+<td><code>cwh</code></td>
+<td><code>命令行窗口的高度</code></td>
+</tr>
+<tr>
+<td><code>colorcolumn</code></td>
+<td><code>cc</code></td>
+<td><code>高亮指定列</code></td>
+</tr>
+<tr>
+<td><code>columns</code></td>
+<td><code>co</code></td>
+<td><code>显示屏幕的列数</code></td>
+</tr>
+<tr>
+<td><code>comments</code></td>
+<td><code>com</code></td>
+<td><code>可以开始注释行的模式</code></td>
+</tr>
+<tr>
+<td><code>commentstring</code></td>
+<td><code>cms</code></td>
+<td><code>注释的样板：用于折叠的标志</code></td>
+</tr>
+<tr>
+<td><code>compatible</code></td>
+<td><code>cp</code></td>
+<td><code>尽可能做到与 Vi 兼容</code></td>
+</tr>
+<tr>
+<td><code>complete</code></td>
+<td><code>cpt</code></td>
+<td><code>指定插入模式的自动补全如何工作</code></td>
+</tr>
+<tr>
+<td><code>completefunc</code></td>
+<td><code>cfu</code></td>
+<td><code>插入模式补全使用函数</code></td>
+</tr>
+<tr>
+<td><code>completeopt</code></td>
+<td><code>cot</code></td>
+<td><code>插入模式补全使用的选项</code></td>
+</tr>
+<tr>
+<td><code>concealcursor</code></td>
+<td><code>cocu</code></td>
+<td><code>是否隐藏光标所有行的可隐藏文本</code></td>
+</tr>
+<tr>
+<td><code>conceallevel</code></td>
+<td><code>cole</code></td>
+<td><code>是否显示可隐藏文本</code></td>
+</tr>
+<tr>
+<td><code>confirm</code></td>
+<td><code>cf</code></td>
+<td><code>询问如何处理未保存/只读的文件</code></td>
+</tr>
+<tr>
+<td><code>conskey</code></td>
+<td><code>consk</code></td>
+<td><code>直接从控制台读入键击(只限于 MS-DOS)</code></td>
+</tr>
+<tr>
+<td><code>copyindent</code></td>
+<td><code>ci</code></td>
+<td><code>使得 &#39;autoindent&#39; 使用已有的缩进结构</code></td>
+</tr>
+<tr>
+<td><code>cpoptions</code></td>
+<td><code>cpo</code></td>
+<td><code>设定 Vi-兼容的行为</code></td>
+</tr>
+<tr>
+<td><code>cryptmethod</code></td>
+<td><code>cm</code></td>
+<td><code>文件写入时所用的加密方法</code></td>
+</tr>
+<tr>
+<td><code>cscopepathcomp</code></td>
+<td><code>cspc</code></td>
+<td><code>显示路径多少部分</code></td>
+</tr>
+<tr>
+<td><code>cscopeprg</code></td>
+<td><code>csprg</code></td>
+<td><code>执行 cscope 的命令</code></td>
+</tr>
+<tr>
+<td><code>cscopequickfix</code></td>
+<td><code>csqf</code></td>
+<td><code>用 quickfix 窗口得到 cscope 的结果</code></td>
+</tr>
+<tr>
+<td><code>cscoperelative</code></td>
+<td><code>csre</code></td>
+<td><code>用 cscope.out 路径目录名作为前缀</code></td>
+</tr>
+<tr>
+<td><code>cscopetag</code></td>
+<td><code>cst</code></td>
+<td><code>用 cscope 处理标签命令</code></td>
+</tr>
+<tr>
+<td><code>cscopetagorder</code></td>
+<td><code>csto</code></td>
+<td><code>决定 &quot;:cstag&quot; 的搜索顺序</code></td>
+</tr>
+<tr>
+<td><code>cscopeverbose</code></td>
+<td><code>csverb</code></td>
+<td><code>增加 cscope 数据库时给出消息</code></td>
+</tr>
+<tr>
+<td><code>cursorbind</code></td>
+<td><code>crb</code></td>
+<td><code>光标移动时同时在其他窗口移动</code></td>
+</tr>
+<tr>
+<td><code>sursorcolumn</code></td>
+<td><code>cuc</code></td>
+<td><code>高亮光标所在屏幕列</code></td>
+</tr>
+<tr>
+<td><code>cursorline</code></td>
+<td><code>cul</code></td>
+<td><code>高亮光标所在屏幕行</code></td>
+</tr>
+</tbody></table>
+<h3 id="D"><a href="#D" class="headerlink" title="D"></a>D</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>debug</code></td>
+<td></td>
+<td><code>设为 &quot;msg&quot; 可以看到所有错误消息</code></td>
+</tr>
+<tr>
+<td><code>define</code></td>
+<td><code>def</code></td>
+<td><code>查找宏定义所使用的模式</code></td>
+</tr>
+<tr>
+<td><code>delcombine</code></td>
+<td><code>deco</code></td>
+<td><code>在单独使用时删除组合用字符</code></td>
+</tr>
+<tr>
+<td><code>dictionary</code></td>
+<td><code>dict</code></td>
+<td><code>关键字自动补全所用的文件名</code></td>
+</tr>
+<tr>
+<td><code>diff</code></td>
+<td></td>
+<td><code>当前窗口使用 diff 模式</code></td>
+</tr>
+<tr>
+<td><code>diffexpr</code></td>
+<td><code>dex</code></td>
+<td><code>得到 diff 文件所用的表达式</code></td>
+</tr>
+<tr>
+<td><code>diffopt</code></td>
+<td><code>dip</code></td>
+<td><code>使用 diff 模式的选项</code></td>
+</tr>
+<tr>
+<td><code>digraph</code></td>
+<td><code>dg</code></td>
+<td><code>允许插入模式时输入二合字母</code></td>
+</tr>
+<tr>
+<td><code>directory</code></td>
+<td><code>dir</code></td>
+<td><code>交换文件所用的目录名列表</code></td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td><code>dy</code></td>
+<td><code>如何显示文本的标志位列表</code></td>
+</tr>
+</tbody></table>
+<h3 id="E"><a href="#E" class="headerlink" title="E"></a>E</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>eadirection</code></td>
+<td><code>ead</code></td>
+<td><code>&#39;equalalways&#39; 工作的方向</code></td>
+</tr>
+<tr>
+<td><code>edcompatible</code></td>
+<td><code>ed</code></td>
+<td><code>切换 &quot;:subsitute&quot; 命令的标志位</code></td>
+</tr>
+<tr>
+<td><code>encoding</code></td>
+<td><code>enc</code></td>
+<td><code>内部使用的编码方式</code></td>
+</tr>
+<tr>
+<td><code>endofline</code></td>
+<td><code>eol</code></td>
+<td><code>文件最后一行写入换行符 &lt;EOL&gt;</code></td>
+</tr>
+<tr>
+<td><code>equalalways</code></td>
+<td><code>ea</code></td>
+<td><code>自动使所有窗口大小相同</code></td>
+</tr>
+<tr>
+<td><code>equalprg</code></td>
+<td><code>ep</code></td>
+<td><code>&quot;=&quot; 命令使用的外部命令</code></td>
+</tr>
+<tr>
+<td><code>errorbells</code></td>
+<td><code>eb</code></td>
+<td><code>有错误信息时响铃</code></td>
+</tr>
+<tr>
+<td><code>errorfile</code></td>
+<td><code>ef</code></td>
+<td><code>QuickFix 模式的错误文件名</code></td>
+</tr>
+<tr>
+<td><code>errorformat</code></td>
+<td><code>efm</code></td>
+<td><code>错误文件行格式的描述</code></td>
+</tr>
+<tr>
+<td><code>esckeys</code></td>
+<td><code>ek</code></td>
+<td><code>插入模式下识别功能键</code></td>
+</tr>
+<tr>
+<td><code>eventignore</code></td>
+<td><code>ei</code></td>
+<td><code>忽略的自动命令事件</code></td>
+</tr>
+<tr>
+<td><code>expandtab</code></td>
+<td><code>et</code></td>
+<td><code>键入 &lt;Tab&gt; 时使用空格</code></td>
+</tr>
+<tr>
+<td><code>exrc</code></td>
+<td><code>ex</code></td>
+<td><code>在当前目录里读入 .vimrc 和.exrc</code></td>
+</tr>
+</tbody></table>
+<h3 id="F"><a href="#F" class="headerlink" title="F"></a>F</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fileencoding</code></td>
+<td><code>fenc</code></td>
+<td><code>多字节文本的文件编码</code></td>
+</tr>
+<tr>
+<td><code>fileencodings</code></td>
+<td><code>fencs</code></td>
+<td><code>参与自动检测的字符编码</code></td>
+</tr>
+<tr>
+<td><code>fileformat</code></td>
+<td><code>ff</code></td>
+<td><code>文件输入输出使用的格式</code></td>
+</tr>
+<tr>
+<td><code>fileformats</code></td>
+<td><code>ffs</code></td>
+<td><code>参与自动检测的 &#39;fileformat&#39; 的格式</code></td>
+</tr>
+<tr>
+<td><code>fileignorecase</code></td>
+<td><code>fic</code></td>
+<td><code>使用文件名时忽略大小写</code></td>
+</tr>
+<tr>
+<td><code>filetype</code></td>
+<td><code>ft</code></td>
+<td><code>自动命令使用的文件类型</code></td>
+</tr>
+<tr>
+<td><code>fillchars</code></td>
+<td><code>fcs</code></td>
+<td><code>显示特殊项目所使用的字符</code></td>
+</tr>
+<tr>
+<td><code>fkmap</code></td>
+<td><code>fk</code></td>
+<td><code>波斯键盘映射</code></td>
+</tr>
+<tr>
+<td><code>foldclose</code></td>
+<td><code>fcl</code></td>
+<td><code>当光标离开时关闭折叠</code></td>
+</tr>
+<tr>
+<td><code>foldcolumn</code></td>
+<td><code>fdc</code></td>
+<td><code>设定指示折叠的列宽度</code></td>
+</tr>
+<tr>
+<td><code>foldenable</code></td>
+<td><code>fen</code></td>
+<td><code>设置为显示所用打开的折叠</code></td>
+</tr>
+<tr>
+<td><code>foldexpr</code></td>
+<td><code>fde</code></td>
+<td><code>当 &#39;foldmethod&#39; 为 &quot;expr&quot; 时使用的表达式</code></td>
+</tr>
+<tr>
+<td><code>foldignore</code></td>
+<td><code>fdi</code></td>
+<td><code>当 &#39;foldmethod&#39; 为 &quot;indent&quot; 时忽略的行</code></td>
+</tr>
+<tr>
+<td><code>foldlevel</code></td>
+<td><code>fdl</code></td>
+<td><code>当折叠级别高于此值时关闭折叠</code></td>
+</tr>
+<tr>
+<td><code>foldlevelstart</code></td>
+<td><code>fdls</code></td>
+<td><code>开始编辑文件的 &#39;foldlevel&#39;</code></td>
+</tr>
+<tr>
+<td><code>foldmarker</code></td>
+<td><code>fmr</code></td>
+<td><code>当 &#39;foldmethod&#39; 为 &quot;marker&quot; 时的标志</code></td>
+</tr>
+<tr>
+<td><code>foldmethod</code></td>
+<td><code>fdm</code></td>
+<td><code>折叠的类型</code></td>
+</tr>
+<tr>
+<td><code>foldminlines</code></td>
+<td><code>fml</code></td>
+<td><code>折叠关闭所需的最少行数</code></td>
+</tr>
+<tr>
+<td><code>foldnestmax</code></td>
+<td><code>fdn</code></td>
+<td><code>最大折叠深度</code></td>
+</tr>
+<tr>
+<td><code>foldopen</code></td>
+<td><code>fdo</code></td>
+<td><code>打开折叠所使用的命令</code></td>
+</tr>
+<tr>
+<td><code>foldtext</code></td>
+<td><code>fdt</code></td>
+<td><code>显示关闭的折叠所用的表达式</code></td>
+</tr>
+<tr>
+<td><code>formatlistpat</code></td>
+<td><code>flp</code></td>
+<td><code>识别列表头部的模式</code></td>
+</tr>
+<tr>
+<td><code>formatoptions</code></td>
+<td><code>fo</code></td>
+<td><code>自动排版完成的方式</code></td>
+</tr>
+<tr>
+<td><code>formatprg</code></td>
+<td><code>fp</code></td>
+<td><code>&quot;gq&quot; 命令使用的外部程序</code></td>
+</tr>
+<tr>
+<td><code>formatexpr</code></td>
+<td><code>fex</code></td>
+<td><code>&quot;gp&quot; 命令使用的表达式</code></td>
+</tr>
+<tr>
+<td><code>fsync</code></td>
+<td><code>fs</code></td>
+<td><code>文件写回后是否激活 fsync()</code></td>
+</tr>
+</tbody></table>
+<h3 id="G"><a href="#G" class="headerlink" title="G"></a>G</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>gdefault</code></td>
+<td><code>gd</code></td>
+<td><code>缺省打开 &quot;:substitute&quot; 的 &#39;g&#39; 标志</code></td>
+</tr>
+<tr>
+<td><code>grepformat</code></td>
+<td><code>gfm</code></td>
+<td><code>&#39;grepprg&#39; 的输出格式</code></td>
+</tr>
+<tr>
+<td><code>grepprg</code></td>
+<td><code>gp</code></td>
+<td><code>&quot;:grep&quot; 使用的程序</code></td>
+</tr>
+<tr>
+<td><code>guicursor</code></td>
+<td><code>gcr</code></td>
+<td><code>GUI: 光标形状和闪烁的设置</code></td>
+</tr>
+<tr>
+<td><code>guifont</code></td>
+<td><code>gfn</code></td>
+<td><code>GUI: 使用的字体名</code></td>
+</tr>
+<tr>
+<td><code>guifontset</code></td>
+<td><code>gfs</code></td>
+<td><code>GUI: 使用的多字节字体名</code></td>
+</tr>
+<tr>
+<td><code>guifontwide</code></td>
+<td><code>gfw</code></td>
+<td><code>双倍宽度字符的字体名列表</code></td>
+</tr>
+<tr>
+<td><code>guiheadroom</code></td>
+<td><code>ghr</code></td>
+<td><code>GUI: 用于窗口装饰的像素空间</code></td>
+</tr>
+<tr>
+<td><code>guioptions</code></td>
+<td><code>go</code></td>
+<td><code>GUI: 使用的部件和选项</code></td>
+</tr>
+<tr>
+<td><code>guipty</code></td>
+<td></td>
+<td><code>GUI: &quot;:!&quot; 命令尝试仿终端</code></td>
+</tr>
+<tr>
+<td><code>guitablabel</code></td>
+<td><code>gtl</code></td>
+<td><code>GUI: 标签页定制的标签</code></td>
+</tr>
+<tr>
+<td><code>guitabtooltip</code></td>
+<td><code>gtt</code></td>
+<td><code>GUI: 标签页定制的工具提示</code></td>
+</tr>
+</tbody></table>
+<h3 id="H"><a href="#H" class="headerlink" title="H"></a>H</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>helpfile</code></td>
+<td><code>hf</code></td>
+<td><code>主帮助文件的完整路径名</code></td>
+</tr>
+<tr>
+<td><code>helpheight</code></td>
+<td><code>hh</code></td>
+<td><code>新帮助窗口的最小高度</code></td>
+</tr>
+<tr>
+<td><code>helplang</code></td>
+<td><code>hlg</code></td>
+<td><code>首选帮助语言</code></td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code>hid</code></td>
+<td><code>当缓冲区被放弃 (abandon) 时不挂载之</code></td>
+</tr>
+<tr>
+<td><code>highlight</code></td>
+<td><code>hl</code></td>
+<td><code>设置若干场合下的高亮模式</code></td>
+</tr>
+<tr>
+<td><code>hlsearch</code></td>
+<td><code>hls</code></td>
+<td><code>高亮最近的匹配搜索模式</code></td>
+</tr>
+<tr>
+<td><code>history</code></td>
+<td><code>hi</code></td>
+<td><code>记住的命令行的行数</code></td>
+</tr>
+<tr>
+<td><code>hkmap</code></td>
+<td><code>hk</code></td>
+<td><code>希伯来语的键盘映射</code></td>
+</tr>
+<tr>
+<td><code>hkmapp</code></td>
+<td><code>hkp</code></td>
+<td><code>希伯来语的音节 (phonetic) 键盘映射</code></td>
+</tr>
+</tbody></table>
+<h3 id="I"><a href="#I" class="headerlink" title="I"></a>I</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>icon</code></td>
+<td></td>
+<td><code>让 Vim 设定窗口图标的文本</code></td>
+</tr>
+<tr>
+<td><code>iconstring</code></td>
+<td></td>
+<td><code>Vim 图标文本所用的字符串</code></td>
+</tr>
+<tr>
+<td><code>ignorecase</code></td>
+<td><code>ic</code></td>
+<td><code>搜索模式时忽略大小写</code></td>
+</tr>
+<tr>
+<td><code>imactivatekey</code></td>
+<td><code>imak</code></td>
+<td><code>激活 X 输入方法 (X input method) 的键击</code></td>
+</tr>
+<tr>
+<td><code>imactivatefunc</code></td>
+<td><code>imaf</code></td>
+<td><code>激活/关闭 X 输入方法的函数</code></td>
+</tr>
+<tr>
+<td><code>imcmdline</code></td>
+<td><code>imc</code></td>
+<td><code>开始编辑命令行时使用 IM</code></td>
+</tr>
+<tr>
+<td><code>imdisable</code></td>
+<td><code>imd</code></td>
+<td><code>任何模式下不使用 IM</code></td>
+</tr>
+<tr>
+<td><code>iminsert</code></td>
+<td><code>imi</code></td>
+<td><code>插入模式下使用 :lmap 或 IM</code></td>
+</tr>
+<tr>
+<td><code>imsearch</code></td>
+<td><code>ims</code></td>
+<td><code>输入搜索模式时使用 :lmap 或 IM</code></td>
+</tr>
+<tr>
+<td><code>imstatusfunc</code></td>
+<td><code>imsf</code></td>
+<td><code>获得 X 输入方法的状态的函数</code></td>
+</tr>
+<tr>
+<td><code>include</code></td>
+<td><code>inc</code></td>
+<td><code>查找包含文件所使用的模式</code></td>
+</tr>
+<tr>
+<td><code>includeexpr</code></td>
+<td><code>inex</code></td>
+<td><code>处理包含文件行所使用的表达式</code></td>
+</tr>
+<tr>
+<td><code>incsearch</code></td>
+<td><code>is</code></td>
+<td><code>输入搜索模式时同时高亮部分的匹配</code></td>
+</tr>
+<tr>
+<td><code>indentexpr</code></td>
+<td><code>inde</code></td>
+<td><code>得到一行的缩进位置的表达多</code></td>
+</tr>
+<tr>
+<td><code>indentkeys</code></td>
+<td><code>indk</code></td>
+<td><code>使用 &#39;indentexpr&#39; 时启动缩进的键</code></td>
+</tr>
+<tr>
+<td><code>infercase</code></td>
+<td><code>inf</code></td>
+<td><code>关键字自动补全的匹配调整大小写</code></td>
+</tr>
+<tr>
+<td><code>insertmode</code></td>
+<td><code>im</code></td>
+<td><code>开始编辑文件时进入插入模式</code></td>
+</tr>
+<tr>
+<td><code>isfname</code></td>
+<td><code>isf</code></td>
+<td><code>文件和路径名可用的字符</code></td>
+</tr>
+<tr>
+<td><code>isident</code></td>
+<td><code>isi</code></td>
+<td><code>标识符可用的字符</code></td>
+</tr>
+<tr>
+<td><code>iskeyword</code></td>
+<td><code>isk</code></td>
+<td><code>关键字可用的字符</code></td>
+</tr>
+<tr>
+<td><code>isprint</code></td>
+<td><code>isp</code></td>
+<td><code>可显示的字符</code></td>
+</tr>
+</tbody></table>
+<h3 id="J"><a href="#J" class="headerlink" title="J"></a>J</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>joinspaces</code></td>
+<td><code>js</code></td>
+<td><code>连接命令在句号之后加两个空格</code></td>
+</tr>
+</tbody></table>
+<h3 id="K"><a href="#K" class="headerlink" title="K"></a>K</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>key</code></td>
+<td></td>
+<td><code>加密密钥</code></td>
+</tr>
+<tr>
+<td><code>keymap</code></td>
+<td><code>kmp</code></td>
+<td><code>键盘映射名</code></td>
+</tr>
+<tr>
+<td><code>keymodel</code></td>
+<td><code>km</code></td>
+<td><code>允许用键击开始/停止选择</code></td>
+</tr>
+<tr>
+<td><code>keywordprg</code></td>
+<td><code>kp</code></td>
+<td><code>&quot;K&quot; 命令所使用的程序</code></td>
+</tr>
+</tbody></table>
+<h3 id="L"><a href="#L" class="headerlink" title="L"></a>L</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>langmap</code></td>
+<td><code>lmap</code></td>
+<td><code>其他语言模式用的字母表字符</code></td>
+</tr>
+<tr>
+<td><code>langmenu</code></td>
+<td><code>lm</code></td>
+<td><code>菜单使用的语言</code></td>
+</tr>
+<tr>
+<td><code>laststatus</code></td>
+<td><code>ls</code></td>
+<td><code>当最近的窗口有状态行时提示</code></td>
+</tr>
+<tr>
+<td><code>lazyredraw</code></td>
+<td><code>lz</code></td>
+<td><code>执行宏时不重画</code></td>
+</tr>
+<tr>
+<td><code>linebreak</code></td>
+<td><code>lbr</code></td>
+<td><code>在空白处回绕长行</code></td>
+</tr>
+<tr>
+<td><code>lines</code></td>
+<td></td>
+<td><code>显示屏幕的行数</code></td>
+</tr>
+<tr>
+<td><code>linespace</code></td>
+<td><code>lsp</code></td>
+<td><code>字符之间的像素行数</code></td>
+</tr>
+<tr>
+<td><code>lisp</code></td>
+<td></td>
+<td><code>自动 lisp 缩进</code></td>
+</tr>
+<tr>
+<td><code>lispwords</code></td>
+<td><code>lw</code></td>
+<td><code>改变 lisp 缩进方式的单词</code></td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td></td>
+<td><code>显示 &lt;Tab&gt; 和 &lt;EOL&gt;</code></td>
+</tr>
+<tr>
+<td><code>listchars</code></td>
+<td><code>lcs</code></td>
+<td><code>list 模式下显示用的字符</code></td>
+</tr>
+<tr>
+<td><code>loadplugins</code></td>
+<td><code>lpl</code></td>
+<td><code>启动时调入插件脚本</code></td>
+</tr>
+</tbody></table>
+<h3 id="M"><a href="#M" class="headerlink" title="M"></a>M</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>macatsui</code></td>
+<td></td>
+<td><code>Mac GUI: 使用 ATSUI 文本绘制</code></td>
+</tr>
+<tr>
+<td><code>magic</code></td>
+<td></td>
+<td><code>改变搜索模式所用的特殊字符</code></td>
+</tr>
+<tr>
+<td><code>makeef</code></td>
+<td><code>mef</code></td>
+<td><code>&quot;:make&quot; 所用的错误文件名</code></td>
+</tr>
+<tr>
+<td><code>makeprg</code></td>
+<td><code>mp</code></td>
+<td><code>&quot;:make&quot; 命令所用的程序</code></td>
+</tr>
+<tr>
+<td><code>matchpairs</code></td>
+<td><code>mps</code></td>
+<td><code>&quot;%&quot; 能匹配的字符对</code></td>
+</tr>
+<tr>
+<td><code>matchtime</code></td>
+<td><code>mat</code></td>
+<td><code>显示匹配括号的时间 (以十分之一秒计)</code></td>
+</tr>
+<tr>
+<td><code>maxcombine</code></td>
+<td><code>mco</code></td>
+<td><code>显示的最大组合用字符数</code></td>
+</tr>
+<tr>
+<td><code>maxfuncdepth</code></td>
+<td><code>mfd</code></td>
+<td><code>用户函数的最大递归深度</code></td>
+</tr>
+<tr>
+<td><code>maxmapdepth</code></td>
+<td><code>mmd</code></td>
+<td><code>映射的最大递归深度</code></td>
+</tr>
+<tr>
+<td><code>maxmem</code></td>
+<td><code>mm</code></td>
+<td><code>单个缓冲区可用的最大内存 (以千字节计)</code></td>
+</tr>
+<tr>
+<td><code>maxmempattern</code></td>
+<td><code>mmp</code></td>
+<td><code>模式匹配使用的最大内存 (以千字节计)</code></td>
+</tr>
+<tr>
+<td><code>maxmemtot</code></td>
+<td><code>mmt</code></td>
+<td><code>所有缓冲区可用的最大内存 (以千字节计)</code></td>
+</tr>
+<tr>
+<td><code>menuitems</code></td>
+<td><code>mis</code></td>
+<td><code>菜单可用的最大项目数</code></td>
+</tr>
+<tr>
+<td><code>mkspellmem</code></td>
+<td><code>msm</code></td>
+<td><code>在 :mkspell 压缩树前可用的内存</code></td>
+</tr>
+<tr>
+<td><code>modeline</code></td>
+<td><code>ml</code></td>
+<td><code>在文件开头或结尾识别模式行</code></td>
+</tr>
+<tr>
+<td><code>modelines</code></td>
+<td><code>mls</code></td>
+<td><code>模式行的检查行数</code></td>
+</tr>
+<tr>
+<td><code>modifiable</code></td>
+<td><code>ma</code></td>
+<td><code>可否修改文本</code></td>
+</tr>
+<tr>
+<td><code>modified</code></td>
+<td><code>mod</code></td>
+<td><code>缓冲区已被修改</code></td>
+</tr>
+<tr>
+<td><code>more</code></td>
+<td></td>
+<td><code>全屏显示时暂停列表</code></td>
+</tr>
+<tr>
+<td><code>mouse</code></td>
+<td></td>
+<td><code>允许使用鼠标</code></td>
+</tr>
+<tr>
+<td><code>mousefocus</code></td>
+<td><code>mousef</code></td>
+<td><code>键盘焦点追随鼠标点击</code></td>
+</tr>
+<tr>
+<td><code>mousehide</code></td>
+<td><code>mh</code></td>
+<td><code>输入时隐藏鼠标指针</code></td>
+</tr>
+<tr>
+<td><code>mousemodel</code></td>
+<td><code>mousem</code></td>
+<td><code>改变鼠标按钮的含义</code></td>
+</tr>
+<tr>
+<td><code>mouseshape</code></td>
+<td><code>mouses</code></td>
+<td><code>不同模式下改变鼠标指针的形状</code></td>
+</tr>
+<tr>
+<td><code>mousetime</code></td>
+<td><code>moukset</code></td>
+<td><code>鼠标双击之间的最大时间</code></td>
+</tr>
+<tr>
+<td><code>mzquantum</code></td>
+<td><code>mzq</code></td>
+<td><code>MzScheme 线程的轮询间隔</code></td>
+</tr>
+</tbody></table>
+<h3 id="N"><a href="#N" class="headerlink" title="N"></a>N</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nrformats</code></td>
+<td><code>nf</code></td>
+<td><code>CTRL-A 命令识别的数字格式</code></td>
+</tr>
+<tr>
+<td><code>number</code></td>
+<td><code>nu</code></td>
+<td><code>行前显示行号</code></td>
+</tr>
+<tr>
+<td><code>numberwidth</code></td>
+<td><code>nuw</code></td>
+<td><code>行号使用的列数</code></td>
+</tr>
+<tr>
+<td><code>nohlsearch</code></td>
+<td><code>noh</code></td>
+<td><code>取消搜索高亮</code></td>
+</tr>
+</tbody></table>
+<h3 id="O"><a href="#O" class="headerlink" title="O"></a>O</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>omnifunc</code></td>
+<td><code>ofu</code></td>
+<td><code>文件类型特定补全使用的函数</code></td>
+</tr>
+<tr>
+<td><code>opendevice</code></td>
+<td><code>odev</code></td>
+<td><code>MS-Windows 上允许读/写设备</code></td>
+</tr>
+<tr>
+<td><code>operatorfunc</code></td>
+<td><code>opfunc</code></td>
+<td><code>go@ 操作符调用的函数</code></td>
+</tr>
+<tr>
+<td><code>osfiletype</code></td>
+<td><code>oft</code></td>
+<td><code>不再支持</code></td>
+</tr>
+</tbody></table>
+<h3 id="P"><a href="#P" class="headerlink" title="P"></a>P</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>paragraphs</code></td>
+<td><code>para</code></td>
+<td><code>分隔段落的 nroff 宏</code></td>
+</tr>
+<tr>
+<td><code>paste</code></td>
+<td></td>
+<td><code>允许粘贴文本</code></td>
+</tr>
+<tr>
+<td><code>pastetoggle</code></td>
+<td><code>pt</code></td>
+<td><code>切换 &#39;paste&#39; 的键盘代码</code></td>
+</tr>
+<tr>
+<td><code>patchexpr</code></td>
+<td><code>pex</code></td>
+<td><code>用于给文件打补丁的表达式</code></td>
+</tr>
+<tr>
+<td><code>patchmode</code></td>
+<td><code>pm</code></td>
+<td><code>保留文件最老的版本</code></td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code>pa</code></td>
+<td><code>&quot;gf&quot; 等命令搜索用的目录列表</code></td>
+</tr>
+<tr>
+<td><code>preserveindent</code></td>
+<td><code>pi</code></td>
+<td><code>重排时保持原有的缩进结构</code></td>
+</tr>
+<tr>
+<td><code>previewheight</code></td>
+<td><code>pvh</code></td>
+<td><code>预览窗口的高度</code></td>
+</tr>
+<tr>
+<td><code>previewwindow</code></td>
+<td><code>pvw</code></td>
+<td><code>标识预览窗口</code></td>
+</tr>
+<tr>
+<td><code>printdevice</code></td>
+<td><code>pdev</code></td>
+<td><code>用于 :hardcopy 的打印机名</code></td>
+</tr>
+<tr>
+<td><code>printencoding</code></td>
+<td><code>penc</code></td>
+<td><code>用于打印的编码方式</code></td>
+</tr>
+<tr>
+<td><code>printexpr</code></td>
+<td><code>pexpr</code></td>
+<td><code>用于 :hardcopy 打印 PostScript 的表达式</code></td>
+</tr>
+<tr>
+<td><code>printfont</code></td>
+<td><code>pfn</code></td>
+<td><code>用于 :hardcopy 的字体名</code></td>
+</tr>
+<tr>
+<td><code>printheader</code></td>
+<td><code>pheader</code></td>
+<td><code>用于 :hardcopy 的页眉格式</code></td>
+</tr>
+<tr>
+<td><code>printmbcharset</code></td>
+<td><code>pmbcs</code></td>
+<td><code>用于 :hardcopy 的 CJK 字符集</code></td>
+</tr>
+<tr>
+<td><code>printmbfont</code></td>
+<td><code>pmbfn</code></td>
+<td><code>用于 :hardcopy 的 CJK 输出的字体名</code></td>
+</tr>
+<tr>
+<td><code>printoptions</code></td>
+<td><code>popt</code></td>
+<td><code>控制 :hardcopy 输出格式</code></td>
+</tr>
+<tr>
+<td><code>pumheight</code></td>
+<td><code>ph</code></td>
+<td><code>弹出窗口的最大高度</code></td>
+</tr>
+</tbody></table>
+<h3 id="Q"><a href="#Q" class="headerlink" title="Q"></a>Q</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>quoteescape</code></td>
+<td><code>qe</code></td>
+<td><code>字符串里使用的转义字符</code></td>
+</tr>
+</tbody></table>
+<h3 id="R"><a href="#R" class="headerlink" title="R"></a>R</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>readonly</code></td>
+<td><code>ro</code></td>
+<td><code>禁止写入缓冲区</code></td>
+</tr>
+<tr>
+<td><code>redrawtime</code></td>
+<td><code>rdt</code></td>
+<td><code>&#39;hlsearch&#39; 和 :match 高度的超时</code></td>
+</tr>
+<tr>
+<td><code>regexpengine</code></td>
+<td><code>re</code></td>
+<td><code>使用的缺省正规表达式引擎</code></td>
+</tr>
+<tr>
+<td><code>relativenumber</code></td>
+<td><code>rnu</code></td>
+<td><code>每行前显示相对行号</code></td>
+</tr>
+<tr>
+<td><code>remap</code></td>
+<td></td>
+<td><code>允许映射可以递归调用</code></td>
+</tr>
+<tr>
+<td><code>report</code></td>
+<td></td>
+<td><code>报告行改变的行数下限</code></td>
+</tr>
+<tr>
+<td><code>restorescreen</code></td>
+<td><code>rs</code></td>
+<td><code>Win32: 退出时恢复屏幕</code></td>
+</tr>
+<tr>
+<td><code>revins</code></td>
+<td><code>ri</code></td>
+<td><code>字符插入会反向进行</code></td>
+</tr>
+<tr>
+<td><code>rightleft</code></td>
+<td><code>rl</code></td>
+<td><code>窗口为从右到左模式</code></td>
+</tr>
+<tr>
+<td><code>rightleftcmd</code></td>
+<td><code>rlc</code></td>
+<td><code>从右到左模式工作的编辑命令</code></td>
+</tr>
+<tr>
+<td><code>ruler</code></td>
+<td><code>ru</code></td>
+<td><code>标尺，在状态行里显示光标的行号和列号</code></td>
+</tr>
+<tr>
+<td><code>rulerformat</code></td>
+<td><code>ruf</code></td>
+<td><code>定制标尺格式</code></td>
+</tr>
+<tr>
+<td><code>runtimepath</code></td>
+<td><code>rtp</code></td>
+<td><code>用于运行时文件的目录列表</code></td>
+</tr>
+</tbody></table>
+<h3 id="S"><a href="#S" class="headerlink" title="S"></a>S</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>scroll</code></td>
+<td><code>scr</code></td>
+<td><code>用 CTRL-U 和 CTRL-O 滚动的行数</code></td>
+</tr>
+<tr>
+<td><code>scrollbind</code></td>
+<td><code>scb</code></td>
+<td><code>其他窗口滚动时滚动当前窗口</code></td>
+</tr>
+<tr>
+<td><code>scrolljump</code></td>
+<td><code>sj</code></td>
+<td><code>滚动所需的最少行数</code></td>
+</tr>
+<tr>
+<td><code>scrolloff</code></td>
+<td><code>so</code></td>
+<td><code>光标上下的最少行数</code></td>
+</tr>
+<tr>
+<td><code>scrollopt</code></td>
+<td><code>sbo</code></td>
+<td><code>&#39;scrollbind&#39; 的行为方式</code></td>
+</tr>
+<tr>
+<td><code>sections</code></td>
+<td><code>sect</code></td>
+<td><code>分隔小节的 nroff 宏</code></td>
+</tr>
+<tr>
+<td><code>secure</code></td>
+<td></td>
+<td><code>在当前目录下以安全模式读入 .vimrc</code></td>
+</tr>
+<tr>
+<td><code>selection</code></td>
+<td><code>sel</code></td>
+<td><code>使用何种选择方式</code></td>
+</tr>
+<tr>
+<td><code>selectmode</code></td>
+<td><code>slm</code></td>
+<td><code>何时使用选择模式而不是可视模式</code></td>
+</tr>
+<tr>
+<td><code>sessionoptions</code></td>
+<td><code>ssop</code></td>
+<td><code>:mksession 的选项</code></td>
+</tr>
+<tr>
+<td><code>shell</code></td>
+<td><code>sh</code></td>
+<td><code>使用外部命令的 shell 程序名字</code></td>
+</tr>
+<tr>
+<td><code>shellcmdflag</code></td>
+<td><code>shcf</code></td>
+<td><code>执行命令所使用的 shell 的参数</code></td>
+</tr>
+<tr>
+<td><code>shellpipe</code></td>
+<td><code>sp</code></td>
+<td><code>把 :make 结果输出到错误文件的字符串</code></td>
+</tr>
+<tr>
+<td><code>shellquote</code></td>
+<td><code>shq</code></td>
+<td><code>括起 shell 命令的字符</code></td>
+</tr>
+<tr>
+<td><code>shellredir</code></td>
+<td><code>srr</code></td>
+<td><code>把过滤命脉的输出存到暂时文件的字符串</code></td>
+</tr>
+<tr>
+<td><code>shellslash</code></td>
+<td><code>ssl</code></td>
+<td><code>shell 文件名使用正斜杠</code></td>
+</tr>
+<tr>
+<td><code>shelltemp</code></td>
+<td><code>stmp</code></td>
+<td><code>shell 命令是否使用临时文件</code></td>
+</tr>
+<tr>
+<td><code>shelltype</code></td>
+<td><code>st</code></td>
+<td><code>Amiga: 影响如何使用 shell</code></td>
+</tr>
+<tr>
+<td><code>shellxescape</code></td>
+<td><code>sxe</code></td>
+<td><code>&#39;shellxquote&#39; 为 ( 时使用的转义字符</code></td>
+</tr>
+<tr>
+<td><code>shellxquote</code></td>
+<td><code>sxq</code></td>
+<td><code>类似于 &#39;shellquote&#39;，但包括重定向</code></td>
+</tr>
+<tr>
+<td><code>shiftround</code></td>
+<td><code>sr</code></td>
+<td><code>缩进列数对齐到 shiftwidth 的整数倍</code></td>
+</tr>
+<tr>
+<td><code>shiftwidth</code></td>
+<td><code>sw</code></td>
+<td><code>(自动) 缩进使用的步进单位，以空白数目计</code></td>
+</tr>
+<tr>
+<td><code>shortmess</code></td>
+<td><code>shm</code></td>
+<td><code>缩短消息长度的标志位列表</code></td>
+</tr>
+<tr>
+<td><code>shortname</code></td>
+<td><code>sn</code></td>
+<td><code>非 MS-DOS: 文件名假定为 8.3字符</code></td>
+</tr>
+<tr>
+<td><code>showbreak</code></td>
+<td><code>sbr</code></td>
+<td><code>用于提示回绕行开始的字符串</code></td>
+</tr>
+<tr>
+<td><code>showcmd</code></td>
+<td><code>sc</code></td>
+<td><code>在状态行里显示 (部分) 命令</code></td>
+</tr>
+<tr>
+<td><code>showfulltag</code></td>
+<td><code>sft</code></td>
+<td><code>自动补全标签时显示完整的标签匹配模式</code></td>
+</tr>
+<tr>
+<td><code>showmatch</code></td>
+<td><code>sm</code></td>
+<td><code>插入括号时短暂跳转到匹配的括号</code></td>
+</tr>
+<tr>
+<td><code>showmode</code></td>
+<td><code>smd</code></td>
+<td><code>在状态行上显示当前模式的消息</code></td>
+</tr>
+<tr>
+<td><code>showtabline</code></td>
+<td><code>stal</code></td>
+<td><code>是否显示标签页行</code></td>
+</tr>
+<tr>
+<td><code>sidescroll</code></td>
+<td><code>ss</code></td>
+<td><code>横向滚动的最少列数</code></td>
+</tr>
+<tr>
+<td><code>sidescrolloff</code></td>
+<td><code>siso</code></td>
+<td><code>在光标左右最少出现列数</code></td>
+</tr>
+<tr>
+<td><code>smartcase</code></td>
+<td><code>scs</code></td>
+<td><code>模式中有大写字母时不忽略大小写</code></td>
+</tr>
+<tr>
+<td><code>smartindent</code></td>
+<td><code>si</code></td>
+<td><code>C 程序智能自动缩进</code></td>
+</tr>
+<tr>
+<td><code>smarttab</code></td>
+<td><code>sta</code></td>
+<td><code>插入 &lt;Tab&gt; 时使用 &#39;shiftwidth&#39;</code></td>
+</tr>
+<tr>
+<td><code>softtabstop</code></td>
+<td><code>sts</code></td>
+<td><code>编辑时 &lt;Tab&gt; 使用的空格数</code></td>
+</tr>
+<tr>
+<td><code>spell</code></td>
+<td></td>
+<td><code>打开拼写检查</code></td>
+</tr>
+<tr>
+<td><code>spellcapcheck</code></td>
+<td><code>spc</code></td>
+<td><code>定位句子尾部的模式</code></td>
+</tr>
+<tr>
+<td><code>spellfile</code></td>
+<td><code>spf</code></td>
+<td><code>zg和zw保存单词的文件</code></td>
+</tr>
+<tr>
+<td><code>spelllang</code></td>
+<td><code>spl</code></td>
+<td><code>拼写检查使用的语言</code></td>
+</tr>
+<tr>
+<td><code>spellsuggest</code></td>
+<td><code>sps</code></td>
+<td><code>提供拼写校正建议的方法</code></td>
+</tr>
+<tr>
+<td><code>splitbelow</code></td>
+<td><code>sb</code></td>
+<td><code>分割窗口时新窗口在当前窗口之下</code></td>
+</tr>
+<tr>
+<td><code>splitright</code></td>
+<td><code>spr</code></td>
+<td><code>新窗口在当前窗口之右</code></td>
+</tr>
+<tr>
+<td><code>startofline</code></td>
+<td><code>sol</code></td>
+<td><code>命令移动光标到行的第一个非空白</code></td>
+</tr>
+<tr>
+<td><code>statusline</code></td>
+<td><code>stl</code></td>
+<td><code>状态行的定制格式</code></td>
+</tr>
+<tr>
+<td><code>suffixes</code></td>
+<td><code>su</code></td>
+<td><code>多个匹配所忽略的后缀</code></td>
+</tr>
+<tr>
+<td><code>suffixesadd</code></td>
+<td><code>sua</code></td>
+<td><code>搜索文件时附加的后缀</code></td>
+</tr>
+<tr>
+<td><code>swapfile</code></td>
+<td><code>swf</code></td>
+<td><code>缓冲区是否使用交换文件</code></td>
+</tr>
+<tr>
+<td><code>swapsync</code></td>
+<td><code>sws</code></td>
+<td><code>和交换文件同步的方式</code></td>
+</tr>
+<tr>
+<td><code>switchbuf</code></td>
+<td><code>swb</code></td>
+<td><code>设置切换到别的缓冲区时的行为</code></td>
+</tr>
+<tr>
+<td><code>synmaxcol</code></td>
+<td><code>smc</code></td>
+<td><code>寻找语法项目的最大列数</code></td>
+</tr>
+<tr>
+<td><code>syntax</code></td>
+<td><code>syn</code></td>
+<td><code>读入当前缓冲区的语法</code></td>
+</tr>
+</tbody></table>
+<h3 id="T"><a href="#T" class="headerlink" title="T"></a>T</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tabstop</code></td>
+<td><code>ts</code></td>
+<td><code>&lt;Tab&gt; 在文件里使用的空格数</code></td>
+</tr>
+<tr>
+<td><code>tabline</code></td>
+<td><code>tal</code></td>
+<td><code>终端标签页行的定制格式</code></td>
+</tr>
+<tr>
+<td><code>tabpagemax</code></td>
+<td><code>tpm</code></td>
+<td><code>-p 和 &quot;tab all&quot; 的最大标签页数</code></td>
+</tr>
+<tr>
+<td><code>tagbsearch</code></td>
+<td><code>tbs</code></td>
+<td><code>标签文件里用二分法查找</code></td>
+</tr>
+<tr>
+<td><code>taglength</code></td>
+<td><code>tl</code></td>
+<td><code>标签里的有效字符数</code></td>
+</tr>
+<tr>
+<td><code>tagrelative</code></td>
+<td><code>tr</code></td>
+<td><code>标签文件里的文件名是相对路径</code></td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code>tag</code></td>
+<td><code>标签命令使用的文件名列表</code></td>
+</tr>
+<tr>
+<td><code>tagstack</code></td>
+<td><code>tgst</code></td>
+<td><code>把标签推入标签栈</code></td>
+</tr>
+<tr>
+<td><code>term</code></td>
+<td></td>
+<td><code>终端名</code></td>
+</tr>
+<tr>
+<td><code>termbidi</code></td>
+<td><code>tbidi</code></td>
+<td><code>终端支持双向文本</code></td>
+</tr>
+<tr>
+<td><code>termencoding</code></td>
+<td><code>tenc</code></td>
+<td><code>终端使用的编码方式</code></td>
+</tr>
+<tr>
+<td><code>terse</code></td>
+<td></td>
+<td><code>简化部分消息</code></td>
+</tr>
+<tr>
+<td><code>textauto</code></td>
+<td><code>ta</code></td>
+<td><code>废止，用 &#39;fileformats&#39;</code></td>
+</tr>
+<tr>
+<td><code>textmode</code></td>
+<td><code>tx</code></td>
+<td><code>废止，用 &#39;fileformat&#39;</code></td>
+</tr>
+<tr>
+<td><code>textwidth</code></td>
+<td><code>tw</code></td>
+<td><code>插入文本的最大宽度</code></td>
+</tr>
+<tr>
+<td><code>thesaurus</code></td>
+<td><code>tsr</code></td>
+<td><code>关键字自动补全手忙脚乱的同义词字典</code></td>
+</tr>
+<tr>
+<td><code>tildeop</code></td>
+<td><code>top</code></td>
+<td><code>波浪命令 &quot;~&quot; 以操作符方式工作</code></td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td><code>to</code></td>
+<td><code>映射和键盘代码等待超时</code></td>
+</tr>
+<tr>
+<td><code>timeoutlen</code></td>
+<td><code>tm</code></td>
+<td><code>超时时间 (以毫秒计)</code></td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td></td>
+<td><code>让 Vim 设置窗口标题</code></td>
+</tr>
+<tr>
+<td><code>titlelen</code></td>
+<td></td>
+<td><code>用于窗口标题 &#39;columns&#39; 比例</code></td>
+</tr>
+<tr>
+<td><code>titleold</code></td>
+<td></td>
+<td><code>旧的标题，用于退出时恢复</code></td>
+</tr>
+<tr>
+<td><code>titlestring</code></td>
+<td></td>
+<td><code>用于 Vim 窗口标题的字符串</code></td>
+</tr>
+<tr>
+<td><code>toolbar</code></td>
+<td><code>tb</code></td>
+<td><code>GUI: 工具栏显示何种项目</code></td>
+</tr>
+<tr>
+<td><code>toolbariconsize</code></td>
+<td><code>tbis</code></td>
+<td><code>工具栏图标的大小 (只适用于 GTK 2)</code></td>
+</tr>
+<tr>
+<td><code>ttimeout</code></td>
+<td></td>
+<td><code>映射等待超时</code></td>
+</tr>
+<tr>
+<td><code>ttimeoutlen</code></td>
+<td><code>ttm</code></td>
+<td><code>键盘代码超时时间 (以毫秒计)</code></td>
+</tr>
+<tr>
+<td><code>ttybuiltin</code></td>
+<td><code>tbi</code></td>
+<td><code>在外部 termcap 之前先用内建的 termcap</code></td>
+</tr>
+<tr>
+<td><code>ttyfast</code></td>
+<td><code>tf</code></td>
+<td><code>指示一个快速的终端链接</code></td>
+</tr>
+<tr>
+<td><code>ttymouse</code></td>
+<td><code>ttym</code></td>
+<td><code>鼠标产生代码的类型</code></td>
+</tr>
+<tr>
+<td><code>ttyscroll</code></td>
+<td><code>tsl</code></td>
+<td><code>滚动的最大行数</code></td>
+</tr>
+<tr>
+<td><code>ttytype</code></td>
+<td><code>tty</code></td>
+<td><code>&#39;term&#39; 的别名</code></td>
+</tr>
+</tbody></table>
+<h3 id="U"><a href="#U" class="headerlink" title="U"></a>U</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>undodir</code></td>
+<td><code>udir</code></td>
+<td><code>保存撤销文件的位置</code></td>
+</tr>
+<tr>
+<td><code>undofile</code></td>
+<td><code>udf</code></td>
+<td><code>把撤销信息写入一个文件里</code></td>
+</tr>
+<tr>
+<td><code>undolevels</code></td>
+<td><code>ul</code></td>
+<td><code>最多可以撤销的改变个数</code></td>
+</tr>
+<tr>
+<td><code>undoreload</code></td>
+<td><code>ur</code></td>
+<td><code>保存缓冲区重载撤销的最大行数</code></td>
+</tr>
+<tr>
+<td><code>updatecount</code></td>
+<td><code>uc</code></td>
+<td><code>刷新交换文件所需的字符数</code></td>
+</tr>
+<tr>
+<td><code>updatetime</code></td>
+<td><code>ut</code></td>
+<td><code>刷新交换文件所需的毫秒数</code></td>
+</tr>
+</tbody></table>
+<h3 id="V"><a href="#V" class="headerlink" title="V"></a>V</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>verbose</code></td>
+<td><code>vbs</code></td>
+<td><code>给出详细信息</code></td>
+</tr>
+<tr>
+<td><code>verbosefile</code></td>
+<td><code>vfile</code></td>
+<td><code>消息写入的文件</code></td>
+</tr>
+<tr>
+<td><code>viewdir</code></td>
+<td><code>vdir</code></td>
+<td><code>:mkview 存储文件的所在目录</code></td>
+</tr>
+<tr>
+<td><code>viewoptions</code></td>
+<td><code>vop</code></td>
+<td><code>指定 :mkview 保存的内容</code></td>
+</tr>
+<tr>
+<td><code>viminfo</code></td>
+<td><code>vi</code></td>
+<td><code>启动和退出时使用 .viminfo 文件</code></td>
+</tr>
+<tr>
+<td><code>virtualedit</code></td>
+<td><code>ve</code></td>
+<td><code>何时使用虚拟编辑</code></td>
+</tr>
+<tr>
+<td><code>visualbell</code></td>
+<td><code>vb</code></td>
+<td><code>使用可视铃声而不是响铃</code></td>
+</tr>
+</tbody></table>
+<h3 id="W"><a href="#W" class="headerlink" title="W"></a>W</h3><table>
+<thead>
+<tr>
+<th>选项全称</th>
+<th>选项简称</th>
+<th>选项说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>warn</code></td>
+<td></td>
+<td><code>当缓冲区改变时，对 shell 命令给出警告</code></td>
+</tr>
+<tr>
+<td><code>weirdinvert</code></td>
+<td><code>wiv</code></td>
+<td><code>用于有特殊反转方法的终端</code></td>
+</tr>
+<tr>
+<td><code>whichwrap</code></td>
+<td><code>ww</code></td>
+<td><code>允许指定键跨越行边界</code></td>
+</tr>
+<tr>
+<td><code>wildchar</code></td>
+<td><code>wc</code></td>
+<td><code>用于符扩展的命令行字符</code></td>
+</tr>
+<tr>
+<td><code>wildcharm</code></td>
+<td><code>wcm</code></td>
+<td><code>同 &#39;wildchar&#39;，但对映射情况也适用</code></td>
+</tr>
+<tr>
+<td><code>wildignore</code></td>
+<td><code>wig</code></td>
+<td><code>匹配这些模式的文件不会参与自动补全</code></td>
+</tr>
+<tr>
+<td><code>wildignorecase</code></td>
+<td><code>wic</code></td>
+<td><code>匹配文件名时忽略大小写</code></td>
+</tr>
+<tr>
+<td><code>wildmenu</code></td>
+<td><code>wmnu</code></td>
+<td><code>命令行自动补全所使用的菜单</code></td>
+</tr>
+<tr>
+<td><code>wildmode</code></td>
+<td><code>wim</code></td>
+<td><code>&#39;wildchar&#39; 命令行扩展所用的模式</code></td>
+</tr>
+<tr>
+<td><code>wildoptions</code></td>
+<td><code>wop</code></td>
+<td><code>指定如何完成命令行补全</code></td>
+</tr>
+<tr>
+<td><code>winaltkeys</code></td>
+<td><code>wak</code></td>
+<td><code>休时窗口系统处理 ALT 键</code></td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td><code>wi</code></td>
+<td><code>CTRL-F 和 CTRL-B 滚动的行数</code></td>
+</tr>
+<tr>
+<td><code>winheight</code></td>
+<td><code>wh</code></td>
+<td><code>当前窗口的最少行数</code></td>
+</tr>
+<tr>
+<td><code>winfixheight</code></td>
+<td><code>wfh</code></td>
+<td><code>打开/关闭窗口时保持窗口高度</code></td>
+</tr>
+<tr>
+<td><code>winfixwidth</code></td>
+<td><code>wfw</code></td>
+<td><code>打开/关闭窗口时保持窗口宽度</code></td>
+</tr>
+<tr>
+<td><code>winminheight</code></td>
+<td><code>wmh</code></td>
+<td><code>任何窗口的最少行数</code></td>
+</tr>
+<tr>
+<td><code>winminwidth</code></td>
+<td><code>wmw</code></td>
+<td><code>任何窗口的最少列数</code></td>
+</tr>
+<tr>
+<td><code>winwidth</code></td>
+<td><code>wiw</code></td>
+<td><code>当前窗口的最少列数</code></td>
+</tr>
+<tr>
+<td><code>wrap</code></td>
+<td></td>
+<td><code>长行回绕并在下一行继续</code></td>
+</tr>
+<tr>
+<td><code>wrapmargin</code></td>
+<td><code>wm</code></td>
+<td><code>使 (硬) 回绕开始的从右侧起算的字符数</code></td>
+</tr>
+<tr>
+<td><code>wrapscan</code></td>
+<td><code>ws</code></td>
+<td><code>搜索在文件尾折回文件头</code></td>
+</tr>
+<tr>
+<td><code>write</code></td>
+<td></td>
+<td><code>允许写入文件</code></td>
+</tr>
+<tr>
+<td><code>writeany</code></td>
+<td><code>wa</code></td>
+<td><code>写入文件不需 &quot;!&quot; 强制</code></td>
+</tr>
+<tr>
+<td><code>writebackup</code></td>
+<td><code>wb</code></td>
+<td><code>覆盖文件时建立备份</code></td>
+</tr>
+<tr>
+<td><code>writedelay</code></td>
+<td><code>wd</code></td>
+<td><code>每个字符延迟 (以毫秒计) (用于调试)</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>转：<a href="http://blog.csdn.net/shuimengzhilong/article/details/45340361" target="_blank" rel="noopener">http://blog.csdn.net/shuimengzhilong/article/details/45340361</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/vim/" rel="tag"># vim</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/tools/mac-terminal/" rel="prev" title="Mac Terminal 配置">
+      <i class="fa fa-chevron-left"></i> Mac Terminal 配置
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/life/2017-summary/" rel="next" title="2017年总结">
+      2017年总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#选项配置说明"><span class="nav-number">1.</span> <span class="nav-text">选项配置说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#各选项的简短说明"><span class="nav-number">2.</span> <span class="nav-text">各选项的简短说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#A"><span class="nav-number">2.1.</span> <span class="nav-text">A</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#B"><span class="nav-number">2.2.</span> <span class="nav-text">B</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C"><span class="nav-number">2.3.</span> <span class="nav-text">C</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#D"><span class="nav-number">2.4.</span> <span class="nav-text">D</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#E"><span class="nav-number">2.5.</span> <span class="nav-text">E</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F"><span class="nav-number">2.6.</span> <span class="nav-text">F</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#G"><span class="nav-number">2.7.</span> <span class="nav-text">G</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#H"><span class="nav-number">2.8.</span> <span class="nav-text">H</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#I"><span class="nav-number">2.9.</span> <span class="nav-text">I</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#J"><span class="nav-number">2.10.</span> <span class="nav-text">J</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#K"><span class="nav-number">2.11.</span> <span class="nav-text">K</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#L"><span class="nav-number">2.12.</span> <span class="nav-text">L</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#M"><span class="nav-number">2.13.</span> <span class="nav-text">M</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#N"><span class="nav-number">2.14.</span> <span class="nav-text">N</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#O"><span class="nav-number">2.15.</span> <span class="nav-text">O</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#P"><span class="nav-number">2.16.</span> <span class="nav-text">P</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q"><span class="nav-number">2.17.</span> <span class="nav-text">Q</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R"><span class="nav-number">2.18.</span> <span class="nav-text">R</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#S"><span class="nav-number">2.19.</span> <span class="nav-text">S</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#T"><span class="nav-number">2.20.</span> <span class="nav-text">T</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#U"><span class="nav-number">2.21.</span> <span class="nav-text">U</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#V"><span class="nav-number">2.22.</span> <span class="nav-text">V</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#W"><span class="nav-number">2.23.</span> <span class="nav-text">W</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在应用程序中，通常会记录日志以便事后分析，在很多情况下是产生了问题之后，再去查看日志是一种事后的静态分析。在很多时候，我们可能需要了解整个系统在当前，或者某一时刻运行的情况，比如：每秒钟的请求数是多少（TPS）？请求处理的最长耗时？请求处理正确响应率？以及系统运行出错率等等一系列的实时数据。通过 Metrics 监控这些指标的度量，可以来告诉我们应用是否健康。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务架构之 Metrics 监控：Prometheus">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/java/prometheus/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="在应用程序中，通常会记录日志以便事后分析，在很多情况下是产生了问题之后，再去查看日志是一种事后的静态分析。在很多时候，我们可能需要了解整个系统在当前，或者某一时刻运行的情况，比如：每秒钟的请求数是多少（TPS）？请求处理的最长耗时？请求处理正确响应率？以及系统运行出错率等等一系列的实时数据。通过 Metrics 监控这些指标的度量，可以来告诉我们应用是否健康。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/8.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/9.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/10.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/11.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/12.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/13.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/14.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/15.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/16.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/17.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/18.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/19.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/20.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/21.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/prometheus/22.jpg">
+<meta property="article:published_time" content="2020-03-22T13:10:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.387Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="MicroServices">
+<meta property="article:tag" content="SpringCloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/java/prometheus/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/java/prometheus/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>微服务架构之 Metrics 监控：Prometheus | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/java/prometheus/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          微服务架构之 Metrics 监控：Prometheus
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-22 13:10:00" itemprop="dateCreated datePublished" datetime="2020-03-22T13:10:00+00:00">2020-03-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在应用程序中，通常会记录日志以便事后分析，在很多情况下是产生了问题之后，再去查看日志是一种事后的静态分析。在很多时候，我们可能需要了解整个系统在当前，或者某一时刻运行的情况，比如：每秒钟的请求数是多少（TPS）？请求处理的最长耗时？请求处理正确响应率？以及系统运行出错率等等一系列的实时数据。通过 Metrics 监控这些指标的度量，可以来告诉我们应用是否健康。</p>
+<a id="more"></a>
+
+<h2 id="监控模式分类"><a href="#监控模式分类" class="headerlink" title="监控模式分类"></a>监控模式分类</h2><p><img src="/images/java/prometheus/1.jpg" alt="1"></p>
+<p>四种主要监控方式：</p>
+<ul>
+<li>Healthchecks：健康检查，监控应用是不是还活着；</li>
+<li>Logging：日志是我们最常用的方式，日志的特点是一些离散的事件，可以是结构化的或无结构的；</li>
+<li>Tracing：调用链监控，特点是 Request-scoped，详情见上一篇调用链监控；</li>
+<li>Metrics：跟日志有点像，是离散的数据点，根据时间发生的数值，是可以聚合的，聚合运算后查看一些重要指标的趋势；</li>
+</ul>
+<h3 id="常见监控方式比较"><a href="#常见监控方式比较" class="headerlink" title="常见监控方式比较"></a>常见监控方式比较</h3><p><img src="/images/java/prometheus/2.jpg" alt="2"></p>
+<ul>
+<li>CapEx：研发成本，搭建这些监控手段，前期投入的研发成本，Tracing 的研发成本还是很高，比如 CAT 要进行埋点，如果用 Skywalking 相对研发成本就会低很多；</li>
+<li>OpEx：运维成本，Logging 的运维成本还是很高的，随着业务量增加要不断治理和扩容日志系统，比如用 ELK 要经常扩容和调优；</li>
+<li>Reaction：响应能力，当出问题的时候哪些工具能第一时间给出告警，Metrics 的响应告警能力很好，Tracing 比较低，出了问题我们去查问题，一般用 Tracing 和日志，CAT 的报错大盘响应能力还可以，而且 CAT 内部也集成了告警能力；</li>
+<li>Investigation：调查能力，出了问题哪些工具查问题最有效，Tracing 查问题的能力比较强，我们去看调用链就能马上查出哪里出问题，在去查日志分析具体原因；</li>
+</ul>
+<h3 id="监控适用场景"><a href="#监控适用场景" class="headerlink" title="监控适用场景"></a>监控适用场景</h3><p><img src="/images/java/prometheus/3.jpg" alt="3"></p>
+<ul>
+<li>对于调试发现问题：最管用的还是日志和 Tracing，Metrics 可以查看曲线，某个时间点的异动但是总体还是不如 Log 和 Tracing；</li>
+<li>对于监控告警：Metrics 最管用在发生抖动曲线的时候可以马上告警出来，非常灵敏，监控检查是最灵敏的，机器出问题了，马上可以屏蔽这个机器；</li>
+</ul>
+<h3 id="Metrics-监控分层"><a href="#Metrics-监控分层" class="headerlink" title="Metrics 监控分层"></a>Metrics 监控分层</h3><p>不同人员关注的点不一样：</p>
+<p><img src="/images/java/prometheus/4.jpg" alt="4"></p>
+<ul>
+<li>系统层：CPU、内存、硬盘等，运维人员来查看；</li>
+<li>应用层：延迟、出错等，开发人员或框架团队进行埋点，研发人员查看；</li>
+<li>业务层：客户转化率、登录数、下单数等，产品来定义，由开发人员埋点，业务人员查看；</li>
+</ul>
+<h3 id="Metrics-监控架构模式"><a href="#Metrics-监控架构模式" class="headerlink" title="Metrics 监控架构模式"></a>Metrics 监控架构模式</h3><p><img src="/images/java/prometheus/5.jpg" alt="5"></p>
+<p>Metrics 监控架构都差不多，对应用或系统进行采集，采集一般有两种方式：Push 方式，我们会在系统或应用中埋一些 Agent 去采集信息然后推动到收集器中；Pull 方式一般不需要去埋 Agent，一般会系统或应用暴露出 Metrics 端点，然后监控系统去拉过来。这些信息存储在时间序列数据库中，然后由 Dashboard 查询引擎去查询这些数据展示出来，由 Alert 告警系统查询这些数据可以发出告警。不管是 Prometheus、KairosDB、InfluxDB 大致都差不多。</p>
+<h3 id="Prometheus-监控-Metrics"><a href="#Prometheus-监控-Metrics" class="headerlink" title="Prometheus 监控 Metrics"></a>Prometheus 监控 Metrics</h3><p><img src="/images/java/prometheus/6.jpg" alt="6"></p>
+<p>Prometheus 是一种 Pull 模式，可以对接 Grafana Dashboard 做展示，自带告警组件 Alert Manager 可以分发到别的告警渠道，比如：邮件、微信、钉钉等等。</p>
+<h2 id="Prometheus-简介"><a href="#Prometheus-简介" class="headerlink" title="Prometheus 简介"></a>Prometheus 简介</h2><p>Prometheus 是一套开源的系统监控报警框架。它启发于 Google 的 Borgmon 监控系统，由工作 SoundCloud 的 Google 前员工在 2012 年创建，作为社区开源项目进行开发，并于 2015 年正式发布。2016 年，Prometheus 正式加入 Cloud Native Computing Foundation，能更好地与容器平台、云平台配合。</p>
+<p>作为新一代的监控框架，Prometheus 具有以下特点：</p>
+<ul>
+<li>开源监控工具；</li>
+<li>本质是时间序列数据库 TSDB，golang 实现；</li>
+<li>Soundcloud 研发，源于谷歌 borgmon；</li>
+<li>多维度(标签)，拉模式(Pull-based)；</li>
+<li>白盒&amp;黑盒监控都支持，DevOps 友好；</li>
+<li>Metrics &amp; Alert，不是 loggging/tracing；</li>
+<li>社区生态丰富，多语言，各种 exporters；</li>
+<li>所有的 metrics 都可以设置任意的多维标签，使用 pull 模式采集数据；</li>
+<li>高效：单机性能强，数以百万的监控指标，每秒处理数十万的数据点，消费百万级时间序列，上千个 targets；</li>
+<li>可以通过服务发现或者静态配置去获取监控的 targets；</li>
+<li>强大的查询语言 PromQL，有多种可视化图形界面；</li>
+</ul>
+<p>需要指出的是，由于数据采集可能会有丢失，所以 Prometheus 不适用对采集数据要 100% 准确的情形。但如果用于记录时间序列数据，Prometheus 具有很大的查询优势，此外，Prometheus 适用于微服务的体系架构。</p>
+<p>Prometheus 会将所有采集到的样本数据以时间序列（time-series）的方式保存在内存数据库中，并且定时保存到硬盘上。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">指标(metric)：metric name 和描述当前样本特征的 labelsets;</span><br><span class="line">时间戳(timestamp)：一个精确到毫秒的时间戳;</span><br><span class="line">样本值(value)： 一个 folat64 的浮点型数据表示当前样本的值。</span><br><span class="line"></span><br><span class="line">&lt;--------------- metric ---------------------&gt;&lt;-timestamp -&gt;&lt;-value-&gt;</span><br><span class="line">http_request_total&#123;status&#x3D;&quot;200&quot;, method&#x3D;&quot;GET&quot;&#125;@1434417560938 &#x3D;&gt; 94355</span><br><span class="line">http_request_total&#123;status&#x3D;&quot;200&quot;, method&#x3D;&quot;POST&quot;&#125;@1434417560938 &#x3D;&gt; 4748</span><br><span class="line">http_request_total&#123;status&#x3D;&quot;200&quot;, method&#x3D;&quot;POST&quot;&#125;@1434417561287 &#x3D;&gt; 4785</span><br></pre></td></tr></table></figure>
+
+<h3 id="时间序列-Time-Series"><a href="#时间序列-Time-Series" class="headerlink" title="时间序列(Time Series)"></a>时间序列(Time Series)</h3><p><img src="/images/java/prometheus/7.jpg" alt="7"></p>
+<p>时间序列数据库或 Metrics 数据库比我们常用的 Mysql 要简单的多。时间序列的数据类型就是数据跟时间关联的一个点，在某一个时间 t 产生了一个数据 v，（t0,v0）就是一个 Metrics，按照一个时间间隔产生一个数据点，这些数据点连接起来就形成了时间序列。如果以时间为横坐标，序列为纵坐标，就会产生一个时间序列的矩阵。传统数据库存储的是结构化的数据，时间序列数据库存储的就是时间点。</p>
+<h2 id="Prometheus-架构设计"><a href="#Prometheus-架构设计" class="headerlink" title="Prometheus 架构设计"></a>Prometheus 架构设计</h2><p><img src="/images/java/prometheus/8.png" alt="8"></p>
+<p>Prometheus 生态圈中包含了多个组件，其中许多组件是可选的：</p>
+<ul>
+<li>Prometheus Server：用于收集和存储时间序列数据；</li>
+<li>Retrieval：定去去获取服务和拉去 Metrics 数据；</li>
+<li>Service discovery：Prometheus 采用 Pull 模式就会有个问题服务发现的问题，所有有个服务发现服务；</li>
+<li>Push Gateway：主要用于短期的 jobs。由于这类 jobs 存在时间较短，可能在 Prometheus 来 Pull 之前就消失了。为此，这次 jobs 可以直接向 Pushgateway 端推送它们的 Metrics，然后 Prometheus Server 在去网关拉去。这种方式主要用于服务层面的 Metrics，对于机器层面的 Metrices，需要使用 Node Exporter；</li>
+<li>Exporters：用于暴露已有的第三方服务的 Metrics 给 Prometheus；</li>
+<li>Alertmanager：从 Prometheus Server 端接收到 Alerts 后，会进行去除重复数据，分组，并路由到对收的接受方式，发出报警。常见的接收方式有：电子邮件，pagerduty，OpsGenie, webhook、企业微信、钉钉 等；</li>
+<li>PromQL：Prometheus 查询语言，主要给展示组件用的，比如 Web UI 或 Grafana 等。</li>
+<li>Client Library：客户端库，为需要监控的服务生成相应的 Metrics 并暴露给 Prometheus Server。当 Prometheus Server 来 Pull 时，直接返回实时状态的 Metrics；</li>
+<li>Prometheus 也可以去抓取其他 Prometheus Server 的数据，称为联邦集群模式；</li>
+</ul>
+<h3 id="Prometheus-2-0-存储设计"><a href="#Prometheus-2-0-存储设计" class="headerlink" title="Prometheus 2.0 存储设计"></a>Prometheus 2.0 存储设计</h3><p><img src="/images/java/prometheus/9.jpg" alt="9"></p>
+<p>Prometheus 是分块存储的，以一个段时间间隔作为一个块，把 Metrics 都存储在这个块中。有个块叫 mutable 是在内存中，存储当前的 Metrics 到了一个定的时间（2小时为间隔）或者满了，这个块就会往后推变成 Immutable。</p>
+<p>这个块就是文件结构，chunks 存的就是 Metrics 的数据。index 和 meta 是存储元信息，这个块中存了哪些 Metrics 名字是什么，tag 是什么，存在哪些位置上。tombstones（墓碑）删除不是真的删除而是添加到墓碑中，是个标记，后台有 Job 定期会去删除。</p>
+<p>查询就是去查询这些块，给定一个时间范围去查询这些块，然后做一个 merge 返回。</p>
+<h2 id="Prometheus-基本概念"><a href="#Prometheus-基本概念" class="headerlink" title="Prometheus 基本概念"></a>Prometheus 基本概念</h2><h3 id="Metrics-种类"><a href="#Metrics-种类" class="headerlink" title="Metrics 种类"></a>Metrics 种类</h3><p>Prometheus 客户端库主要提供四种主要的 Metrics 类型：</p>
+<ul>
+<li>Counter（计数器）：一种累加的 Metrics，始终增加。典型的应用如：http 请求的个数，结束的任务数，出现的错误数等等；</li>
+<li>Gauge（测量仪）：一种常规的 Metrics，仪表盘，当前值的一次快照(snapshot)测量，可增可减。典型的应用如：当前同时在线用户数、温度、内存使用率，运行的 goroutines 的个数，可以任意加减。</li>
+<li>Histogram(直方图)：可以理解为柱状图，通过分桶(bucket)方式统计样本分布。典型的应用如：请求持续时间，响应大小，可以对观察结果采样，分组及统计。</li>
+<li>Summary（汇总）：根据样本统计出百分位 类似于 Histogram。典型的应用如：请求持续时间，响应大小，提供观测值的 count 和 sum 功能，提供百分位的功能，即可以按百分比划分跟踪结果。</li>
+</ul>
+<h3 id="Target"><a href="#Target" class="headerlink" title="Target"></a>Target</h3><p><img src="/images/java/prometheus/10.jpg" alt="10"></p>
+<p>Prometheus 抓取的对象叫 Target，Target 可以是操作系统、机器、应用或服务。对这些 Target 都要求比较暴露 Metrics 端点，默认15秒去这些端点抓取一次，Prometheus 单机的性能很高官方的说法默认15秒可以抓取上百万的 Metrics 上千个 Target，一个单机部署就可以覆盖大部分场景。</p>
+<h3 id="Metrics"><a href="#Metrics" class="headerlink" title="Metrics"></a>Metrics</h3><p><img src="/images/java/prometheus/11.jpg" alt="11"></p>
+<p>比如说我要统计 http 的请求数，http_request_total 叫 Metric Name；{status=”200”,path=”/status”} 叫维度或者 Label 可以打多个 Label，每个 Lable 都会产生一个时间序列；8 这个时间产生的一个值；正式存储的时候是有个时间的，但是在应用端没有时间，只有在 Prometheus 真正抓取的时候才会产生时间；</p>
+<h3 id="Scrape-metric"><a href="#Scrape-metric" class="headerlink" title="Scrape metric"></a>Scrape metric</h3><p><img src="/images/java/prometheus/12.jpg" alt="12"></p>
+<p>采集方式主要由两种：</p>
+<ul>
+<li>直接采集：埋点式，很多第三方都已经埋好了，直接抓取就可以了；</li>
+<li>间接采集：有些黑盒系统比如说：HAProxy、Redis、操作系统等，你不能去改人家源代码，这种一般采用间接方式，通过 Prometheus 的 Exporter 导出器来实现；</li>
+</ul>
+<h3 id="Exporters"><a href="#Exporters" class="headerlink" title="Exporters"></a>Exporters</h3><p><img src="/images/java/prometheus/13.jpg" alt="13"></p>
+<p>Exporter 有很多，最常用的就是 Node Exporter 抓取操作系统的 Metrics，有点像边车代理。有一个比较特殊 BlackBox，有系统是没办法抓取的，但是它会暴露出端口，可以定期去 Ping 这些端口获取一些 Metrics，比如要监控百度的站点，BlackBox 对健健康检查比较好用。<a href="https://prometheus.io/docs/instrumenting/exporters/" target="_blank" rel="noopener">更多 Exporters</a></p>
+<h3 id="Alertmanager"><a href="#Alertmanager" class="headerlink" title="Alertmanager"></a>Alertmanager</h3><p><img src="/images/java/prometheus/14.jpg" alt="14"></p>
+<p>Prometheus 是支持告警的，告警的定义配置在 Prometheus 上，默认每隔一分钟去评估这些定义的告警规则，去计算这些表达式，如果说满足表达式就会触发告警。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 4小时内磁盘是否会满？告警表达式：</span></span><br><span class="line">ALERT DiskWillFullIn4Hours</span><br><span class="line">IF predict_linear(node_filesystem_free[1h], 4*3600) &lt; 0</span><br></pre></td></tr></table></figure>
+
+<p>告警主要是 Prometheus 产生的，Alertmanager 主要是来做路由转发（路由到微信、钉钉）、去抽、分组。</p>
+<h2 id="Spring-Boot-Actuator-监控实验"><a href="#Spring-Boot-Actuator-监控实验" class="headerlink" title="Spring Boot Actuator 监控实验"></a>Spring Boot Actuator 监控实验</h2><p>Prometheus 下载地址：<a href="https://prometheus.io/download/" target="_blank" rel="noopener">https://prometheus.io/download/</a></p>
+<p>运行后，访问 Prometheus Web UI <a href="http://localhost:9090" target="_blank" rel="noopener">http://localhost:9090</a></p>
+<p>在文本框中输入 up，查询 prometheus 监控的服务那些状态是正常的。</p>
+<p>新建 SpringBoot 项目 添加 pom.xml 依赖，引用了 io.micrometer 的依赖，它依赖了 prometheus，prometheus 对SpringBoot2.x 版本不是很支持，而 io.micrometer 进行了改进，从而支持 SpringBoot2.x 版本：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.micrometer<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>micrometer-spring-legacy<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.micrometer<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>micrometer-registry-prometheus<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.github.mweirauch<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>micrometer-jvm-extras<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.1.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 application.yaml 中配置下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8088</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">prometheus-test</span></span><br><span class="line"><span class="attr">management:</span></span><br><span class="line"> <span class="attr">endpoints:</span></span><br><span class="line">   <span class="attr">web:</span></span><br><span class="line">     <span class="attr">exposure:</span></span><br><span class="line">       <span class="attr">include:</span> <span class="string">'*'</span></span><br><span class="line">  <span class="attr">metrics:</span></span><br><span class="line">    <span class="attr">tags:</span></span><br><span class="line">      <span class="attr">application:</span> <span class="string">$&#123;spring.application.name&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>在启动主类中添加 Bean，此配置是监控 jvm ：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function">MeterRegistryCustomizer&lt;MeterRegistry&gt; <span class="title">configurer</span><span class="params">(@Value(<span class="string">"$&#123;spring.application.name&#125;"</span>)</span> String applicationName)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> registry -&gt; registry.config().commonTags(<span class="string">"application"</span>,applicationName);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动应用，访问 <a href="http://localhost:8080/actuator/prometheus" target="_blank" rel="noopener">http://localhost:8080/actuator/prometheus</a> 可以看到应用的一些 Metrics 信息。</p>
+<h2 id="Grafana-简介"><a href="#Grafana-简介" class="headerlink" title="Grafana 简介"></a>Grafana 简介</h2><p>Grafana 是一个跨平台的开源的度量分析和可视化工具，可以通过将采集的数据查询然后可视化的展示，并及时通知。它主要有以下六大特点：</p>
+<ul>
+<li>展示方式：快速灵活的客户端图表，面板插件有许多不同方式的可视化指标和日志，官方库中具有丰富的仪表盘插件，比如热图、折线图、图表等多种展示方式；</li>
+<li>数据源：Graphite，InfluxDB，OpenTSDB，Prometheus，Elasticsearch，CloudWatch和KairosDB等；</li>
+<li>通知提醒：以可视方式定义最重要指标的警报规则，Grafana 将不断计算并发送通知，在数据达到阈值时通过Slack、PagerDuty等获得通知；</li>
+<li>混合展示：在同一图表中混合使用不同的数据源，可以基于每个查询指定数据源，甚至自定义数据源；</li>
+<li>注释：使用来自不同数据源的丰富事件注释图表，将鼠标悬停在事件上会显示完整的事件元数据和标记；</li>
+<li>过滤器：Ad-hoc过滤器允许动态创建新的键/值过滤器，这些过滤器会自动应用于使用该数据源的所有查询；</li>
+</ul>
+<p>相关连接：</p>
+<ul>
+<li>官网地址：<a href="https://grafana.com/" target="_blank" rel="noopener">https://grafana.com/</a></li>
+<li>下载地址：<a href="https://grafana.com/grafana/download" target="_blank" rel="noopener">https://grafana.com/grafana/download</a></li>
+<li>安装指南：<a href="http://docs.grafana.org/installation/rpm/" target="_blank" rel="noopener">http://docs.grafana.org/installation/rpm/</a></li>
+<li>Grafana 官方有个中央仓库，和 maven 仓库一样，收集了网友制作好的 dashboard，每个 dashboard 有个唯一 id，dashboard 仓库地址：<a href="https://grafana.com/dashboards/" target="_blank" rel="noopener">https://grafana.com/dashboards/</a></li>
+</ul>
+<p>访问 localhost:3000 ，系统默认用户名和密码为 admin/admin，第一次登陆系统会要求修改密码，修改密码后登陆，具体使用就不多做介绍了，网上很多资料。</p>
+<h2 id="Prometheus-监控最佳实践"><a href="#Prometheus-监控最佳实践" class="headerlink" title="Prometheus 监控最佳实践"></a>Prometheus 监控最佳实践</h2><h3 id="黄金指标"><a href="#黄金指标" class="headerlink" title="黄金指标"></a>黄金指标</h3><p>Four Golden Signals 是 Google 针对大量分布式监控的经验总结，4个黄金指标可以在服务级别帮助衡量终端用户体验、服务中断、业务影响等层面的问题。主要关注与以下四种类型的指标：延迟，通讯量，错误以及饱和度：</p>
+<ul>
+<li><p>延迟：服务请求所需时间。记录用户所有请求所需的时间，重点是要区分成功请求的延迟时间和失败请求的延迟时间。 例如在数据库或者其他关键祸端服务异常触发HTTP 500的情况下，用户也可能会很快得到请求失败的响应内容，如果不加区分计算这些请求的延迟，可能导致计算结果与实际结果产生巨大的差异。除此以外，在微服务中通常提倡“快速失败”，开发人员需要特别注意这些延迟较大的错误，因为这些缓慢的错误会明显影响系统的性能，因此追踪这些错误的延迟也是非常重要的。</p>
+</li>
+<li><p>通讯量：监控当前系统的流量，用于衡量服务的容量需求。流量对于不同类型的系统而言可能代表不同的含义。例如，在HTTP REST API中, 流量通常是每秒HTTP请求数；</p>
+</li>
+<li><p>错误：监控当前系统所有发生的错误请求，衡量当前系统错误发生的速率。对于失败而言有些是显式的(比如, HTTP 500错误)，而有些是隐式(比如，HTTP响应200，单实际业务流程依然是失败的)。对于一些显式的错误如HTTP 500可以通过在负载均衡器(如Nginx)上进行捕获，而对于一些系统内部的异常，则可能需要直接从服务中添加钩子统计并进行获取。</p>
+</li>
+<li><p>饱和度：衡量当前服务的饱和度。主要强调最能影响服务状态的受限制的资源。 例如，如果系统主要受内存影响，那就主要关注系统的内存状态，如果系统主要受限与磁盘I/O，那就主要观测磁盘I/O的状态。因为通常情况下，当这些资源达到饱和后，服务的性能会明显下降。同时还可以利用饱和度对系统做出预测，比如，“磁盘是否可能在4个小时候就满了”。</p>
+</li>
+<li><p>RED方法，RED方法是Weave Cloud在基于Google的“4个黄金指标”的原则下结合Prometheus以及Kubernetes容器实践，细化和总结的方法论，特别适合于云原生应用以及微服务架构应用的监控和度量。主要关注以下三种关键指标：</p>
+<ul>
+<li>(请求)速率：服务每秒接收的请求数。</li>
+<li>(请求)错误：每秒失败的请求数。</li>
+<li>(请求)耗时：每个请求的耗时。</li>
+</ul>
+</li>
+</ul>
+<p>在“4大黄金信号”的原则下，RED方法可以有效的帮助用户衡量云原生以及微服务应用下的用户体验问题。</p>
+<h3 id="三类系统的监控"><a href="#三类系统的监控" class="headerlink" title="三类系统的监控"></a>三类系统的监控</h3><p><img src="/images/java/prometheus/15.jpg" alt="15"></p>
+<h3 id="Metrics-命名"><a href="#Metrics-命名" class="headerlink" title="Metrics 命名"></a>Metrics 命名</h3><ul>
+<li>一般建议：library_name_unit_suffix</li>
+<li>snake_case</li>
+<li>Suffix后缀<ul>
+<li>_total -&gt; counter</li>
+<li>_counter, _sum -&gt; summary</li>
+<li>_bucket -&gt; histogram</li>
+</ul>
+</li>
+<li>Unit<ul>
+<li>无前缀基本单位</li>
+<li>seconds, bytes, ratios</li>
+</ul>
+</li>
+<li>Name&amp;Library<ul>
+<li>直接表意</li>
+</ul>
+</li>
+<li>Name vs Label<ul>
+<li>appName, instanceId/Ip</li>
+</ul>
+</li>
+</ul>
+<h3 id="Cardinality-基数"><a href="#Cardinality-基数" class="headerlink" title="Cardinality(基数)"></a>Cardinality(基数)</h3><ul>
+<li>Label的可能取值</li>
+<li>新增一个Label值=新增一个时间序列</li>
+<li>经验值：单实例Cardinality &lt;= 10个</li>
+<li>不适合做Label<ul>
+<li>Email地址</li>
+<li>用户名</li>
+<li>IP地址</li>
+<li>HTTP Path</li>
+</ul>
+</li>
+<li>关注10个最大的metrics</li>
+<li>高Cardinality场景用Log系统</li>
+</ul>
+<h3 id="简单HA"><a href="#简单HA" class="headerlink" title="简单HA"></a>简单HA</h3><p><img src="/images/java/prometheus/16.jpg" alt="16"></p>
+<h2 id="微服务监控体系总结"><a href="#微服务监控体系总结" class="headerlink" title="微服务监控体系总结"></a>微服务监控体系总结</h2><p>四层轻量监控体系：</p>
+<p><img src="/images/java/prometheus/17.jpg" alt="17"></p>
+<ul>
+<li>系统层监控：主要监控计算网络存储、硬件、操作系统基础设施，主要是运维团队负责；</li>
+<li>应用层监控：主要监控中间件产品、框架需要埋点的，一般有平台团队或框架团队负责；</li>
+<li>业务层监控：主要监控订单量、登录数、支付交易业务操作，一般由开发人员去埋点；</li>
+<li>端用户体验监控：网站或APP，有些大公司有专门的用户体验团队负责；</li>
+</ul>
+<p>参考架构：</p>
+<p><img src="/images/java/prometheus/18.jpg" alt="18"></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><h3 id="Promethes-扩展方案"><a href="#Promethes-扩展方案" class="headerlink" title="Promethes 扩展方案"></a>Promethes 扩展方案</h3><ul>
+<li>高可用和长期存储方案 <a href="https://github.com/improbable-eng/thanos/" target="_blank" rel="noopener">https://github.com/improbable-eng/thanos/</a></li>
+<li>长期存储方案 <a href="https://github.com/m3db/m3/" target="_blank" rel="noopener">https://github.com/m3db/m3/</a></li>
+<li>配置管理 <a href="https://github.com/line/promgen/" target="_blank" rel="noopener">https://github.com/line/promgen/</a></li>
+</ul>
+<h3 id="EFK-amp-Prometheus-amp-Skywalking-Kubernetes-集成架构"><a href="#EFK-amp-Prometheus-amp-Skywalking-Kubernetes-集成架构" class="headerlink" title="EFK &amp; Prometheus &amp; Skywalking + Kubernetes 集成架构"></a>EFK &amp; Prometheus &amp; Skywalking + Kubernetes 集成架构</h3><p>EFK + K8s：</p>
+<p><img src="/images/java/prometheus/19.jpg" alt="19"></p>
+<p>K8s 推荐 Fluentd 做日志收集，Fluentd 是个 Agent，在每个 K8s 工作节点上部署一个 DeamonSet。应用程序可以直接把日志输出到控制台上，Fluentd 可以抓取这些日志，可以自己打到 ELK 集群，但是最好打到 MQ 上做个缓冲。Log Parser 可以自己用 Java 开发也可用 Logstash 做个处理过滤。然后用 kibana 查看。</p>
+<p>Prometheus + K8s：</p>
+<p><img src="/images/java/prometheus/20.jpg" alt="20"></p>
+<p>Prometheus 可以发现 K8s 中的服务，然后去拉去 Spring Boot Actuator。</p>
+<p>Skywalking + K8s：</p>
+<p><img src="/images/java/prometheus/21.jpg" alt="21"></p>
+<p>Skywalking 要在应用中安装 Agent 或者使用 Skywalking 提供的容器基础镜像（镜像里已经集成了 Agent）。</p>
+<h3 id="其它开源时序数据库产品"><a href="#其它开源时序数据库产品" class="headerlink" title="其它开源时序数据库产品"></a>其它开源时序数据库产品</h3><ul>
+<li>OpenTSDB <a href="http://opentsdb.net/" target="_blank" rel="noopener">http://opentsdb.net/</a></li>
+<li>KairosDB <a href="https://kairosdb.github.io/" target="_blank" rel="noopener">https://kairosdb.github.io/</a></li>
+<li>InfluxDB <a href="https://www.influxdata.com/" target="_blank" rel="noopener">https://www.influxdata.com/</a></li>
+<li>Graphite <a href="https://graphiteapp.org/" target="_blank" rel="noopener">https://graphiteapp.org/</a></li>
+</ul>
+<h3 id="主流开源时序数据库比较"><a href="#主流开源时序数据库比较" class="headerlink" title="主流开源时序数据库比较"></a>主流开源时序数据库比较</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>OpenTSDB</th>
+<th>KariosDB</th>
+<th>Promethes</th>
+<th>InfluxDB</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开源时间</td>
+<td>2010</td>
+<td>2013</td>
+<td>2012</td>
+<td>2013</td>
+</tr>
+<tr>
+<td>类型</td>
+<td>时序数据库</td>
+<td>时序数据库</td>
+<td>时序数据库</td>
+<td>分析数据库</td>
+</tr>
+<tr>
+<td>分布式</td>
+<td>支持</td>
+<td>支持</td>
+<td>Federation</td>
+<td>商业</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>Hbase</td>
+<td>Cassandra</td>
+<td>定制</td>
+<td>定制</td>
+</tr>
+<tr>
+<td>采集模式</td>
+<td>Push</td>
+<td>Push</td>
+<td>Pull</td>
+<td>Push</td>
+</tr>
+<tr>
+<td>Grafana集成</td>
+<td>支持</td>
+<td>支持</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>计算函数</td>
+<td>良好</td>
+<td>一般</td>
+<td>丰富</td>
+<td>丰富</td>
+</tr>
+<tr>
+<td>告警模块</td>
+<td>无</td>
+<td>无（ZMon）</td>
+<td>有</td>
+<td>有</td>
+</tr>
+<tr>
+<td>查询语言</td>
+<td>HTTP API</td>
+<td>HTTP API</td>
+<td>PromQA</td>
+<td>InfluxQL</td>
+</tr>
+<tr>
+<td>Web UI</td>
+<td>支持</td>
+<td>支持</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>维度支持</td>
+<td>Tag</td>
+<td>Tag</td>
+<td>Label</td>
+<td>Tag+Field</td>
+</tr>
+<tr>
+<td>预聚合</td>
+<td>Roll-up</td>
+<td>Roll-up</td>
+<td>Recording Rule</td>
+<td>Continous Query</td>
+</tr>
+<tr>
+<td>实现语言</td>
+<td>Java</td>
+<td>Java</td>
+<td>Golang</td>
+<td>Golang</td>
+</tr>
+<tr>
+<td>商业支持</td>
+<td>无</td>
+<td>无</td>
+<td>无</td>
+<td>有</td>
+</tr>
+<tr>
+<td>适用</td>
+<td>中大规模</td>
+<td>中大规模</td>
+<td>中小规模</td>
+<td>中小规模</td>
+</tr>
+</tbody></table>
+<h3 id="微服务应用监控-Spring-Boot-Admin-简介"><a href="#微服务应用监控-Spring-Boot-Admin-简介" class="headerlink" title="微服务应用监控 Spring Boot Admin 简介"></a>微服务应用监控 Spring Boot Admin 简介</h3><p>SpringBoot 应用可以通过 Actuator 来暴露应用运行过程中的各项指标，Spring Boot Admin 通过这些指标来监控 SpringBoot 应用，然后通过图形化界面呈现出来。Spring Boot Admin 不仅可以监控单体应用，还可以和 Spring Cloud 的注册中心相结合来监控微服务应用。</p>
+<p>Spring Boot Admin 可以提供应用的以下监控信息：</p>
+<ul>
+<li>监控应用运行过程中的概览信息；</li>
+<li>度量指标信息，比如JVM、Tomcat及进程信息；</li>
+<li>环境变量信息，比如系统属性、系统环境变量以及应用配置信息；</li>
+<li>查看所有创建的Bean信息；</li>
+<li>查看应用中的所有配置信息；</li>
+<li>查看应用运行日志信息；</li>
+<li>查看JVM信息；</li>
+<li>查看可以访问的Web端点；</li>
+<li>查看HTTP跟踪信息；</li>
+</ul>
+<p>具体使用看官网文档吧超级简单，生产应用需要注意 endpoints 安全问题，一般结合 security 使用：</p>
+<ul>
+<li><a href="https://codecentric.github.io/spring-boot-admin/current/" target="_blank" rel="noopener">https://codecentric.github.io/spring-boot-admin/current/</a></li>
+<li><a href="https://github.com/codecentric/spring-boot-admin/" target="_blank" rel="noopener">https://github.com/codecentric/spring-boot-admin/</a></li>
+</ul>
+<h3 id="开源分布式监控平台-ZMon-简介"><a href="#开源分布式监控平台-ZMon-简介" class="headerlink" title="开源分布式监控平台 ZMon 简介"></a>开源分布式监控平台 ZMon 简介</h3><p>Prometheus 比较适合中小规模的场景，理念是每个团队自己去搭一套监控系统。如果说有些公司规模比较大需要分布式监控平台，ZMon 可以考虑，ZMon 一开始就设计成分布式的，是平台级的监控系统。</p>
+<ul>
+<li>Zalando 开源</li>
+<li>分布式监控告警系统</li>
+<li>拉模式(Check)</li>
+<li>Python 定义 Check/Alert</li>
+<li>DevOps 团队自治监控</li>
+<li>基于 KairosDB</li>
+<li>官网：<a href="https://opensource.zalando.com/zmon/" target="_blank" rel="noopener">https://opensource.zalando.com/zmon/</a></li>
+</ul>
+<h3 id="统一异常监控平台-Sentry"><a href="#统一异常监控平台-Sentry" class="headerlink" title="统一异常监控平台 Sentry"></a>统一异常监控平台 Sentry</h3><p>日志是需要收集起来的，一般经常使用 ELK。除了 ELK 还有个工具叫 Sentry，Sentry 是异常监控(error tracking)和告警平台，和普通日志比起来，异常日志相对少。Sentry 可以独立部署，内部有各种优化(缓存/异步/限流/分组等)，保证高性能处理异常日志。它可以集中的把我们的异常信息收集起来，存储和监控，Sentry 也是个开源产品可以搭建自己的平台，它也提供云服务。</p>
+<p>官网：<a href="https://sentry.io/" target="_blank" rel="noopener">https://sentry.io/</a></p>
+<h3 id="BusDevOps和测量驱动开发MDD"><a href="#BusDevOps和测量驱动开发MDD" class="headerlink" title="BusDevOps和测量驱动开发MDD"></a>BusDevOps和测量驱动开发MDD</h3><p>问题：</p>
+<ul>
+<li>运维人员只专注系统监控(日志，负载度量)，没有应用监控能力和上下文；</li>
+<li>开发人员只管实现功能，没有DevOps和度量意识；</li>
+<li>应用监控空白，对应用状态无感知，主要靠蒙；</li>
+<li>业务对关键应用指标无感知，很多功能开发了也无人用；</li>
+</ul>
+<p>Metrics Driven Development(MDD)：是一种实践，主张整个应用开发由度量指标驱动</p>
+<p>MDD核心原理：</p>
+<ul>
+<li>开发功能前先定义度量指标(Bus/Dev/Ops) Define metrics before development</li>
+<li>开发人员自助埋点 Instrumentation-as-Code</li>
+<li>真实性的唯一来源 Single Source of Truth</li>
+<li>关键指标的共同视角 Shared view of key metrics</li>
+<li>使用度量进行决策 Use metrics when making decisions</li>
+<li>开发持续维护指标 Maintain and follow metrics</li>
+</ul>
+<p>MDD好处：</p>
+<p><img src="/images/java/prometheus/22.jpg" alt="22"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.cncf.io/projects/" target="_blank" rel="noopener">https://www.cncf.io/projects/</a></li>
+<li><a href="https://db-engines.com/en/ranking_trend/time+series+dbms" target="_blank" rel="noopener">https://db-engines.com/en/ranking_trend/time+series+dbms</a></li>
+<li><a href="https://prometheus.io/docs/introduction/overview/" target="_blank" rel="noopener">https://prometheus.io/docs/introduction/overview/</a></li>
+<li><a href="https://coreos.com/blog/prometheus-2.0-storage-layer-optimization/" target="_blank" rel="noopener">https://coreos.com/blog/prometheus-2.0-storage-layer-optimization/</a></li>
+<li><a href="https://github.com/prometheus/" target="_blank" rel="noopener">https://github.com/prometheus/</a></li>
+<li><a href="https://github.com/grafana/grafana/" target="_blank" rel="noopener">https://github.com/grafana/grafana/</a></li>
+<li><a href="https://github.com/codecentric/spring-boot-admin/" target="_blank" rel="noopener">https://github.com/codecentric/spring-boot-admin/</a></li>
+<li><a href="https://github.com/zalando-zmon/" target="_blank" rel="noopener">https://github.com/zalando-zmon/</a></li>
+<li><a href="https://opensource.zalando.com/zmon/" target="_blank" rel="noopener">https://opensource.zalando.com/zmon/</a></li>
+<li><a href="https://github.com/getsentry/sentry/" target="_blank" rel="noopener">https://github.com/getsentry/sentry/</a></li>
+<li>《微服务架构实战》</li>
+<li>《Spring Boot &amp; Kubernetes 云原生微服务实践》</li>
+<li>《从0开始学微服务》</li>
+<li>《微服务设计》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MicroServices/" rel="tag"># MicroServices</a>
+              <a href="/tags/SpringCloud/" rel="tag"># SpringCloud</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/java/spring-cloud-sleuth/" rel="prev" title="微服务架构之调用链监控：Spring Cloud Sleuth & CAT & Skywalking">
+      <i class="fa fa-chevron-left"></i> 微服务架构之调用链监控：Spring Cloud Sleuth & CAT & Skywalking
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/java/jetcache/" rel="next" title="微服务架构之分布式缓存：Jetcache">
+      微服务架构之分布式缓存：Jetcache <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#监控模式分类"><span class="nav-number">1.</span> <span class="nav-text">监控模式分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常见监控方式比较"><span class="nav-number">1.1.</span> <span class="nav-text">常见监控方式比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#监控适用场景"><span class="nav-number">1.2.</span> <span class="nav-text">监控适用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Metrics-监控分层"><span class="nav-number">1.3.</span> <span class="nav-text">Metrics 监控分层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Metrics-监控架构模式"><span class="nav-number">1.4.</span> <span class="nav-text">Metrics 监控架构模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Prometheus-监控-Metrics"><span class="nav-number">1.5.</span> <span class="nav-text">Prometheus 监控 Metrics</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prometheus-简介"><span class="nav-number">2.</span> <span class="nav-text">Prometheus 简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#时间序列-Time-Series"><span class="nav-number">2.1.</span> <span class="nav-text">时间序列(Time Series)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prometheus-架构设计"><span class="nav-number">3.</span> <span class="nav-text">Prometheus 架构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Prometheus-2-0-存储设计"><span class="nav-number">3.1.</span> <span class="nav-text">Prometheus 2.0 存储设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prometheus-基本概念"><span class="nav-number">4.</span> <span class="nav-text">Prometheus 基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Metrics-种类"><span class="nav-number">4.1.</span> <span class="nav-text">Metrics 种类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Target"><span class="nav-number">4.2.</span> <span class="nav-text">Target</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Metrics"><span class="nav-number">4.3.</span> <span class="nav-text">Metrics</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scrape-metric"><span class="nav-number">4.4.</span> <span class="nav-text">Scrape metric</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exporters"><span class="nav-number">4.5.</span> <span class="nav-text">Exporters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Alertmanager"><span class="nav-number">4.6.</span> <span class="nav-text">Alertmanager</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Boot-Actuator-监控实验"><span class="nav-number">5.</span> <span class="nav-text">Spring Boot Actuator 监控实验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Grafana-简介"><span class="nav-number">6.</span> <span class="nav-text">Grafana 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prometheus-监控最佳实践"><span class="nav-number">7.</span> <span class="nav-text">Prometheus 监控最佳实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#黄金指标"><span class="nav-number">7.1.</span> <span class="nav-text">黄金指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三类系统的监控"><span class="nav-number">7.2.</span> <span class="nav-text">三类系统的监控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Metrics-命名"><span class="nav-number">7.3.</span> <span class="nav-text">Metrics 命名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cardinality-基数"><span class="nav-number">7.4.</span> <span class="nav-text">Cardinality(基数)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单HA"><span class="nav-number">7.5.</span> <span class="nav-text">简单HA</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#微服务监控体系总结"><span class="nav-number">8.</span> <span class="nav-text">微服务监控体系总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展"><span class="nav-number">9.</span> <span class="nav-text">扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Promethes-扩展方案"><span class="nav-number">9.1.</span> <span class="nav-text">Promethes 扩展方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EFK-amp-Prometheus-amp-Skywalking-Kubernetes-集成架构"><span class="nav-number">9.2.</span> <span class="nav-text">EFK &amp; Prometheus &amp; Skywalking + Kubernetes 集成架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其它开源时序数据库产品"><span class="nav-number">9.3.</span> <span class="nav-text">其它开源时序数据库产品</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#主流开源时序数据库比较"><span class="nav-number">9.4.</span> <span class="nav-text">主流开源时序数据库比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微服务应用监控-Spring-Boot-Admin-简介"><span class="nav-number">9.5.</span> <span class="nav-text">微服务应用监控 Spring Boot Admin 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#开源分布式监控平台-ZMon-简介"><span class="nav-number">9.6.</span> <span class="nav-text">开源分布式监控平台 ZMon 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#统一异常监控平台-Sentry"><span class="nav-number">9.7.</span> <span class="nav-text">统一异常监控平台 Sentry</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BusDevOps和测量驱动开发MDD"><span class="nav-number">9.8.</span> <span class="nav-text">BusDevOps和测量驱动开发MDD</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">10.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="RabbitMQ 是一种消息中间件，用于处理来自客户端的异步消息。服务端将要发送的消息放入到队列池中。接收端可以根据RabbitMQ配置的转发机制接收服务端发来的消息。RabbitMQ依据指定的转发规则进行消息的转发、缓冲和持久化操作，主要用在多服务器间或单服务器的子系统间进行通信，是分布式系统标准的配置。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker 部署 RabbitMQ 集群">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/docker/docker-rabbitmq/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="RabbitMQ 是一种消息中间件，用于处理来自客户端的异步消息。服务端将要发送的消息放入到队列池中。接收端可以根据RabbitMQ配置的转发机制接收服务端发来的消息。RabbitMQ依据指定的转发规则进行消息的转发、缓冲和持久化操作，主要用在多服务器间或单服务器的子系统间进行通信，是分布式系统标准的配置。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/1.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/2.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/3.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/4.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/5.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/6.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/7.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/8.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/9.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/11.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/10.jpg">
+<meta property="article:published_time" content="2020-07-05T19:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.383Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="RabbitMQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/docker/docker-rabbitmq/1.png">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/docker/docker-rabbitmq/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Docker 部署 RabbitMQ 集群 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/docker/docker-rabbitmq/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Docker 部署 RabbitMQ 集群
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-05 19:00:00" itemprop="dateCreated datePublished" datetime="2020-07-05T19:00:00+00:00">2020-07-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>RabbitMQ 是一种消息中间件，用于处理来自客户端的异步消息。服务端将要发送的消息放入到队列池中。接收端可以根据RabbitMQ配置的转发机制接收服务端发来的消息。RabbitMQ依据指定的转发规则进行消息的转发、缓冲和持久化操作，主要用在多服务器间或单服务器的子系统间进行通信，是分布式系统标准的配置。</p>
+<a id="more"></a>
+
+<h2 id="RabbitMQ-使用场景"><a href="#RabbitMQ-使用场景" class="headerlink" title="RabbitMQ 使用场景"></a>RabbitMQ 使用场景</h2><h3 id="服务解耦"><a href="#服务解耦" class="headerlink" title="服务解耦"></a>服务解耦</h3><p>假设有这样一个场景, 服务A产生数据, 而服务B,C,D需要这些数据, 那么我们可以在A服务中直接调用B,C,D服务,把数据传递到下游服务即可</p>
+<p>但是,随着我们的应用规模不断扩大,会有更多的服务需要A的数据,如果有几十甚至几百个下游服务,而且会不断变更,再加上还要考虑下游服务出错的情况,那么A服务中调用代码的维护会极为困难</p>
+<p>这是由于服务之间耦合度过于紧密</p>
+<p><img src="/images/docker/docker-rabbitmq/1.png" alt="1"></p>
+<p>再来考虑用RabbitMQ解耦的情况</p>
+<p>A服务只需要向消息服务器发送消息,而不用考虑谁需要这些数据;下游服务如果需要数据,自行从消息服务器订阅消息,不再需要数据时则取消订阅即可</p>
+<p><img src="/images/docker/docker-rabbitmq/2.png" alt="2"></p>
+<h3 id="流量削峰"><a href="#流量削峰" class="headerlink" title="流量削峰"></a>流量削峰</h3><p>假设我们有一个应用,平时访问量是每秒300请求,我们用一台服务器即可轻松应对</p>
+<p><img src="/images/docker/docker-rabbitmq/3.png" alt="3"></p>
+<p>而在高峰期,访问量瞬间翻了十倍,达到每秒3000次请求,那么单台服务器肯定无法应对,这时我们可以考虑增加到10台服务器,来分散访问压力</p>
+<p>但如果这种瞬时高峰的情况每天只出现一次,每次只有半小时,那么我们10台服务器在多数时间都只分担每秒几十次请求,这样就有点浪费资源了</p>
+<p><img src="/images/docker/docker-rabbitmq/4.png" alt="4"></p>
+<p>这种情况,我们就可以使用RabbitMQ来进行流量削峰,高峰情况下,瞬间出现的大量请求数据,先发送到消息队列服务器,排队等待被处理,而我们的应用,可以慢慢的从消息队列接收请求数据进行处理,这样把数据处理时间拉长,以减轻瞬时压力</p>
+<p>这是消息队列服务器非常典型的应用场景</p>
+<p><img src="/images/docker/docker-rabbitmq/5.png" alt="5"></p>
+<h3 id="异步调用"><a href="#异步调用" class="headerlink" title="异步调用"></a>异步调用</h3><p>考虑定外卖支付成功的情况</p>
+<p>支付后要发送支付成功的通知,再寻找外卖小哥来进行配送,而寻找外卖小哥的过程非常耗时,尤其是高峰期,可能要等待几十秒甚至更长</p>
+<p>这样就造成整条调用链路响应非常缓慢</p>
+<p><img src="/images/docker/docker-rabbitmq/6.png" alt="6"></p>
+<p>而如果我们引入RabbitMQ消息队列,订单数据可以发送到消息队列服务器,那么调用链路也就可以到此结束,订单系统则可以立即得到响应,整条链路的响应时间只有200毫秒左右</p>
+<p>寻找外卖小哥的应用可以以异步的方式从消息队列接收订单消息,再执行耗时的寻找操作</p>
+<p><img src="/images/docker/docker-rabbitmq/7.png" alt="7"></p>
+<h2 id="RabbitMQ-基本概念"><a href="#RabbitMQ-基本概念" class="headerlink" title="RabbitMQ 基本概念"></a>RabbitMQ 基本概念</h2><p>RabbitMQ是一种消息中间件，用于处理来自客户端的异步消息。服务端将要发送的消息放入到队列池中。接收端可以根据RabbitMQ配置的转发机制接收服务端发来的消息。RabbitMQ依据指定的转发规则进行消息的转发、缓冲和持久化操作，主要用在多服务器间或单服务器的子系统间进行通信，是分布式系统标准的配置。</p>
+<p><img src="/images/docker/docker-rabbitmq/8.png" alt="8"></p>
+<h3 id="Exchange"><a href="#Exchange" class="headerlink" title="Exchange"></a>Exchange</h3><p>接受生产者发送的消息，并根据Binding规则将消息路由给服务器中的队列。ExchangeType决定了Exchange路由消息的行为。在RabbitMQ中，ExchangeType常用的有direct、Fanout和Topic三种。</p>
+<p><img src="/images/docker/docker-rabbitmq/9.png" alt="9"></p>
+<h3 id="Message-Queue"><a href="#Message-Queue" class="headerlink" title="Message Queue"></a>Message Queue</h3><p>消息队列。我们发送给RabbitMQ的消息最后都会到达各种queue，并且存储在其中(如果路由找不到相应的queue则数据会丢失)，等待消费者来取。</p>
+<h3 id="Binding-Key"><a href="#Binding-Key" class="headerlink" title="Binding Key"></a>Binding Key</h3><p>它表示的是Exchange与Message Queue是通过binding key进行联系的，这个关系是固定。</p>
+<h3 id="Routing-Key"><a href="#Routing-Key" class="headerlink" title="Routing Key"></a>Routing Key</h3><p>生产者在将消息发送给Exchange的时候，一般会指定一个routing key，来指定这个消息的路由规则。这个routing key需要与Exchange Type及binding key联合使用才能生，我们的生产者只需要通过指定routing key来决定消息流向哪里。</p>
+<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p><strong>虚拟机</strong></p>
+<ul>
+<li>node1：192.168.174.10</li>
+<li>node2：192.168.174.11</li>
+<li>node3：192.168.174.12</li>
+<li>node4：192.168.174.13</li>
+<li>node5：192.168.174.14</li>
+</ul>
+<p>其中，node1、node2、node3三台服务器安装RabbitMQ服务，node4和node5安装HA-proxy和Keepalived。</p>
+<p><strong>集群</strong></p>
+<p>docker swarm，node1 为 manager 节点，node2 / node3 为 worker 节点</p>
+<p><strong>主要端口介绍</strong></p>
+<ul>
+<li>4369 erlang发现口</li>
+<li>5672 client端通信口</li>
+<li>15672 管理界面ui端口</li>
+<li>25672 server间内部通信口</li>
+</ul>
+<h2 id="单机部署"><a href="#单机部署" class="headerlink" title="单机部署"></a>单机部署</h2><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">rabbitmq:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">rabbitmq:3.8.5-management</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"15672:15672"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"5672:5672"</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">rabbit_network</span></span><br><span class="line">    <span class="attr">env_file:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./rabbit.env</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/timezone:/etc/timezone:ro</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">mode:</span> <span class="string">replicated</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">restart_policy:</span></span><br><span class="line">        <span class="attr">condition:</span> <span class="string">on-failure</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">5s</span></span><br><span class="line">        <span class="attr">max_attempts:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">update_config:</span></span><br><span class="line">        <span class="attr">parallelism:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="string">10s</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">cpus:</span> <span class="string">"1"</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">1024M</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">rabbit_network:</span></span><br><span class="line">    <span class="attr">external:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>rabbit.env</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">RABBITMQ_DEFAULT_USER=admin</span><br><span class="line">RABBITMQ_DEFAULT_PASS=123456</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>访问控制台 <a href="http://localhost:15672" target="_blank" rel="noopener">http://localhost:15672</a></p>
+</blockquote>
+<h2 id="集群模式-mirror"><a href="#集群模式-mirror" class="headerlink" title="集群模式 - mirror"></a>集群模式 - mirror</h2><p>这里采用镜像模式，保证 100% 数据不丢失。在实际工作中也是用得最多的，并且实现非常的简单，一般互联网大厂都会构建这种镜像集群模式。</p>
+<p>mirror 镜像队列，目的是为了保证 rabbitMQ 数据的高可靠性解决方案，主要就是实现数据的同步，一般来讲是 2 - 3 个节点实现数据同步。对于 100% 数据可靠性解决方案，一般是采用 3 个节点。</p>
+<p><img src="/images/docker/docker-rabbitmq/11.png" alt="11"></p>
+<p>如上图所示，用 KeepAlived 做了 HA-Proxy 的高可用，然后有 3 个节点的 MQ 服务，消息发送到主节点上，主节点通过 mirror 队列把数据同步到其他的 MQ 节点，这样来实现其高可靠。</p>
+<h2 id="集群部署方式一（-rabbitmqctl"><a href="#集群部署方式一（-rabbitmqctl" class="headerlink" title="集群部署方式一（ rabbitmqctl )"></a>集群部署方式一（ rabbitmqctl )</h2><blockquote>
+<p><a href="https://www.rabbitmq.com/clustering.html#transcript" target="_blank" rel="noopener">https://www.rabbitmq.com/clustering.html#transcript</a></p>
+</blockquote>
+<p><strong>创建 rabbitmq 持久化存储路径</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 【所有节点】</span></span><br><span class="line">mkdir -p ~/rabbitmq/data</span><br></pre></td></tr></table></figure>
+
+<p><strong>在 node1 上新建部署文件 ~/rabbitmq/stack.yml</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">'3.7'</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">rabbit1:</span></span><br><span class="line">    <span class="comment"># image: rabbitmq:3</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">rabbitmq:3.8.5-management</span></span><br><span class="line">    <span class="comment"># ports:</span></span><br><span class="line">    <span class="comment">#   - "15672:15672"</span></span><br><span class="line">    <span class="comment">#   - "5672:5672"</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">rabbit_network</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/rabbitmq/data:/var/lib/rabbitmq</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_ERLANG_COOKIE=admin_cluster_cookie</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_DEFAULT_USER=admin</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_DEFAULT_PASS=123456</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">rabbit1</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">node.hostname==node1</span></span><br><span class="line">  <span class="attr">rabbit2:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">rabbitmq:3.8.5-management</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">rabbit_network</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/rabbitmq/data:/var/lib/rabbitmq</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_ERLANG_COOKIE=admin_cluster_cookie</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_DEFAULT_USER=admin</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_DEFAULT_PASS=123456</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">rabbit2</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">node.hostname==node2</span></span><br><span class="line">  <span class="attr">rabbit3:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">rabbitmq:3.8.5-management</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">rabbit_network</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/rabbitmq/data:/var/lib/rabbitmq</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_ERLANG_COOKIE=admin_cluster_cookie</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_DEFAULT_USER=admin</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_DEFAULT_PASS=123456</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">rabbit3</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">node.hostname==node3</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">rabbit_network:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">overlay</span></span><br><span class="line">    <span class="attr">attachable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>启动 rabbitmq 服务</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 【node1】部署 stack</span></span><br><span class="line">docker stack deploy -c ~/rabbitmq/stack.yml rabbitmq</span><br><span class="line"></span><br><span class="line"><span class="comment"># 【node1】查看服务状态</span></span><br><span class="line">docker service ls</span><br></pre></td></tr></table></figure>
+
+<p><strong>构建 rabbitmq 集群</strong></p>
+<blockquote>
+<p>将 rabbit@rabbit2 和 rabbit@rabbit3 加入集群：</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#【node2】rabbit@rabbit2 加入集群</span></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl stop_app</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl reset</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl join_cluster rabbit@rabbit1</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl start_app</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#【node3】rabbit@rabbit3 加入集群</span></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl stop_app</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl reset</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl join_cluster rabbit@rabbit1</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl start_app</span><br></pre></td></tr></table></figure>
+
+<p><strong>查看集群状态</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 【任意节点】</span></span><br><span class="line">docker <span class="built_in">exec</span> -it $(docker ps | grep <span class="string">"rabbit"</span> | awk <span class="string">'&#123; print $1 &#125;'</span>)  rabbitmqctl cluster_status</span><br></pre></td></tr></table></figure>
+
+<h2 id="集群部署方式二（-Config-File-Peer-Discovery-Backend"><a href="#集群部署方式二（-Config-File-Peer-Discovery-Backend" class="headerlink" title="集群部署方式二（ Config File Peer Discovery Backend )"></a>集群部署方式二（ Config File Peer Discovery Backend )</h2><blockquote>
+<p><a href="https://www.rabbitmq.com/cluster-formation.html#configuring" target="_blank" rel="noopener">https://www.rabbitmq.com/cluster-formation.html#configuring</a></p>
+</blockquote>
+<p><strong>创建 rabbitmq 持久化存储路径</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 【所有节点】</span></span><br><span class="line">mkdir -p ~/rabbitmq/data</span><br></pre></td></tr></table></figure>
+
+<p><strong>在 node1 上创建 rabbitmq 配置文件 ~/rabbitmq/rabbitmq.conf</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">loopback_users.guest = <span class="literal">false</span></span><br><span class="line">listeners.tcp.default = 5672</span><br><span class="line">hipe_compile = <span class="literal">false</span></span><br><span class="line">default_user = admin</span><br><span class="line">default_pass = 123456</span><br><span class="line">cluster_formation.peer_discovery_backend = rabbit_peer_discovery_classic_config</span><br><span class="line">cluster_formation.classic_config.nodes.1 = rabbit@rabbit1</span><br><span class="line">cluster_formation.classic_config.nodes.2 = rabbit@rabbit2</span><br><span class="line">cluster_formation.classic_config.nodes.3 = rabbit@rabbit3</span><br></pre></td></tr></table></figure>
+
+<p><strong>在 node1 上创建 docker config</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker config create rabbitmq-config ~/rabbitmq/rabbitmq.conf</span><br></pre></td></tr></table></figure>
+
+<p><strong>在 node1 上新建部署文件 ~/rabbitmq/stack.yml</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">'3.7'</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">rabbit1:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">rabbitmq:3</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">rabbit_network</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/rabbitmq/data:/var/lib/rabbitmq</span></span><br><span class="line">    <span class="attr">configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">source:</span> <span class="string">rabbitmq-config</span></span><br><span class="line">        <span class="attr">target:</span> <span class="string">/etc/rabbitmq/rabbitmq.conf</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_ERLANG_COOKIE=admin_cluster_cookie</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">rabbit1</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">node.hostname==node1</span></span><br><span class="line">  <span class="attr">rabbit2:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">rabbitmq:3</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">rabbit_network</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/rabbitmq/data:/var/lib/rabbitmq</span></span><br><span class="line">    <span class="attr">configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">source:</span> <span class="string">rabbitmq-config</span></span><br><span class="line">        <span class="attr">target:</span> <span class="string">/etc/rabbitmq/rabbitmq.conf</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_ERLANG_COOKIE=admin_cluster_cookie</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">rabbit2</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">node.hostname==node2</span></span><br><span class="line">  <span class="attr">rabbit3:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">rabbitmq:3</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">rabbit_network</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/rabbitmq/data:/var/lib/rabbitmq</span></span><br><span class="line">    <span class="attr">configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">source:</span> <span class="string">rabbitmq-config</span></span><br><span class="line">        <span class="attr">target:</span> <span class="string">/etc/rabbitmq/rabbitmq.conf</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">RABBITMQ_ERLANG_COOKIE=admin_cluster_cookie</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">rabbit3</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">placement:</span></span><br><span class="line">        <span class="attr">constraints:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">node.hostname==node3</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">rabbit_network:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">overlay</span></span><br><span class="line">    <span class="attr">attachable:</span> <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="attr">configs:</span></span><br><span class="line">  <span class="attr">rabbitmq-config:</span></span><br><span class="line">    <span class="attr">external:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>启动 rabbitmq 集群</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 【node1】部署集群</span></span><br><span class="line">docker stack deploy -c ~/rabbitmq/stack.yml rabbitmq</span><br></pre></td></tr></table></figure>
+
+<h2 id="Keepalived-HAProxy"><a href="#Keepalived-HAProxy" class="headerlink" title="Keepalived + HAProxy"></a>Keepalived + HAProxy</h2><p><strong>安装 HAProxy</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">yum install haproxy -y</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改配置</span></span><br><span class="line">vim /etc/haproxy/haproxy.cfg</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">#logging options</span><br><span class="line">global</span><br><span class="line">    log 127.0.0.1 local0 info</span><br><span class="line">    maxconn 5120</span><br><span class="line">    chroot &#x2F;usr&#x2F;local&#x2F;haproxy</span><br><span class="line">    uid 99</span><br><span class="line">    gid 99</span><br><span class="line">    daemon</span><br><span class="line">    quiet</span><br><span class="line">    nbproc 20</span><br><span class="line">    pidfile &#x2F;var&#x2F;run&#x2F;haproxy.pid</span><br><span class="line"></span><br><span class="line">defaults</span><br><span class="line">    log global</span><br><span class="line">    # 使用四层代理模式,&quot;mode http&quot; 为7层代理模式</span><br><span class="line">    mode tcp</span><br><span class="line">    # if you set mode to tcp,then you must change tcplog into httplog</span><br><span class="line">    option tcplog</span><br><span class="line">    option dontlognull</span><br><span class="line">    retries 3</span><br><span class="line">    option redispatch</span><br><span class="line">    maxconn 2000</span><br><span class="line">    contimeout 5s</span><br><span class="line">    # 客户端空闲超时时间为60秒，过了该时间，HA发起重连机制</span><br><span class="line">    clitimeout 60s</span><br><span class="line">    # 服务端连接超时时间为15秒，过了该时间，HA发起重连机制</span><br><span class="line">    srvtimeout 15s</span><br><span class="line"></span><br><span class="line">listen rabbitmq_cluster</span><br><span class="line">    # 定义监听地址和端口，本机的5672端口</span><br><span class="line">    bind 0.0.0.0:5672</span><br><span class="line">    # 配置 tcp 模式</span><br><span class="line">    mode tcp</span><br><span class="line">    # balance url_param userid</span><br><span class="line">    # balance url_param session_id check_post 64</span><br><span class="line">    # 简单的轮询</span><br><span class="line">    balance roundrobin</span><br><span class="line">    #rabbitmq集群节点配置 #inter 每隔五秒对mq集群做健康检查，2次正确证明服务器可用，</span><br><span class="line">    #2次失败证明服务器不可用，并且配置主备机制</span><br><span class="line">    server node1 192.168.174.10:5672 check inter 5000 rise 2 fall 2</span><br><span class="line">    server node2 192.168.174.11:5672 check inter 5000 rise 2 fall 2</span><br><span class="line">    server node3 192.168.174.12:5672 check inter 5000 rise 2 fall 2</span><br><span class="line"></span><br><span class="line"># 配置 haproxy web 监控，查看统计信息</span><br><span class="line">listen stats</span><br><span class="line">    bind *:8100</span><br><span class="line">    mode http</span><br><span class="line">    option httplog</span><br><span class="line">    stats enable</span><br><span class="line">    # 设置 haproxy 监控地址为：http:&#x2F;&#x2F;localhost:8100&#x2F;rabbitmq-stats</span><br><span class="line">    stats uri &#x2F;rabbitmq-stats</span><br><span class="line">    stats refresh 5s</span><br></pre></td></tr></table></figure>
+
+<p><strong>启动 haproxy</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">haproxy -f /etc/haproxy/haproxy.cfg</span><br><span class="line">systemctl restart haproxy</span><br></pre></td></tr></table></figure>
+
+<p>访问 <a href="http://192.168.174.13:8100/rabbitmq-stats" target="_blank" rel="noopener">http://192.168.174.13:8100/rabbitmq-stats</a> 可以看到状态</p>
+<blockquote>
+<p><a href="/back-end/linux/lb-ha/">Keepalived 安装参考</a></p>
+</blockquote>
+<h2 id="集群镜像模式配置"><a href="#集群镜像模式配置" class="headerlink" title="集群镜像模式配置"></a>集群镜像模式配置</h2><p>使用Rabbit镜像功能，需要基于rabbitmq策略来实现，策策是用来控制和修改群集范围的某个vhost队列行为和Exchange行为在cluster中任意节点启用策略，策略会自动同步到集群节点</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 这行命令在vhost名称为hrsystem创建了一个策略，策略名称为ha-allqueue,策略模式为 all 即复制到所有节点，包含新增节点， 策略正则表达式为 “^” 表示所有匹配所有队列名称。</span></span><br><span class="line"><span class="comment"># 例如 rabbitmqctl set_policy -p hrsystem ha-allqueue "^message" '&#123;"ha-mode":"all"&#125;'</span></span><br><span class="line"><span class="comment"># 注意："^message" 这个规则要根据自己修改，这个是指同步"message"开头的队列名称，我们配置时使用的应用于所有队列，所以表达式为"^"</span></span><br><span class="line">rabbitmqctl set_policy -p hrsystem ha-allqueue<span class="string">"^"</span> <span class="string">'&#123;"ha-mode":"all"&#125;'</span></span><br></pre></td></tr></table></figure>
+
+<p>set_policy 说明参见</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set_policy [-p vhostpath] &#123;name&#125; &#123;pattern&#125; &#123;definition&#125; [priority]      <span class="comment"># ha-mode:all、exactly、nodes</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以通过rabbit控制台添加</p>
+<p><img src="/images/docker/docker-rabbitmq/10.jpg" alt="10"></p>
+<p>创建队列时需要指定ha 参数，如果不指定x-ha-prolicy 的话将无法复制</p>
+<p>客户端使用负载服务器发送消息，队列会被复制到所有节点，当然策略也可以配置制定某几个节点，这时任何节点故障 、或者重启将不会影响我们正常使用某个队列，到这里我们完成了高可用配置。</p>
+<h2 id="Spring-Boot-应用连接-RabbitMQ-集群配置"><a href="#Spring-Boot-应用连接-RabbitMQ-集群配置" class="headerlink" title="Spring Boot 应用连接 RabbitMQ 集群配置"></a>Spring Boot 应用连接 RabbitMQ 集群配置</h2><p>引入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-amqp<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">spring.rabbitmq.addresses</span>=<span class="string">node1:5672,node2:5672,node3:5672</span></span><br><span class="line"><span class="meta">spring.rabbitmq.username</span>=<span class="string">admin</span></span><br><span class="line"><span class="meta">spring.rabbitmq.password</span>=<span class="string">123456</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意，容器需要暴露端口 5672 供外部访问</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RabbitMQ/" rel="tag"># RabbitMQ</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-0-1/" rel="prev" title="Kubernetes 部署实战从0-1">
+      <i class="fa fa-chevron-left"></i> Kubernetes 部署实战从0-1
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/security/security-concepts/" rel="next" title="安全基础概念">
+      安全基础概念 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#RabbitMQ-使用场景"><span class="nav-number">1.</span> <span class="nav-text">RabbitMQ 使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#服务解耦"><span class="nav-number">1.1.</span> <span class="nav-text">服务解耦</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流量削峰"><span class="nav-number">1.2.</span> <span class="nav-text">流量削峰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异步调用"><span class="nav-number">1.3.</span> <span class="nav-text">异步调用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RabbitMQ-基本概念"><span class="nav-number">2.</span> <span class="nav-text">RabbitMQ 基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Exchange"><span class="nav-number">2.1.</span> <span class="nav-text">Exchange</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Message-Queue"><span class="nav-number">2.2.</span> <span class="nav-text">Message Queue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Binding-Key"><span class="nav-number">2.3.</span> <span class="nav-text">Binding Key</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Routing-Key"><span class="nav-number">2.4.</span> <span class="nav-text">Routing Key</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基础环境"><span class="nav-number">3.</span> <span class="nav-text">基础环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#单机部署"><span class="nav-number">4.</span> <span class="nav-text">单机部署</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群模式-mirror"><span class="nav-number">5.</span> <span class="nav-text">集群模式 - mirror</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群部署方式一（-rabbitmqctl"><span class="nav-number">6.</span> <span class="nav-text">集群部署方式一（ rabbitmqctl )</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群部署方式二（-Config-File-Peer-Discovery-Backend"><span class="nav-number">7.</span> <span class="nav-text">集群部署方式二（ Config File Peer Discovery Backend )</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Keepalived-HAProxy"><span class="nav-number">8.</span> <span class="nav-text">Keepalived + HAProxy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群镜像模式配置"><span class="nav-number">9.</span> <span class="nav-text">集群镜像模式配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Boot-应用连接-RabbitMQ-集群配置"><span class="nav-number">10.</span> <span class="nav-text">Spring Boot 应用连接 RabbitMQ 集群配置</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

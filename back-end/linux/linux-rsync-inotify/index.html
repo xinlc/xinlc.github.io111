@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="继 在 CentOS7 上实现 MySQL5.7 全量备份+增量备份，备份后需要将文件备份的其他机器，以提高安全性。这里使用 Linux 同步文件工具 rsync + inotify 来进行文件的同步。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CentOS7 使用 rsync + inotify 实现同步备份文件">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/linux-rsync-inotify/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="继 在 CentOS7 上实现 MySQL5.7 全量备份+增量备份，备份后需要将文件备份的其他机器，以提高安全性。这里使用 Linux 同步文件工具 rsync + inotify 来进行文件的同步。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-09-15T14:07:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="centos7">
+<meta property="article:tag" content="rsync">
+<meta property="article:tag" content="inotify">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/linux-rsync-inotify/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>CentOS7 使用 rsync + inotify 实现同步备份文件 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/linux-rsync-inotify/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CentOS7 使用 rsync + inotify 实现同步备份文件
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-09-15 14:07:00" itemprop="dateCreated datePublished" datetime="2019-09-15T14:07:00+00:00">2019-09-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>继 <a href="/back-end/db/mysql-backup/#more">在 CentOS7 上实现 MySQL5.7 全量备份+增量备份</a>，备份后需要将文件备份的其他机器，以提高安全性。<br>这里使用 <code>Linux</code> 同步文件工具 <code>rsync + inotify</code> 来进行文件的同步。</p>
+<a id="more"></a>
+
+<h2 id="rsync"><a href="#rsync" class="headerlink" title="rsync"></a>rsync</h2><p><code>rsync</code> 是类 <code>unix</code> 系统下的数据镜像备份工具—— <code>remote sync</code>。一款快速增量备份工具 <code>Remote Sync</code>，远程同步 支持本地复制，或者与其他<code>SSH</code>、<code>rsync</code>主机同步。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 rsync</span></span><br><span class="line">yum -y install rsync</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动 rsync 服务</span></span><br><span class="line">systemctl start rsyncd.service</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置为开机启动</span></span><br><span class="line">systemctl <span class="built_in">enable</span> rsyncd.service</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查是否已经成功启动</span></span><br><span class="line">netstat -lnp | grep 873</span><br></pre></td></tr></table></figure>
+
+<p>安装好后启用 <code>rsync</code> 服务器端同步远程文件, <code>rsycn</code> 的服务端为服务器的文件接收端，<code>rsycn</code> 的客户端为服务器的文件推动端。</p>
+<p><code>rsycn</code> 的服务端/文件接收端配置, 服务端需要开启 <code>rsyncd</code> 服务, 添加配置文件 <code>rsyncd.conf</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/rsyncd.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以下是全局配置</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">log</span> file = /var/<span class="built_in">log</span>/rsyncd.log</span><br><span class="line">pid file = /var/run/rsyncd.pid</span><br><span class="line">lock file = /var/lock/rsyncd</span><br><span class="line"><span class="comment"># 模块名，在源服务器指定这个名字</span></span><br><span class="line">[mysqlbak]</span><br><span class="line">   <span class="comment"># 描述信息</span></span><br><span class="line">   comment = sync rsync/home</span><br><span class="line">   <span class="comment"># 备份目录</span></span><br><span class="line">   path = /home/101bak/mysqlbak</span><br><span class="line">   <span class="comment"># 不使用chroot，不用root权限</span></span><br><span class="line">   use chroot=no</span><br><span class="line">   <span class="comment"># 设置本地备份目录为读写权限</span></span><br><span class="line">   <span class="built_in">read</span> only = no</span><br><span class="line">   uid=root</span><br><span class="line">   gid=root</span><br><span class="line">   <span class="comment"># 客户端最大连接数</span></span><br><span class="line">   max connections=10</span><br><span class="line">   <span class="comment"># 指定数据同步用户</span></span><br><span class="line">   auth users = root</span><br><span class="line">   <span class="comment"># 指定数据同步用户信息文件</span></span><br><span class="line">   secrets file = /etc/rsyncd.pass</span><br><span class="line">   <span class="comment"># 允许连接的客户端</span></span><br><span class="line">   hosts allow=192.168.1.101</span><br><span class="line">   <span class="comment"># 忽略出现I/O错误</span></span><br><span class="line">   ignore errors = yes</span><br><span class="line">   timeout = 600</span><br></pre></td></tr></table></figure>
+
+<p>创建认证文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 格式是用户名：密码</span></span><br><span class="line">vi /etc/rsyncd.pass</span><br><span class="line">root:123456</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存后给文件权限, 否则会报没权限</span></span><br><span class="line">chmod 600 /etc/rsyncd.pass</span><br></pre></td></tr></table></figure>
+
+<p>修改<code>/etc/xinetd.d/rsync</code>文件，disable 改为 no：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/xinetd.d/rsync</span><br><span class="line"></span><br><span class="line">service rsync</span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">disable</span> = no</span><br><span class="line">  socket_type     = stream</span><br><span class="line">  <span class="built_in">wait</span>            = no</span><br><span class="line">  user            = root</span><br><span class="line">  server          = /usr/bin/rsync</span><br><span class="line">  server_args     = --daemon</span><br><span class="line">  log_on_failure  += USERID</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动服务端：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 启动服务</span></span><br><span class="line">rsync --daemon --config=/etc/rsyncd.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭服务用 kill</span></span><br><span class="line">ps -ef | grep /etc/rsyncd.conf</span><br><span class="line"><span class="built_in">kill</span> -9 pid</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果再次启动服务报pid文件相关错误，删掉报错的pid文件，再重新启动即可</span></span><br></pre></td></tr></table></figure>
+
+<p><code>rsycn</code> 的客户端/文件发送端配置，客户端配置简单 只需要配置密码既可：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 只需要填写rsync服务的密码</span></span><br><span class="line">vi /etc/rsync_client.pwd</span><br><span class="line">123456</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存后给文件权限, 否则会报没权限</span></span><br><span class="line">chmod 600 /etc/rsync_client.pwd</span><br><span class="line"><span class="comment"># /home/leo/mysqlbackup/rsync_client.pwd</span></span><br></pre></td></tr></table></figure>
+
+<p>客户端同步测试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/rsync -auvrtzopgP --progress --password-file=/home/leo/mysqlbackup/rsync_client.pwd /home/leo/mysqlbackup root@192.168.1.102::mysqlbak</span><br></pre></td></tr></table></figure>
+
+<p>log 相关查找：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过配置文件找到了log存放目录</span></span><br><span class="line">cat /etc/rsyncd.conf | grep -i <span class="built_in">log</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># log file = /var/log/rsync.log</span></span><br><span class="line"><span class="comment"># 查看/var/log/rsync.log</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="inotify"><a href="#inotify" class="headerlink" title="inotify"></a>inotify</h2><p><code>Inotify</code> 是一种强大的、细粒度的、异步的文件系统事件监控机制，<code>Linux</code> 内核从 <code>2.6.13</code> 起，加入了 <code>Inotify</code> 支持，通过 <code>Inotify</code> 可以监控文件系统中添加、删除，修改、移动等各种细微事件，利用这个内核接口，第三方软件就可以监控文件系统下文件的各种变化情况，而 <code>inotify-tools</code> 就是这样的一个第三方软件。</p>
+<p><code>Inotify</code> 只需要要按照部署在同步的客户端，当监控的文件有变化触动 <code>rsync</code> 脚本来同步。</p>
+<p>安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum -y install inotify-tools</span><br></pre></td></tr></table></figure>
+
+<p>配置监控的文件路径：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 不要把注释写到文件里</span></span><br><span class="line">vim /etc/inotify_exclude.lst</span><br><span class="line"></span><br><span class="line"><span class="comment"># 监控目录</span></span><br><span class="line">/bak/mysqlbak</span><br><span class="line"></span><br><span class="line"><span class="comment"># 排除监控目录</span></span><br><span class="line">@/bak/<span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+
+<p>rsync 排除监控文件目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/rsyncd.d/rsync_exclude.lst</span><br><span class="line"></span><br><span class="line">src/*.html*</span><br><span class="line">src/js/</span><br><span class="line">src/2019/20190[1-9]/</span><br></pre></td></tr></table></figure>
+
+<p>客户端同步到远程的脚本 rsync.sh：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># rsync auto sync script with inotify</span></span><br><span class="line"><span class="comment"># variables</span></span><br><span class="line">current_date=$(date +%Y%m%d_%H%M%S)</span><br><span class="line">source_path=/home/leo/mysqlbackup/</span><br><span class="line">log_file=/var/<span class="built_in">log</span>/rsync_client.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># rsync</span></span><br><span class="line">rsync_server=192.168.1.101</span><br><span class="line">rsync_user=root</span><br><span class="line">rsync_pwd=/home/leo/mysqlbackup/rsync_client.pwd</span><br><span class="line">rsync_module=mysqlbak</span><br><span class="line">INOTIFY_EXCLUDE=<span class="string">'(.*/*\.log|.*/*\.swp)$|^/tmp/src/mail/(2019|20.*/.*che.*)'</span></span><br><span class="line">RSYNC_EXCLUDE=<span class="string">'/bak/rsync_exclude.lst'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># rsync client pwd check</span></span><br><span class="line"><span class="keyword">if</span> [ ! -e <span class="variable">$&#123;rsync_pwd&#125;</span> ];<span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">"rsync client passwod file <span class="variable">$&#123;rsync_pwd&#125;</span> does not exist!"</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># inotify_function</span></span><br><span class="line"><span class="function"><span class="title">inotify_fun</span></span>()&#123;</span><br><span class="line">    /usr/bin/inotifywait -mrq --timefmt <span class="string">'%Y/%m/%d-%H:%M:%S'</span> --format <span class="string">'%T %w %f'</span> \</span><br><span class="line">          --exclude <span class="variable">$&#123;INOTIFY_EXCLUDE&#125;</span>  -e modify,delete,create,move,attrib <span class="variable">$&#123;source_path&#125;</span> \</span><br><span class="line">          | <span class="keyword">while</span> <span class="built_in">read</span> file</span><br><span class="line">      <span class="keyword">do</span></span><br><span class="line">          /usr/bin/rsync -auvrtzopgP --exclude-from=<span class="variable">$&#123;RSYNC_EXCLUDE&#125;</span> --progress --bwlimit=800 --password-file=<span class="variable">$&#123;rsync_pwd&#125;</span> <span class="variable">$&#123;source_path&#125;</span> <span class="variable">$&#123;rsync_user&#125;</span>@<span class="variable">$&#123;rsync_server&#125;</span>::<span class="variable">$&#123;rsync_module&#125;</span></span><br><span class="line">      <span class="keyword">done</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># inotify log</span></span><br><span class="line">inotify_fun &gt;&gt; <span class="variable">$&#123;log_file&#125;</span> 2&gt;&amp;1 &amp;</span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup inotify_fun &gt;&gt; $&#123;log_file&#125; 2&gt;&amp;1 &amp;</span></span><br></pre></td></tr></table></figure>
+
+<p>给脚本执行权限：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod 777 rsync.sh</span><br><span class="line"></span><br><span class="line">./rsync.sh</span><br></pre></td></tr></table></figure>
+
+<p>监听 inotify 进程脚本，防止 inotify 由于某种原因中断无法实时同步</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果有 inotify 进程在运行，那么 echo $? 返回值是 0，条件为真。否则返回值为非 0</span></span><br><span class="line">ps -lef | pgrep inotify &amp;&gt;/dev/null</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">"inotify is runing ..."</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  ./rsync.sh</span><br><span class="line">  <span class="comment"># nohup /usr/bin/bash /home/leo/scripts/rsync.sh &amp;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">"inotify aready runing ..."</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>添加定时任务计划, 每分钟检测一次</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># crontab -e</span></span><br><span class="line">* * * * * /usr/bin/bash /home/leo/scripts/checkInotify.sh &amp;&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<h2 id="开机自启动"><a href="#开机自启动" class="headerlink" title="开机自启动"></a>开机自启动</h2><p>不建议这样做，应编写 <code>systemd</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 CentOS7 中，/etc/rc.d/rc.local 的权限被降低了，所以需要执行如下命令赋予其可执行权限</span></span><br><span class="line">chmod u+x  /etc/rc.d/rc.local</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打开 /etc/rc.d/rc.local 文件</span></span><br><span class="line">vim /etc/rc.d/rc.local</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在末尾添加</span></span><br><span class="line">rsync --daemon --config=/etc/rsyncd.conf</span><br></pre></td></tr></table></figure>
+
+<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><h3 id="mysql-bin-0000xx-因权限问题同步失败"><a href="#mysql-bin-0000xx-因权限问题同步失败" class="headerlink" title="mysql-bin.0000xx 因权限问题同步失败"></a>mysql-bin.0000xx 因权限问题同步失败</h3><p>由于我是用 <code>docker</code> 启动的 <code>mysql</code>，<code>docker</code> 必须是 <code>root</code> 权限，而我用的是普通用用户所有没有权限访问 <code>mysql binlog</code></p>
+<p>解决：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将当前用户加入到 docker 用户组</span></span><br><span class="line">sudo usermod -aG docker <span class="variable">$USER</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启系统后发现 docker 的 mysql 目录权限改为了 polkitd 用户 ssh_keys 用户组</span></span><br><span class="line"><span class="comment"># 将当前用户加入到 ssh_keys 用户组</span></span><br><span class="line">sudo usermod -aG ssh_keys <span class="variable">$USER</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/centos7/" rel="tag"># centos7</a>
+              <a href="/tags/rsync/" rel="tag"># rsync</a>
+              <a href="/tags/inotify/" rel="tag"># inotify</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/db/mysql-backup/" rel="prev" title="在 CentOS7 上实现 MySQL5.7 全量备份+增量备份">
+      <i class="fa fa-chevron-left"></i> 在 CentOS7 上实现 MySQL5.7 全量备份+增量备份
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/linux-install-docker/" rel="next" title="CentOS7 安装 Docker">
+      CentOS7 安装 Docker <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#rsync"><span class="nav-number">1.</span> <span class="nav-text">rsync</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#inotify"><span class="nav-number">2.</span> <span class="nav-text">inotify</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开机自启动"><span class="nav-number">3.</span> <span class="nav-text">开机自启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#遇到的问题"><span class="nav-number">4.</span> <span class="nav-text">遇到的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-bin-0000xx-因权限问题同步失败"><span class="nav-number">4.1.</span> <span class="nav-text">mysql-bin.0000xx 因权限问题同步失败</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

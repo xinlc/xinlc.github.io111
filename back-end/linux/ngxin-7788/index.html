@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Nginx 之 七七八八">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx 之 七七八八">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/ngxin-7788/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Nginx 之 七七八八">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-09T17:01:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Nginx">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/ngxin-7788/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Nginx 之 七七八八 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/ngxin-7788/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nginx 之 七七八八
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-09 17:01:00" itemprop="dateCreated datePublished" datetime="2020-05-09T17:01:00+00:00">2020-05-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Nginx 之 七七八八</p>
+<a id="more"></a>
+
+<h2 id="location-匹配规则"><a href="#location-匹配规则" class="headerlink" title="location 匹配规则"></a>location 匹配规则</h2><ul>
+<li>location = /uri    = 表示精确匹配，只有完全匹配上才能生效</li>
+<li>location ^~ /uri    ^~ 开头对URL路径进行前缀匹配，并且在正则之前。(注意，这不是一个正则表达式匹配，他是字符串匹配，它的目的是优先于正则表达式的匹配)</li>
+<li>location ~ pattern    开头表示区分大小写的正则匹配</li>
+<li>location ~* pattern    开头表示不区分大小写的正则匹配</li>
+<li>location /uri    不带任何修饰符，也表示前缀匹配，但是在正则匹配之后</li>
+<li>location /    通用匹配，任何未匹配到其它location的请求都会匹配到，相当于switch中的default</li>
+</ul>
+<blockquote>
+<p>前缀匹配时，Nginx 不对 url 做编码，因此请求为 /static/20%/aa，可以被规则 ^~ /static/ /aa 匹配到（注意是空格）</p>
+</blockquote>
+<p>多个 location 配置的情况下匹配顺序为：</p>
+<ul>
+<li>首先精确匹配 =</li>
+<li>其次前缀匹配 ^~</li>
+<li>其次是按文件中顺序的正则匹配</li>
+<li>然后匹配不带任何修饰的前缀匹配。</li>
+<li>最后是交给 / 通用匹配</li>
+<li>当有匹配成功时候，停止匹配，按当前匹配规则处理请求</li>
+</ul>
+<blockquote>
+<p>注意：前缀匹配，如果有包含关系时，按最大匹配原则进行匹配。比如在前缀匹配：location /dir01 与location /dir01/dir02，如有请求 <a href="http://localhost/dir01/dir02/file" target="_blank" rel="noopener">http://localhost/dir01/dir02/file</a> 将最终匹配到 location /dir01/dir02</p>
+</blockquote>
+<p>例子，有如下匹配规则：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">location &#x3D; &#x2F; &#123;</span><br><span class="line">   echo &quot;规则A&quot;;</span><br><span class="line">&#125;</span><br><span class="line">location &#x3D; &#x2F;login &#123;</span><br><span class="line">   echo &quot;规则B&quot;;</span><br><span class="line">&#125;</span><br><span class="line">location ^~ &#x2F;static&#x2F; &#123;</span><br><span class="line">   echo &quot;规则C&quot;;</span><br><span class="line">&#125;</span><br><span class="line">location ^~ &#x2F;static&#x2F;files &#123;</span><br><span class="line">    echo &quot;规则X&quot;;</span><br><span class="line">&#125;</span><br><span class="line">location ~ \.(gif|jpg|png|js|css)$ &#123;</span><br><span class="line">   echo &quot;规则D&quot;;</span><br><span class="line">&#125;</span><br><span class="line">location ~* \.png$ &#123;</span><br><span class="line">   echo &quot;规则E&quot;;</span><br><span class="line">&#125;</span><br><span class="line">location &#x2F;img &#123;</span><br><span class="line">    echo &quot;规则Y&quot;;</span><br><span class="line">&#125;</span><br><span class="line">location &#x2F; &#123;</span><br><span class="line">   echo &quot;规则F&quot;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么产生的效果如下：</p>
+<ul>
+<li>访问根目录 /，比如 <a href="http://localhost/" target="_blank" rel="noopener">http://localhost/</a> 将匹配 规则A</li>
+<li>访问 <a href="http://localhost/login" target="_blank" rel="noopener">http://localhost/login</a> 将匹配 规则B，<a href="http://localhost/register" target="_blank" rel="noopener">http://localhost/register</a> 则匹配 规则F</li>
+<li>访问 <a href="http://localhost/static/a.html" target="_blank" rel="noopener">http://localhost/static/a.html</a> 将匹配 规则C</li>
+<li>访问 <a href="http://localhost/static/files/a.exe" target="_blank" rel="noopener">http://localhost/static/files/a.exe</a> 将匹配 规则X，虽然 规则C 也能匹配到，但因为最大匹配原则，最终选中了 规则X。你可以测试下，去掉规则 X ，则当前 URL 会匹配上 规则C。</li>
+<li>访问 <a href="http://localhost/a.gif" target="_blank" rel="noopener">http://localhost/a.gif</a>, <a href="http://localhost/b.jpg" target="_blank" rel="noopener">http://localhost/b.jpg</a> 将匹配 规则D 和 规则 E ，但是 规则 D 顺序优先，规则 E 不起作用，而 <a href="http://localhost/static/c.png" target="_blank" rel="noopener">http://localhost/static/c.png</a> 则优先匹配到 规则 C</li>
+<li>访问 <a href="http://localhost/a.PNG" target="_blank" rel="noopener">http://localhost/a.PNG</a> 则匹配 规则 E ，而不会匹配 规则 D ，因为 规则 E 不区分大小写。</li>
+<li>访问 <a href="http://localhost/img/a.gif" target="_blank" rel="noopener">http://localhost/img/a.gif</a> 会匹配上 规则D,虽然 规则Y 也可以匹配上，但是因为正则匹配优先，而忽略了 规则Y。</li>
+<li>访问 <a href="http://localhost/img/a.tiff" target="_blank" rel="noopener">http://localhost/img/a.tiff</a> 会匹配上 规则Y。</li>
+</ul>
+<blockquote>
+<p>访问 <a href="http://localhost/category/id/1111" target="_blank" rel="noopener">http://localhost/category/id/1111</a> 则最终匹配到规则 F ，因为以上规则都不匹配，这个时候应该是 Nginx 转发请求给后端应用服务器，比如 FastCGI（php），tomcat（jsp），Nginx 作为反向代理服务器存在。</p>
+</blockquote>
+<h3 id="rewrite-语法"><a href="#rewrite-语法" class="headerlink" title="rewrite 语法"></a>rewrite 语法</h3><ul>
+<li>last – 基本上都用这个 Flag</li>
+<li>break – 中止 Rewirte，不再继续匹配</li>
+<li>redirect – 返回临时重定向的 HTTP 状态 302</li>
+<li>permanent – 返回永久重定向的 HTTP 状态 301</li>
+</ul>
+<p>自动加后缀</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location ^~ &#x2F;test &#123;</span><br><span class="line">    rewrite ^(.*[^&#x2F;])$ $1&#x2F; break;</span><br><span class="line">    proxy_pass http:&#x2F;&#x2F;$test_lb;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="下面是可以用来判断的表达式"><a href="#下面是可以用来判断的表达式" class="headerlink" title="下面是可以用来判断的表达式"></a>下面是可以用来判断的表达式</h3><ul>
+<li>-f 和 !-f 用来判断是否存在文件</li>
+<li>-d 和 !-d 用来判断是否存在目录</li>
+<li>-e 和 !-e 用来判断是否存在文件或目录</li>
+<li>-x 和 !-x 用来判断文件是否可执行</li>
+</ul>
+<h3 id="下面是可以用作判断的全局变量"><a href="#下面是可以用作判断的全局变量" class="headerlink" title="下面是可以用作判断的全局变量"></a>下面是可以用作判断的全局变量</h3><p>例：<a href="http://localhost:88/test1/test2/test.php?k=v" target="_blank" rel="noopener">http://localhost:88/test1/test2/test.php?k=v</a></p>
+<ul>
+<li>$host：localhost</li>
+<li>$server_port：88</li>
+<li>$request_uri：/test1/test2/test.php?k=v</li>
+<li>$document_uri：/test1/test2/test.php</li>
+<li>$document_root：D:\nginx/html</li>
+<li>$request_filename：D:\nginx/html/test1/test2/test.php</li>
+</ul>
+<h3 id="redirect-语法"><a href="#redirect-语法" class="headerlink" title="redirect 语法"></a>redirect 语法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name start.igrow.cn;</span><br><span class="line">    index index.html index.php;</span><br><span class="line">    root html;</span><br><span class="line">    if ($http_host !~ &quot;^star\.igrow\.cn$&quot;) &#123;</span><br><span class="line">        rewrite ^(.*) http:&#x2F;&#x2F;star.igrow.cn$1 redirect;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="防盗链"><a href="#防盗链" class="headerlink" title="防盗链"></a>防盗链</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">location ~* \.(gif|jpg|swf)$ &#123;</span><br><span class="line">    valid_referers none blocked start.igrow.cn sta.igrow.cn;</span><br><span class="line">    if ($invalid_referer) &#123;</span><br><span class="line">       rewrite ^&#x2F; http:&#x2F;&#x2F;$host&#x2F;logo.png;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="根据文件类型设置过期时间"><a href="#根据文件类型设置过期时间" class="headerlink" title="根据文件类型设置过期时间"></a>根据文件类型设置过期时间</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">location ~* \.(js|css|jpg|jpeg|gif|png|swf)$ &#123;</span><br><span class="line">    if (-f $request_filename) &#123;</span><br><span class="line">        expires 1h;</span><br><span class="line">        break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="禁止访问某个目录"><a href="#禁止访问某个目录" class="headerlink" title="禁止访问某个目录"></a>禁止访问某个目录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location ~* \.(txt|doc)$&#123;</span><br><span class="line">    root &#x2F;data&#x2F;www&#x2F;wwwroot&#x2F;linuxtone&#x2F;test;</span><br><span class="line">    deny all;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Nginx-开启-websocket-支持"><a href="#Nginx-开启-websocket-支持" class="headerlink" title="Nginx 开启 websocket 支持"></a>Nginx 开启 websocket 支持</h2><ol>
+<li>编辑nginx.conf，在http区域内一定要添加下面配置：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">map $http_upgrade $connection_upgrade &#123;</span><br><span class="line">    default upgrade;</span><br><span class="line">    &#39;&#39; close;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>map指令的作用：</p>
+<p>该作用主要是根据客户端请求中$http_upgrade 的值，来构造改变$connection_upgrade的值，即根据变量$http_upgrade的值创建新的变量$connection_upgrade，<br>创建的规则就是{}里面的东西。其中的规则没有做匹配，因此使用默认的，即 $connection_upgrade 的值会一直是 upgrade。然后如果 $http_upgrade为空字符串的话，那值会是 close。</p>
+<ol start="2">
+<li>编辑vhosts下虚拟主机的配置文件，在location匹配配置中添加如下内容：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">proxy_http_version 1.1;</span><br><span class="line">proxy_set_header Upgrade $http_upgrade;</span><br><span class="line">proxy_set_header Connection &quot;Upgrade&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">upstream socket.kevin.com &#123;</span><br><span class="line">    hash $remote_addr consistent;</span><br><span class="line">    server 10.0.12.108:9000;</span><br><span class="line">    server 10.0.12.109:9000;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location &#x2F; &#123;</span><br><span class="line">    proxy_pass http:&#x2F;&#x2F;socket.leo.com&#x2F;;</span><br><span class="line">    proxy_set_header Host $host;</span><br><span class="line">    proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line"></span><br><span class="line">    proxy_http_version 1.1;</span><br><span class="line">    proxy_set_header Upgrade $http_upgrade;</span><br><span class="line">    proxy_set_header Connection $connection_upgrade;</span><br><span class="line">    proxy_read_timeout 300s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Nginx代理webSocket经常中断的解决方法（也就是如何保持长连接）"><a href="#Nginx代理webSocket经常中断的解决方法（也就是如何保持长连接）" class="headerlink" title="Nginx代理webSocket经常中断的解决方法（也就是如何保持长连接）"></a>Nginx代理webSocket经常中断的解决方法（也就是如何保持长连接）</h3><p>现象描述：用nginx反代代理某个业务，发现平均1分钟左右，就会出现webSocket连接中断，然后查看了一下，是nginx出现的问题。<br>产生原因：nginx等待第一次通讯和第二次通讯的时间差，超过了它设定的最大等待时间，简单来说就是超时！</p>
+<ol>
+<li>解决方法1</li>
+</ol>
+<p>其实只要配置nginx.conf的对应localhost里面的这几个参数就好</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">proxy_connect_timeout;</span><br><span class="line">proxy_read_timeout;</span><br><span class="line">proxy_send_timeout;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>解决方法2</li>
+</ol>
+<p>发心跳包，原理就是在有效地再读时间内进行通讯，重新刷新再读时间</p>
+<p>配置示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">http &#123;</span><br><span class="line">    server &#123;</span><br><span class="line">        location &#x2F; &#123;</span><br><span class="line">            root   html;</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">            proxy_pass http:&#x2F;&#x2F;webscoket;</span><br><span class="line">            proxy_http_version 1.1;</span><br><span class="line">            proxy_connect_timeout 4s;                #配置点1</span><br><span class="line">            proxy_read_timeout 60s;                  #配置点2，如果没效，可以考虑这个时间配置长一点</span><br><span class="line">            proxy_send_timeout 12s;                  #配置点3</span><br><span class="line">            proxy_set_header Upgrade $http_upgrade;</span><br><span class="line">            proxy_set_header Connection &quot;Upgrade&quot;;  </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关于上面配置2的解释：</p>
+<p>这个是服务器对你等待最大的时间，也就是说当你webSocket使用nginx转发的时候，用上面的配置2来说，如果60秒内没有通讯，依然是会断开的，所以，你可以按照你的需求来设定。比如说，我设置了10分钟，那么如果我10分钟内有通讯，或者10分钟内有做心跳的话，是可以保持连接不中断的，详细看个人需求</p>
+<h3 id="WebSocket与Socket的关系"><a href="#WebSocket与Socket的关系" class="headerlink" title="WebSocket与Socket的关系"></a>WebSocket与Socket的关系</h3><ul>
+<li>Socket其实并不是一个协议，而是为了方便使用TCP或UDP而抽象出来的一层，是位于应用层和传输控制层之间的一组接口。当两台主机通信时，必须通过Socket连接，Socket则利用TCP/IP协议建立TCP连接。TCP连接则更依靠于底层的IP协议，IP协议的连接则依赖于链路层等更低层次。</li>
+<li>WebSocket就像HTTP一样，则是一个典型的应用层协议。</li>
+<li>总的来说：Socket是传输控制层接口，WebSocket是应用层协议。</li>
+</ul>
+<h2 id="Nginx-反向代理配置去除前缀"><a href="#Nginx-反向代理配置去除前缀" class="headerlink" title="Nginx 反向代理配置去除前缀"></a>Nginx 反向代理配置去除前缀</h2><p><strong>方法一：加”/“</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen              8000;</span><br><span class="line">    server_name         abc.com;</span><br><span class="line">    access_log  &quot;pipe:rollback &#x2F;data&#x2F;log&#x2F;nginx&#x2F;access.log interval&#x3D;1d baknum&#x3D;7 maxsize&#x3D;1G&quot;  main;</span><br><span class="line"></span><br><span class="line">    location ^~ &#x2F;user&#x2F; &#123;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">        proxy_set_header  X-Real-IP        $remote_addr;</span><br><span class="line">        proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;</span><br><span class="line">        proxy_set_header X-NginX-Proxy true;</span><br><span class="line"></span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;user-test&#x2F;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ^~ &#x2F;order&#x2F; &#123;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">        proxy_set_header  X-Real-IP        $remote_addr;</span><br><span class="line">        proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;</span><br><span class="line">        proxy_set_header X-NginX-Proxy true;</span><br><span class="line"></span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;order&#x2F;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>^~/user/表示匹配前缀是user的请求，proxy_pass的结尾有/， 则会把/user/*后面的路径直接拼接到后面，即移除user。</p>
+<p><strong>方法二：rewrite</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">upstream user &#123;</span><br><span class="line">  server localhost:8089 weight&#x3D;5;</span><br><span class="line">&#125;</span><br><span class="line">upstream order &#123;</span><br><span class="line">  server localhost:8090 weight&#x3D;5;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen              80;</span><br><span class="line">    server_name  abc.com;</span><br><span class="line">    access_log  &quot;pipe:rollback &#x2F;data&#x2F;log&#x2F;nginx&#x2F;access.log interval&#x3D;1d baknum&#x3D;7 maxsize&#x3D;1G&quot;  main;</span><br><span class="line"></span><br><span class="line">    location ^~&#x2F;user&#x2F; &#123;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">        proxy_set_header  X-Real-IP        $remote_addr;</span><br><span class="line">        proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;</span><br><span class="line">        proxy_set_header X-NginX-Proxy true;</span><br><span class="line"></span><br><span class="line">        rewrite ^&#x2F;user&#x2F;(.*)$ &#x2F;$1 break;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;user;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ^~&#x2F;order&#x2F; &#123;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">        proxy_set_header  X-Real-IP        $remote_addr;</span><br><span class="line">        proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;</span><br><span class="line">        proxy_set_header X-NginX-Proxy true;</span><br><span class="line"></span><br><span class="line">        rewrite ^&#x2F;order&#x2F;(.*)$ &#x2F;$1 break;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;order;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>proxy_pass结尾没有/， rewrite重写了url。</p>
+<h2 id="Nginx-之-proxy-pass-指令完全拆解"><a href="#Nginx-之-proxy-pass-指令完全拆解" class="headerlink" title="Nginx 之 proxy_pass 指令完全拆解"></a>Nginx 之 proxy_pass 指令完全拆解</h2><h3 id="proxy-pass的nginx官方指南"><a href="#proxy-pass的nginx官方指南" class="headerlink" title="proxy_pass的nginx官方指南"></a>proxy_pass的nginx官方指南</h3><p>nginx中有两个模块都有proxy_pass指令。</p>
+<ol>
+<li><code>ngx_http_proxy_module的proxy_pass：</code></li>
+</ol>
+<ul>
+<li>语法: proxy_pass URL;</li>
+<li>场景: location, if in location, limit_except</li>
+<li>说明: 设置后端代理服务器的协议(protocol)和地址(address),以及location中可以匹配的一个可选的URI。协议可以是”http”或”https”。地址可以是一个域名或ip地址和端口，或者一个 unix-domain socket 路径。  </li>
+<li>详见官方文档: <a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass" target="_blank" rel="noopener">http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass</a></li>
+</ul>
+<ol start="2">
+<li><code>ngx_stream_proxy_module的proxy_pass：</code></li>
+</ol>
+<ul>
+<li>语法: proxy_pass address;</li>
+<li>场景: server</li>
+<li>说明: 设置后端代理服务器的地址。这个地址(address)可以是一个域名或ip地址和端口，或者一个 unix-domain socket路径。  </li>
+<li>详见官方文档: <a href="http://nginx.org/en/docs/stream/ngx_stream_proxy_module.html#proxy_pass" target="_blank" rel="noopener">http://nginx.org/en/docs/stream/ngx_stream_proxy_module.html#proxy_pass</a></li>
+</ul>
+<p>两个proxy_pass的关系和区别：</p>
+<p>在两个模块中，两个proxy_pass都是用来做后端代理的指令。<br>ngx_stream_proxy_module模块的proxy_pass指令只能在server段使用使用, 只需要提供域名或ip地址和端口。可以理解为端口转发，可以是tcp端口，也可以是udp端口。<br>ngx_http_proxy_module模块的proxy_pass指令需要在location段，location中的if段，limit_except段中使用，处理需要提供域名或ip地址和端口外，还需要提供协议，如”http”或”https”，还有一个可选的uri可以配置。</p>
+<h3 id="proxy-pass的具体用法"><a href="#proxy-pass的具体用法" class="headerlink" title="proxy_pass的具体用法"></a>proxy_pass的具体用法</h3><p>ngx_stream_proxy_module模块的proxy_pass指令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 127.0.0.1:12345;</span><br><span class="line">    proxy_pass 127.0.0.1:8080;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 12345;</span><br><span class="line">    proxy_connect_timeout 1s;</span><br><span class="line">    proxy_timeout 1m;</span><br><span class="line">    proxy_pass example.com:12345;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 53 udp;</span><br><span class="line">    proxy_responses 1;</span><br><span class="line">    proxy_timeout 20s;</span><br><span class="line">    proxy_pass dns.example.com:53;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen [::1]:12345;</span><br><span class="line">    proxy_pass unix:&#x2F;tmp&#x2F;stream.socket;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ngx_http_proxy_module模块的proxy_pass指令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen      80;</span><br><span class="line">    server_name www.test.com;</span><br><span class="line"></span><br><span class="line">    # 正常代理，不修改后端url的</span><br><span class="line">    location &#x2F;some&#x2F;path&#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 修改后端url地址的代理（本例后端地址中，最后带了一个斜线)</span><br><span class="line">    location &#x2F;testb &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;www.other.com:8801&#x2F;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 使用 if in location</span><br><span class="line">    location &#x2F;google &#123;</span><br><span class="line">        if ( $geoip_country_code ~ (RU|CN) ) &#123;</span><br><span class="line">            proxy_pass http:&#x2F;&#x2F;www.google.hk;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location &#x2F;yongfu&#x2F; &#123;</span><br><span class="line">        # 没有匹配 limit_except 的，代理到 unix:&#x2F;tmp&#x2F;backend.socket:&#x2F;uri&#x2F;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;unix:&#x2F;tmp&#x2F;backend.socket:&#x2F;uri&#x2F;;;</span><br><span class="line"></span><br><span class="line">        # 匹配到请求方法为: PUT or DELETE, 代理到9080</span><br><span class="line">        limit_except PUT DELETE &#123;</span><br><span class="line">            proxy_pass http:&#x2F;&#x2F;127.0.0.1:9080;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="proxy-pass后，后端服务器的url-request-uri-情况分析"><a href="#proxy-pass后，后端服务器的url-request-uri-情况分析" class="headerlink" title="proxy_pass后，后端服务器的url(request_uri)情况分析"></a>proxy_pass后，后端服务器的url(request_uri)情况分析</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen      80;</span><br><span class="line">    server_name www.test.com;</span><br><span class="line"></span><br><span class="line">    # 情形A</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testa&#x2F;aaaa</span><br><span class="line">    # 后端的request_uri为: &#x2F;testa&#x2F;aaaa</span><br><span class="line">    location ^~ &#x2F;testa&#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    # 情形B</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testb&#x2F;bbbb</span><br><span class="line">    # 后端的request_uri为: &#x2F;bbbb</span><br><span class="line">    location ^~ &#x2F;testb&#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801&#x2F;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testb 不能匹配</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testb&#x2F; 可以匹配</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testb&#x2F;aa 可以匹配</span><br><span class="line">    location ^~ &#x2F;testb&#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testb 可以匹配</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testb&#x2F; 可以匹配</span><br><span class="line">    location ^~ &#x2F;testb &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 如果存在变量</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;testb&#x2F;bbbb&#x2F;ccc</span><br><span class="line">    # 期望效果：&#x2F;aaa&#x2F;ccc</span><br><span class="line">    # 实际效果：&#x2F;aaa&#x2F;</span><br><span class="line">    #########################</span><br><span class="line">    # 解决方案：</span><br><span class="line">    # 应使用 rewrite 实现重写前缀</span><br><span class="line">    # rewrite ^&#x2F;testb&#x2F;(.*)$ &#x2F;aaa&#x2F;$1 break;</span><br><span class="line">    # proxy_pass http:&#x2F;&#x2F;$gateway_lb;</span><br><span class="line">    #########################</span><br><span class="line">    # 应使用 rewrite 实现重写前缀</span><br><span class="line">    set $gateway_lb aid-gateway-service;</span><br><span class="line">    location ^~ &#x2F;testb&#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;$gateway_lb&#x2F;aaa&#x2F;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 情形C</span><br><span class="line">    # 下面这段location是正确的</span><br><span class="line">    location ~ &#x2F;testc &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 情形D</span><br><span class="line">    # 下面这段location是错误的</span><br><span class="line">    #</span><br><span class="line">    # nginx -t 时，会报如下错误: </span><br><span class="line">    #</span><br><span class="line">    # nginx: [emerg] &quot;proxy_pass&quot; cannot have URI part in location given by regular </span><br><span class="line">    # expression, or inside named location, or inside &quot;if&quot; statement, or inside </span><br><span class="line">    # &quot;limit_except&quot; block in &#x2F;opt&#x2F;app&#x2F;nginx&#x2F;conf&#x2F;vhost&#x2F;test.conf:17</span><br><span class="line">    # </span><br><span class="line">    # 当location为正则表达式时，proxy_pass 不能包含URI部分。本例中包含了&quot;&#x2F;&quot;</span><br><span class="line">    location ~ &#x2F;testd &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801&#x2F;;   # 记住，location为正则表达式时，不能这样写！！！</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 情形E</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;ccc&#x2F;bbbb</span><br><span class="line">    # 后端的request_uri为: &#x2F;aaa&#x2F;ccc&#x2F;bbbb</span><br><span class="line">    location &#x2F;ccc&#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801&#x2F;aaa$request_uri;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 情形F</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;namea&#x2F;ddd</span><br><span class="line">    # 后端的request_uri为: &#x2F;yongfu?namea&#x3D;ddd</span><br><span class="line">    location &#x2F;namea&#x2F; &#123;</span><br><span class="line">        rewrite    &#x2F;namea&#x2F;([^&#x2F;]+) &#x2F;yongfu?namea&#x3D;$1 break;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # 情形G</span><br><span class="line">    # 访问 http:&#x2F;&#x2F;www.test.com&#x2F;nameb&#x2F;eee</span><br><span class="line">    # 后端的request_uri为: &#x2F;yongfu?nameb&#x3D;eee</span><br><span class="line">    location &#x2F;nameb&#x2F; &#123;</span><br><span class="line">        rewrite    &#x2F;nameb&#x2F;([^&#x2F;]+) &#x2F;yongfu?nameb&#x3D;$1 break;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;127.0.0.1:8801&#x2F;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    access_log &#x2F;data&#x2F;logs&#x2F;www&#x2F;www.test.com.log;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen      8801;</span><br><span class="line">    server_name www.test.com;</span><br><span class="line">    </span><br><span class="line">    root        &#x2F;data&#x2F;www&#x2F;test;</span><br><span class="line">    index       index.php index.html;</span><br><span class="line"></span><br><span class="line">    rewrite ^(.*)$ &#x2F;test.php?u&#x3D;$1 last;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        try_files $uri &#x3D;404;</span><br><span class="line">        fastcgi_pass unix:&#x2F;tmp&#x2F;php-cgi.sock;</span><br><span class="line">        fastcgi_index index.php;</span><br><span class="line">        include fastcgi.conf;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    access_log &#x2F;data&#x2F;logs&#x2F;www&#x2F;www.test.com.8801.log;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>文件: /data/www/test/test.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">echo</span> <span class="string">'$_SERVER[REQUEST_URI]:'</span> . $_SERVER[<span class="string">'REQUEST_URI'</span>];</span><br></pre></td></tr></table></figure>
+
+<p>通过查看 $_SERVER[‘REQUEST_URI’] 的值，我们可以看到每次请求的后端的request_uri的值，进行验证。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>情形A和情形B进行对比，可以知道proxy_pass后带一个URI,可以是斜杠(/)也可以是其他uri，对后端request_uri变量的影响。<br>情形D说明，当location为正则表达式时，proxy_pass不能包含URI部分。<br>情形E通过变量($request_uri, 也可以是其他变量)，对后端的request_uri进行改写。<br>情形F和情形G通过rewrite配合break标志,对url进行改写，并改写后端的request_uri。需要注意，proxy_pass地址的URI部分在情形G中无效，不管如何设置，都会被忽略。</p>
+<h2 id="隐藏版本号"><a href="#隐藏版本号" class="headerlink" title="隐藏版本号"></a>隐藏版本号</h2><p>第一种：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># vim &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf</span><br><span class="line">http &#123;</span><br><span class="line">    include       &#x2F;etc&#x2F;nginx&#x2F;mime.types;</span><br><span class="line">    default_type  application&#x2F;octet-stream;</span><br><span class="line">    server_tokens off; # 隐藏版本号显示</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二种基于源代码（变更版本号和版本名使其更具有迷惑效果）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">vim /opt/nginx-1.12.0/src/core/nginx.h     //修改源码文件</span><br><span class="line">define nginx_version      1012000</span><br><span class="line">define NGINX_VERSION      <span class="string">"1.1.5"</span></span><br><span class="line">define NGINX_VER          <span class="string">"IIS/"</span> NGINX_VERSION</span><br><span class="line"><span class="comment"># 更改版本号，注意不用取消井号！</span></span><br><span class="line"><span class="built_in">cd</span> /opt/nginx-1.12.0/</span><br><span class="line">./configure --prefix=/usr/<span class="built_in">local</span>/nginx --user=nginx --group=nginx --with-http_stub_status_module &amp;&amp; make &amp;&amp; make install</span><br><span class="line"><span class="comment"># 编译安装</span></span><br><span class="line">vim /usr/<span class="built_in">local</span>/nginx/conf/nginx.conf     <span class="comment"># 把之前的server_tokens off;改成on</span></span><br><span class="line">service nginx reload              <span class="comment"># 重启服务</span></span><br><span class="line">curl -I http://192.168.116.133   <span class="comment"># 检测结果</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="转发IP"><a href="#转发IP" class="headerlink" title="转发IP"></a>转发IP</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">proxy_set_header Host $host;</span><br><span class="line">proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br></pre></td></tr></table></figure>
+
+<p><strong>X-Forwarded-For和相关几个头部的理解：</strong></p>
+<ul>
+<li>$remote_addr</li>
+</ul>
+<p>是nginx与客户端进行TCP连接过程中，获得的客户端真实地址. Remote Address 无法伪造，因为建立 TCP 连接需要三次握手，如果伪造了源 IP，无法建立 TCP 连接，更不会有后面的 HTTP 请求</p>
+<ul>
+<li>X-Real-IP</li>
+</ul>
+<p>是一个自定义头。X-Real-Ip 通常被 HTTP 代理用来表示与它产生 TCP 连接的设备 IP，这个设备可能是其他代理，也可能是真正的请求端。需要注意的是，X-Real-Ip 目前并不属于任何标准，代理和 Web 应用之间可以约定用任何自定义头来传递这个信息</p>
+<ul>
+<li>X-Forwarded-For</li>
+</ul>
+<p>X-Forwarded-For 是一个扩展头。HTTP/1.1（RFC 2616）协议并没有对它的定义，它最开始是由 Squid 这个缓存代理软件引入，用来表示 HTTP 请求端真实 IP，现在已经成为事实上的标准，被各大 HTTP 代理、负载均衡等转发服务广泛使用，并被写入 RFC 7239（Forwarded HTTP Extension）标准之中.</p>
+<p>X-Forwarded-For请求头格式非常简单，就这样：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Forwarded-For:client, proxy1, proxy2</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，XFF 的内容由「英文逗号 + 空格」隔开的多个部分组成，最开始的是离服务端最远的设备 IP，然后是每一级代理设备的 IP。</p>
+<p>如果一个 HTTP 请求到达服务器之前，经过了三个代理 Proxy1、Proxy2、Proxy3，IP 分别为 IP1、IP2、IP3，用户真实 IP 为 IP0，那么按照 XFF 标准，服务端最终会收到以下信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Forwarded-For: IP0, IP1, IP2</span><br></pre></td></tr></table></figure>
+
+<p>Proxy3 直连服务器，它会给 XFF 追加 IP2，表示它是在帮 Proxy2 转发请求。列表中并没有 IP3，IP3 可以在服务端通过 remote_address 来自 TCP 连接，表示与服务端建立 TCP 连接的设备 IP，在这个例子里就是 IP3。</p>
+<p>详细分析一下，这样的结果是经过这样的流程而形成的：</p>
+<ol>
+<li>用户IP0—&gt; 代理Proxy1（IP1），Proxy1记录用户IP0，并将请求转发个Proxy2时，带上一个Http Header<br>X-Forwarded-For: IP0</li>
+<li>Proxy2收到请求后读取到请求有 X-Forwarded-For: IP0，然后proxy2 继续把链接上来的proxy1 ip追加到 X-Forwarded-For 上面，构造出X-Forwarded-For: IP0, IP1，继续转发请求给Proxy 3</li>
+<li>同理，Proxy3 按照第二部构造出 X-Forwarded-For: IP0, IP1, IP2,转发给真正的服务器，比如NGINX，nginx收到了http请求，里面就是 X-Forwarded-For: IP0, IP1, IP2 这样的结果。所以Proxy 3 的IP3，不会出现在这里。</li>
+<li>nginx 获取proxy3的IP 能通过remote_address就是真正建立TCP链接的IP，这个不能伪造，是直接产生链接的IP。$remote_address 无法伪造，因为建立 TCP 连接需要三次握手，如果伪造了源 IP，无法建立 TCP 连接，更不会有后面的 HTTP 请求。</li>
+</ol>
+<p><strong>x-forwarded-for 实践研究：</strong></p>
+<ol>
+<li><p>uwsgi_pass的情况下，nginx 没有设置proxy_pass x-forwarded-for: $proxy_add_x_forwarded_for;<br>如果请求头传了XFF，在flask里面能正常读取请求头里面的XFF,就是当是一个普通的头读出；如果header不传这个XFF的话，就读不到</p>
+</li>
+<li><p>proxy_pass 情况下</p>
+</li>
+</ol>
+<ul>
+<li>没有传 # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for 的话，跟上面的uwsgi_pass 一样，都是在没有设置header XFF情况下，读不到。</li>
+<li>如果传了 proxy_set_header X-Forwarded-For remote_address），因为这句proxy_set_header 会让nginx追加一个$remote_address到XFF。</li>
+<li>header 传xff的话， 程序里面可以读到Xff 头： X-Forwarded-For: 188.103.19.120, 10.0.2.2 （第一个是我自己编的，第二个是proxy_add_x_forwarded_for 这句而追加$remote_addr到XFF。</li>
+</ul>
+<p>总结：</p>
+<ol>
+<li>只要nginx前端（例如lvs， varnish）转发请求给nginx的时候，带了x-forwarded-for ,那么程序就一定能读到这个字段，如果nginx还设置了proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for， 那么程序能读到XFF是：ip0, ip1 (客户端Ip，lvs或者varnishIP)。 如果nginx没有设置，那么nginx还是会原样把http头传给程序，也就是说程序也能读到XFF，而且XFF就是ip0 客户端IP。</li>
+<li>proxy_pass 设置这个头 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 是站在一个作为代理的角度把。能继续传输多级代理的头。</li>
+<li>nginx的日志格式写了$http_x_forwared_for 说明前端（lvs）确实传了这个头过来。所以是程序是读取到的</li>
+<li>uwsgi_pass 不能设置 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 这个头，是因为这个头是对http代理来说，用来传递IP的，uwsgi 不可能充当一个代理。</li>
+<li>nginx-&gt;程序，这里其实有两个链接过程，其他IP与nginx的TCP链接， nginx与程序的TCP链接。所以$remote_addr都是对各自来说的。<br>程序的remote_addr: remote_addr 127.0.0.1 (跟它链接的是nginx 内网127.0.0.1)<br>nginx的remote_addr : X-Real-Ip: 10.0.2.2 （跟它链接的是我的电脑，IP 10.0.2.2）</li>
+<li>对程序来说，读取的request.remote_addr 也永远是直接跟他链接的ip， 也就是反向代理nginx</li>
+<li>The access_route attribute uses the X-Forwarded-For header, falling back to the REMOTE_ADDRWSGI variable; 也就是说access_route默认读取XFF头，如果没有，降级读取WSGI的REMOTE_ADDR变量,这个 WSGI的REMOTE_ADDR变量 就是 $remote_addr</li>
+<li>request.envron 是WSGI的变量，都是wsgi server转过来的，普通的头都是加了HTTP_前缀的 ，包括proxy_set_header Host  proxy_add_x_forwarded_for;<br>添加的头都会出现在处理，因为他们就是普通的http头</li>
+<li>LVS-&gt;nginx的情况下， 请求的时候主动加XFF，程序读取的时候没显示。因为LVS设置XFF的时候，直接把直连的IP赋值给LVS，忽略掉所有本来有的XFF，要从LVS这里开始。 所以程序读到的XFF是 ：XFF headers 218.107.55.254, 10.120.214.252<br>前面的是我的IP， 后面的是LVS的IP</li>
+</ol>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"wsgi.multiprocess"</span>: <span class="string">"False"</span>,</span><br><span class="line">  <span class="attr">"SERVER_SOFTWARE"</span>: <span class="string">"Werkzeug/0.11.10"</span>,</span><br><span class="line">  <span class="attr">"SCRIPT_NAME"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"REQUEST_METHOD"</span>: <span class="string">"GET"</span>,</span><br><span class="line">  <span class="attr">"PATH_INFO"</span>: <span class="string">"/api/get_agreement_url/"</span>,</span><br><span class="line">  <span class="attr">"SERVER_PROTOCOL"</span>: <span class="string">"HTTP/1.0"</span>,</span><br><span class="line">  <span class="attr">"QUERY_STRING"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"werkzeug.server.shutdown"</span>: <span class="string">"&lt;function shutdown_server at 0x7f4a2f4e5488&gt;"</span>,</span><br><span class="line">  <span class="attr">"CONTENT_LENGTH"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"SERVER_NAME"</span>: <span class="string">"127.0.0.1"</span>,</span><br><span class="line">  <span class="attr">"REMOTE_PORT"</span>: <span class="number">58284</span>,</span><br><span class="line">  <span class="attr">"werkzeug.request"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"wsgi.url_scheme"</span>: <span class="string">"http"</span>,</span><br><span class="line">  <span class="attr">"SERVER_PORT"</span>: <span class="string">"6000"</span>,</span><br><span class="line">  <span class="attr">"HTTP_POSTMAN_TOKEN"</span>: <span class="string">"666cfd97-585b-c342-f0bd-5c785dfff27d"</span>,</span><br><span class="line">  <span class="attr">"wsgi.input"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"wsgi.multithread"</span>: <span class="string">"False"</span>,</span><br><span class="line">  <span class="attr">"HTTP_CACHE_CONTROL"</span>: <span class="string">"no-cache"</span>,</span><br><span class="line">  <span class="attr">"HTTP_ACCEPT"</span>: <span class="string">"*/*"</span>,</span><br><span class="line">  <span class="attr">"wsgi.version"</span>: <span class="string">"(1, 0)"</span>,</span><br><span class="line">  <span class="attr">"wsgi.run_once"</span>: <span class="string">"False"</span>,</span><br><span class="line">  <span class="attr">"wsgi.errors"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"CONTENT_TYPE"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"REMOTE_ADDR"</span>: <span class="string">"127.0.0.1"</span>,</span><br><span class="line"></span><br><span class="line">  <span class="attr">"HTTP_CONNECTION"</span>: <span class="string">"close"</span>,</span><br><span class="line">  <span class="attr">"HTTP_USER_AGENT"</span>: <span class="string">"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"</span>,</span><br><span class="line">  <span class="attr">"HTTP_ACCEPT_LANGUAGE"</span>: <span class="string">"zh-CN,zh;q=0.8,en;q=0.6"</span>,</span><br><span class="line">  <span class="attr">"HTTP_X_FORWARDED_FOR"</span>: <span class="string">"10.0.2.2"</span>,</span><br><span class="line">  <span class="attr">"HTTP_ACCEPT_ENCODING"</span>: <span class="string">"gzip, deflate, sdch"</span>,</span><br><span class="line">  <span class="attr">"HTTP_HOST"</span>: <span class="string">"[test.mumu.nie.netease.com:8000](http://test.mumu.nie.netease.com:8000/)"</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>proxy_add_x_forwarded_for; nginx的这个变量含义就是，每次都追加remote_address 到 xff头，如果xff头不存在，那么xff就被设置成跟$remote_address 一样了。如果本来就存在，就追加了 ip1, ip2这样的形式</p>
+<h2 id="设置IP黑白名单"><a href="#设置IP黑白名单" class="headerlink" title="设置IP黑白名单"></a>设置IP黑白名单</h2><p><strong>方式一：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    # include allow_deny_ip.conf</span><br><span class="line">    deny  192.168.1.1;</span><br><span class="line">    allow 192.168.1.0&#x2F;24;</span><br><span class="line">    allow 10.1.1.0&#x2F;16;</span><br><span class="line">    allow 2001:0db8::&#x2F;32;</span><br><span class="line">    deny  all;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式二：</strong></p>
+<p>只允许11.1.12.222访问</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  leo.com;</span><br><span class="line"></span><br><span class="line">    resolver 8.8.8.8;</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_pass $scheme:&#x2F;&#x2F;$host$request_uri;</span><br><span class="line">        if ( $remote_addr !~* &quot;11.1.12.222&quot;) &#123;</span><br><span class="line">            return 403;</span><br><span class="line">        &#125;</span><br><span class="line">        root   &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;html;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式三：</strong></p>
+<p>有个需求，需要特定的2个ip才能访问指定域名，但是使用私有云的slb负载后透过的ip，指向nginx反向代理后，使用nginx的ip限制无法控制ip访问。使用下面方式可以：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name   xxx.xxx.xxx;</span><br><span class="line"></span><br><span class="line">    set $x $remote_addr;</span><br><span class="line">    if ($http_ali_cdn_real_ip) &#123;</span><br><span class="line">        set $x $http_ali_cdn_real_ip;</span><br><span class="line">    &#125;</span><br><span class="line">    # cms</span><br><span class="line">    location ^~ &#x2F;cms &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;pool_yyyy_8000&#x2F;;</span><br><span class="line">        proxy_set_header  Host  $host;</span><br><span class="line">        proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">        proxy_set_header REMOTE-HOST $remote_addr;</span><br><span class="line">        client_max_body_size    100m;</span><br><span class="line">        set $allow true;</span><br><span class="line">        if ($http_x_forwarded_for !~ &quot;xxx.xxx.xxx.xxx|yyy.yyy.yyy.yyy&quot;) &#123;</span><br><span class="line">            set $allow false;</span><br><span class="line">        &#125;</span><br><span class="line">        if ($allow &#x3D; false) &#123;</span><br><span class="line">            return 403;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="禁止ip访问，只能域名访问"><a href="#禁止ip访问，只能域名访问" class="headerlink" title="禁止ip访问，只能域名访问"></a>禁止ip访问，只能域名访问</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">server&#123;</span><br><span class="line">    listen 80 default_server;</span><br><span class="line">    server_name _;</span><br><span class="line">    return 500;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="关于Nginx反向代理DDNS的DNS缓存问题"><a href="#关于Nginx反向代理DDNS的DNS缓存问题" class="headerlink" title="关于Nginx反向代理DDNS的DNS缓存问题"></a>关于Nginx反向代理DDNS的DNS缓存问题</h2><p>在使用nginx做反向代理的，将请求发送到一个动态DDNS域名的时候，该动态DDNS域名对应的IP是A ，刚开始运行一切正常，但是当运行了一段时间以后，该动态DDNS域名对应的IP变了之后(例如对应的IP由A变为B)，nginx的转发仍然还在向原先的IP A发送请求，导致反向代理中断，此时reload nginx后才会重新恢复正常，且日志显示数据转发到新的IP B了，请问如何让nginx自动去重新解析域名，而不用每次出现问题了人工去reload？</p>
+<p>造成这个问题的主要原因是，在Nginx启动的时候会做域名解析，然后把IP缓存起来以后会一直使用解析到的IP并且不会再更改，除非重新启动Nginx，Nginx才会重新解析域名。</p>
+<p>利用nginx的resolver：</p>
+<ol>
+<li>默认nginx会通过操作系统设置的DNS服务器(/etc/resolv.conf)去解析域名</li>
+<li>其实nginx还可以通过自身设置DNS服务器，而不用去找操作系统的DNS</li>
+<li>下面来讲一个这个resolver示例配置如下：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 8080;</span><br><span class="line">    server_name localhost;</span><br><span class="line">    resolver 114.114.114.114 223.5.5.5 valid&#x3D;3600s;</span><br><span class="line">    resolver_timeout 3s;</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;mydomain.com;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 第二种，用变量</span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name staging.leo.com dev.api.leo.com;</span><br><span class="line">    proxy_set_header Host $host;</span><br><span class="line">    proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">    proxy_http_version 1.1;</span><br><span class="line">    proxy_set_header Upgrade $http_upgrade;</span><br><span class="line">    proxy_set_header Connection &#39;upgrade&#39;;</span><br><span class="line"></span><br><span class="line">    resolver 114.114.114.114 223.5.5.5 valid&#x3D;30s ipv6&#x3D;off;</span><br><span class="line">    set $mydomainurl &quot;http:&#x2F;&#x2F;intranet.leo.com:8800&quot;; # 通过变量来解决不重新解析问题，注意set好像不支持变量名中带下划线或其它特殊字符</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_pass $mydomainurl;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 在这个配置中，resolver 是 DNS 服务器地址, valid 设定 DNS 刷新频率。需要特别注意的一点是 set 语句不能写到 location 里面，否则不会生效。</span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name xxx.xxx.com;</span><br><span class="line">    resolver 127.0.0.11 valid&#x3D;5s; # docker 引擎内置 DNS</span><br><span class="line">    resolver_timeout 3s;</span><br><span class="line">    set $service_lb xxxxxx;</span><br><span class="line"></span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;$service_lb;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参数说明：</p>
+<ul>
+<li>resolver 可以在http全局设定，也可在server里面设定</li>
+<li>resolver 后面指定DNS服务器，可以指定多个，空格隔开</li>
+<li>valid设置DNS缓存失效时间，自己根据情况判断，建议600以上</li>
+<li>resolver_timeout 指定解析域名时，DNS服务器的超时时间，建议3秒左右</li>
+</ul>
+<blockquote>
+<p>注意：当resolver 后面跟多个DNS服务器时，一定要保证这些DNS服务器都是有效的，因为这种是负载均衡模式的，当DNS记录失效了(超过valid时间)，首先由第一个DNS服务器(114.114.114.114)去解析，下一次继续失效时由第二个DNS服务器(223.5.5.5)去解析，亲自测试的，如有任何一个DNS服务器是坏的，那么这一次的解析会一直持续到resolver_timeout ，然后解析失败，且日志报错解析不了域名，通过页面抛出502错误。</p>
+</blockquote>
+<h2 id="Nginx-打印性能日志"><a href="#Nginx-打印性能日志" class="headerlink" title="Nginx 打印性能日志"></a><a href="https://www.nginx.com/blog/using-nginx-logging-for-application-performance-monitoring/" target="_blank" rel="noopener">Nginx 打印性能日志</a></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">log_format apm &#39;&quot;$time_local&quot; client&#x3D;$remote_addr &#39;</span><br><span class="line">               &#39;method&#x3D;$request_method request&#x3D;&quot;$request&quot; &#39;</span><br><span class="line">               &#39;request_length&#x3D;$request_length &#39;</span><br><span class="line">               &#39;status&#x3D;$status bytes_sent&#x3D;$bytes_sent &#39;</span><br><span class="line">               &#39;body_bytes_sent&#x3D;$body_bytes_sent &#39;</span><br><span class="line">               &#39;referer&#x3D;$http_referer &#39;</span><br><span class="line">               &#39;user_agent&#x3D;&quot;$http_user_agent&quot; &#39;</span><br><span class="line">               &#39;upstream_addr&#x3D;$upstream_addr &#39;</span><br><span class="line">               &#39;upstream_status&#x3D;$upstream_status &#39;</span><br><span class="line">               &#39;request_time&#x3D;$request_time &#39;</span><br><span class="line">               &#39;upstream_response_time&#x3D;$upstream_response_time &#39;</span><br><span class="line">               &#39;upstream_connect_time&#x3D;$upstream_connect_time &#39;</span><br><span class="line">               &#39;upstream_header_time&#x3D;$upstream_header_time&#39;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">log_format apm &#39;timestamp&#x3D;&quot;$time_local&quot; client&#x3D;$remote_addr &#39;</span><br><span class="line">               &#39;request&#x3D;&quot;$request&quot; request_length&#x3D;$request_length &#39;</span><br><span class="line">               &#39;bytes_sent&#x3D;$bytes_sent &#39; </span><br><span class="line">               &#39;body_bytes_sent&#x3D;$body_bytes_sent &#39;</span><br><span class="line">               &#39;referer&#x3D;$http_referer &#39;</span><br><span class="line">               &#39;user_agent&#x3D;&quot;$http_user_agent&quot; &#39;</span><br><span class="line">               &#39;upstream_addr&#x3D;$upstream_addr &#39;</span><br><span class="line">               &#39;upstream_status&#x3D;$upstream_status &#39;</span><br><span class="line">               &#39;request_time&#x3D;$request_time &#39; </span><br><span class="line">               &#39;upstream_response_time&#x3D;$upstream_response_time &#39;</span><br><span class="line">               &#39;upstream_connect_time&#x3D;$upstream_connect_time &#39;</span><br><span class="line">               &#39;upstream_header_time&#x3D;$upstream_header_time &#39;</span><br><span class="line">               &#39;app_db_read_time&#x3D;$upstream_http_db_read_time &#39;</span><br><span class="line">               &#39;app_db_write_time&#x3D;$upstream_http_db_write_time &#39;</span><br><span class="line">               &#39;app_analysis_time&#x3D;$upstream_http_analysis_time &#39;</span><br><span class="line">               &#39;app_other_time&#x3D;$upstream_http_other_time &#39;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/digitalocean/nginxconfig.io" target="_blank" rel="noopener">在线生成工具</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nginx/" rel="tag"># Nginx</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/java/druid/" rel="prev" title="Druid 简单使用">
+      <i class="fa fa-chevron-left"></i> Druid 简单使用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/cmd-top/" rel="next" title="Linux top 命令的用法详细详解">
+      Linux top 命令的用法详细详解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#location-匹配规则"><span class="nav-number">1.</span> <span class="nav-text">location 匹配规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#rewrite-语法"><span class="nav-number">1.1.</span> <span class="nav-text">rewrite 语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下面是可以用来判断的表达式"><span class="nav-number">1.2.</span> <span class="nav-text">下面是可以用来判断的表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下面是可以用作判断的全局变量"><span class="nav-number">1.3.</span> <span class="nav-text">下面是可以用作判断的全局变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#redirect-语法"><span class="nav-number">1.4.</span> <span class="nav-text">redirect 语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#防盗链"><span class="nav-number">1.5.</span> <span class="nav-text">防盗链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#根据文件类型设置过期时间"><span class="nav-number">1.6.</span> <span class="nav-text">根据文件类型设置过期时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#禁止访问某个目录"><span class="nav-number">1.7.</span> <span class="nav-text">禁止访问某个目录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Nginx-开启-websocket-支持"><span class="nav-number">2.</span> <span class="nav-text">Nginx 开启 websocket 支持</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Nginx代理webSocket经常中断的解决方法（也就是如何保持长连接）"><span class="nav-number">2.1.</span> <span class="nav-text">Nginx代理webSocket经常中断的解决方法（也就是如何保持长连接）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WebSocket与Socket的关系"><span class="nav-number">2.2.</span> <span class="nav-text">WebSocket与Socket的关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Nginx-反向代理配置去除前缀"><span class="nav-number">3.</span> <span class="nav-text">Nginx 反向代理配置去除前缀</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Nginx-之-proxy-pass-指令完全拆解"><span class="nav-number">4.</span> <span class="nav-text">Nginx 之 proxy_pass 指令完全拆解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#proxy-pass的nginx官方指南"><span class="nav-number">4.1.</span> <span class="nav-text">proxy_pass的nginx官方指南</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proxy-pass的具体用法"><span class="nav-number">4.2.</span> <span class="nav-text">proxy_pass的具体用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proxy-pass后，后端服务器的url-request-uri-情况分析"><span class="nav-number">4.3.</span> <span class="nav-text">proxy_pass后，后端服务器的url(request_uri)情况分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">4.4.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隐藏版本号"><span class="nav-number">5.</span> <span class="nav-text">隐藏版本号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#转发IP"><span class="nav-number">6.</span> <span class="nav-text">转发IP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置IP黑白名单"><span class="nav-number">7.</span> <span class="nav-text">设置IP黑白名单</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#禁止ip访问，只能域名访问"><span class="nav-number">8.</span> <span class="nav-text">禁止ip访问，只能域名访问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于Nginx反向代理DDNS的DNS缓存问题"><span class="nav-number">9.</span> <span class="nav-text">关于Nginx反向代理DDNS的DNS缓存问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Nginx-打印性能日志"><span class="nav-number">10.</span> <span class="nav-text">Nginx 打印性能日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">11.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

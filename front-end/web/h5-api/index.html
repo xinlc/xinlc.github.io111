@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="原文：http:&#x2F;&#x2F;blog.poetries.top&#x2F;  一、Canvas API canvas API是H5标准中最复杂的部分， 它提供几种属性和方法，可以在canvas元素上创建图形应用 方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTML5之API总结">
+<meta property="og:url" content="https://blog.lichao.xin/front-end/web/h5-api/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="原文：http:&#x2F;&#x2F;blog.poetries.top&#x2F;  一、Canvas API canvas API是H5标准中最复杂的部分， 它提供几种属性和方法，可以在canvas元素上创建图形应用 方法">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-11-26T14:35:24.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.399Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="HTML5">
+<meta property="article:tag" content="API">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/front-end/web/h5-api/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>HTML5之API总结 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/front-end/web/h5-api/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HTML5之API总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-26 14:35:24" itemprop="dateCreated datePublished" datetime="2016-11-26T14:35:24+00:00">2016-11-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原文：<a href="http://blog.poetries.top/" target="_blank" rel="noopener">http://blog.poetries.top/</a></p>
+</blockquote>
+<h3 id="一、Canvas-API"><a href="#一、Canvas-API" class="headerlink" title="一、Canvas API"></a>一、Canvas API</h3><hr>
+<p><code>canvas API</code>是<code>H5</code>标准中最复杂的部分， 它提供几种属性和方法，可以在<code>canvas</code>元素上创建图形应用</p>
+<h4 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h4><hr>
+<a id="more"></a>
+
+<p>以下方法专门用于调用 canvas API</p>
+<ul>
+<li><p><code>getContext(context)</code>创建可绘制图形的画布上下文，接受两个值，<code>2d</code>和<code>3d</code></p>
+</li>
+<li><p><code>fillRect(x,y,width,height)</code>绘制实心矩形</p>
+</li>
+<li><p><code>strokeRect(x,y,width,height)</code>绘制矩形轮廓</p>
+</li>
+<li><p><code>clearRect(x,y,width,height)</code>清除画布指定区域内容</p>
+</li>
+<li><p><code>createLinearGradient(x1,y1,x2,y2)</code>创建一个线性渐变效果</p>
+</li>
+<li><p><code>createRadialGradient(x1,y1,r1,x2,y2,r2)</code>创建一个放射渐变效果</p>
+</li>
+<li><p><code>addColorStop(position,color)</code>用于声明渐变颜色<code>position</code>范围是<code>0.0-1.0</code> 用于确定颜色开始变化位置</p>
+</li>
+<li><p><code>beginPath()</code>开始一条新路径</p>
+</li>
+<li><p><code>closePath()</code>在路径最后实现封闭该路径，它会生成一条直线，连接笔触的最后一个位置与路径的起点。如想要保持路径开放，使用<code>fill()</code>绘图，不用这个方法</p>
+</li>
+<li><p><code>stroke()</code> 用于创建路径轮廓</p>
+</li>
+<li><p><code>fill()</code>用于绘制实心形状</p>
+</li>
+<li><p><code>clip()</code>用于创建一个由路径定义的裁剪区域，只有在落入形状内的内容才绘制到画布上</p>
+</li>
+<li><p><code>moveTo(x,y)</code>将虚拟笔触移到新位置，下一个方法会从改点的开始继续设置路径</p>
+</li>
+<li><p><code>lineTo(x,y)</code>在新路径上添加一条直线</p>
+</li>
+<li><p><code>rect(x,y,width,height)</code>在路径为<code>(x,y)</code>位置上添加<code>width</code>和<code>height</code>矩形</p>
+</li>
+<li><p><code>arc(x,y,radius,startAngle,endAngle,direction)</code>在路径上添加一条弧线 ,<code>x</code>,<code>y</code>指定弧线的中心，角度单位为弧度，<code>direction</code>是一个表示顺时针或逆时针的布尔值。使用公式 <code>Math.PI/180x</code>角度，将角度转换为半径</p>
+</li>
+<li><p><code>strokeText(text,x,y,max)</code> 直接在画布上绘制文字轮廓。可选参数，max 声明文字最大尺寸</p>
+</li>
+<li><p><code>fillText(text,x,y,max)</code>直接在画布上绘制实心文字。可选参数，<code>max</code>声明文字最大尺寸</p>
+</li>
+<li><p><code>translate(x,y)</code>将画布原点移到点<code>(x,y)</code>处，原点<code>（0,0）</code>初始位置位于<code>canvas</code>所在区域的左上角</p>
+</li>
+<li><p><code>rorate(angle)</code>这个方法可以使画布原点为中心发生旋转，角度必须是弧度。使用公式<code>Math.PI/180x</code> 将角度转换为弧度</p>
+</li>
+<li><p><code>scale(x,y)</code> 改变画布比例 默认值是<code>（1.0,1.0）</code>这些值可以是负值</p>
+</li>
+<li><p><code>transform（m1,m2,m3,m4,dx,dy）</code>修改画布的转换矩阵。新矩阵是基于之前的矩阵得到的</p>
+</li>
+<li><p><code>setTransform（m1,m2,m3,m4,dx,dy）</code>修改画布的转换矩阵。重置之前的值，声明新的值</p>
+</li>
+<li><p><code>save()</code>保存画布状态，包括转换矩阵、样式属性、裁剪遮罩</p>
+</li>
+<li><p><code>restore()</code> 恢复上一次保存的状态</p>
+</li>
+<li><p><code>drawImage()</code> 在画布上绘制图像</p>
+</li>
+</ul>
+<h4 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h4><hr>
+<p><code>canvas API</code>专用属性列表</p>
+<ul>
+<li><p><code>rect( x, y, width, height )</code> 绘制矩形</p>
+</li>
+<li><p><code>fillRect( x, y, width, height )</code> 绘制被填充的矩形</p>
+</li>
+<li><p><code>strokeRect( x, y, width, height )</code> 绘制矩形（无填充）</p>
+</li>
+<li><p><code>clearRect( x, y, width, height )</code> 清除指定的矩形内的像素</p>
+</li>
+<li><p><code>fill()</code> 填充当前绘图（路径）</p>
+</li>
+<li><p><code>stroke()</code>绘制已定义的路径</p>
+</li>
+<li><p><code>beginPath()</code> 起始（重置）当前路径</p>
+</li>
+<li><p><code>moveTo( x, y )</code> 将笔触移动到指定的坐标(x,y)</p>
+</li>
+<li><p><code>lineTo( x, y )</code> 绘制一条从当前位置到指定的坐标(x,y)的直线</p>
+</li>
+<li><p><code>clip()</code> 从原始画布剪切任意形状和尺寸的区域</p>
+</li>
+<li><p><code>quadraticCurveTo()</code> 创建二次贝塞尔曲线</p>
+</li>
+<li><p><code>bezierCurveTo()</code> 创建三次贝塞尔曲线</p>
+</li>
+<li><p><code>arc( x, y, radius, startAngle, endAngle, anticlockwise)</code> 绘制圆或圆弧</p>
+</li>
+<li><p><code>arcTo( x1, y1, x2, y2, radius)</code> 根据给定点画圆弧，再以直线连接两个点</p>
+</li>
+<li><p><code>isPointInPath( x, y )</code> 检测指定的点是否在当前路径中，在则返回 true。</p>
+</li>
+<li><p><code>fillStyle</code> 设置或返回用于填充绘画的颜色、渐变或模式</p>
+</li>
+<li><p><code>strokeStyle</code> 设置或返回用于笔触的颜色、渐变或模式</p>
+</li>
+<li><p><code>shadowColor</code> 设置或返回用于阴影的颜色</p>
+</li>
+<li><p><code>shadowBlur</code> 设置或返回用于阴影的模糊级别</p>
+</li>
+<li><p><code>shadowOffsetX</code> 设置或返回阴影与形状的水平距离</p>
+</li>
+<li><p><code>shadowOffsetY</code> 设置或返回阴影与形状的垂直距离</p>
+</li>
+<li><p><code>lineCap</code> 设置或返回线条的结束点样式（<code>butt</code>、<code>round</code>、<code>square</code>）</p>
+</li>
+<li><p><code>lineJoin</code> 设置或返回当两条线交汇时，边角的类型（<code>bevel</code>、<code>round</code>、miter）</p>
+</li>
+<li><p><code>lineWidth</code> 设置或返回当前的线条宽度</p>
+</li>
+<li><p><code>miterLimit</code> 设置或返回最大斜接长度</p>
+</li>
+<li><p><code>createLinearGradient( x0, y0, x1, y1 )</code> 创建线性渐变</p>
+</li>
+<li><p><code>createPattern( image/canvas/video, repeat )</code> 在指定的方向内重复绘制指定的元素</p>
+</li>
+<li><p><code>createRadialGradient( x0, y0, r0, x1, y1, r1 )</code>创建径向渐变</p>
+</li>
+<li><p><code>addColorStop( stop, color )</code> 规定渐变对象中的颜色和停止位置</p>
+</li>
+<li><p><code>font</code> 设置或返回文本内容的当前字体属性（和 css 的 font 一样）</p>
+</li>
+<li><p><code>textAlign</code> 设置或返回文本内容的当前对齐方式</p>
+</li>
+<li><p><code>textBaseline</code> 设置或返回在绘制文本时使用的当前文本基线</p>
+</li>
+<li><p><code>fillText( text, x, y )</code> 在画布上绘制“被填充”的文本</p>
+</li>
+<li><p><code>strokeText( text, x, y )</code> 在画布上绘制文本（无填充）</p>
+</li>
+<li><p><code>measureText( text )</code> 返回包含指定文本宽度的对象（属性 width 获取宽度）</p>
+</li>
+<li><p><code>drawImage( image/canvas, x, y )</code>、drawImage( image/canvas, x, y, width, height )、drawImage( image/canvas, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight )` 在画布上绘制图像、画布或视频</p>
+</li>
+<li><p><code>createImageData( width, height )</code>、createImageData(imageData) 绘制 ImageData 对象</p>
+</li>
+<li><p><code>getImageData( x, y, width, height )</code> 返回 ImageData 对象，该对象为画布上指定的矩形复制像素数据。</p>
+</li>
+<li><p><code>putImageData( ImageData, x, y )</code>、putImageData( imageData, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight ) 把图像数据放回画布上。</p>
+</li>
+<li><p><code>width</code> 返回 ImageData 对象的宽度</p>
+</li>
+<li><p><code>height</code> 返回<code>ImageData</code>对象的高度</p>
+</li>
+<li><p><code>data</code> 返回一个对象，包含指定的 ImageData 对象的图像数据</p>
+</li>
+<li><p><code>globalAlpha</code> 设置或返回绘图的当前 alpha 或透明度</p>
+</li>
+<li><p><code>globalCompositeOperation</code> 设置或返回新图像如何绘制到已有的图像上。</p>
+</li>
+<li><p><code>scale( x, y )</code> 缩放当前绘图</p>
+</li>
+<li><p><code>translate( x, y )</code> 重新设置画布上的(0,0)位置</p>
+</li>
+<li><p><code>rotate( angle )</code> 选择当前绘图，单位为“弧度”，角度转弧度公式<code>（ degrees*Math.PI/180）</code></p>
+</li>
+<li><p><code>transform( m11, m12, m21, m22, dx, dy )</code> 替换绘图的当前转换矩阵</p>
+</li>
+<li><p><code>setTransform()</code> 将当前转换重置为单元矩阵，然后运行 transform()</p>
+</li>
+<li><p><code>save()</code> 保存当前环境的状态</p>
+</li>
+<li><p><code>restore()</code> 恢复之前保存过的路径状态和属性</p>
+</li>
+<li><p><code>getContext(&#39;2d&#39;)</code> 获取<code>2d</code>对象</p>
+</li>
+<li><p><code>toDataURL()</code> 将 canvas 转换成图片，返回地址</p>
+</li>
+</ul>
+<h4 id="canvas-常用总结"><a href="#canvas-常用总结" class="headerlink" title="canvas 常用总结"></a>canvas 常用总结</h4><hr>
+<ul>
+<li><p>标签 <code>&lt;canvas&gt;</code></p>
+<ul>
+<li>不支持<code>canvas</code> 的浏览器可以看到的内容</li>
+</ul>
+</li>
+<li><p><code>&lt;canvas&gt;</code> 绘制环境</p>
+<ul>
+<li><code>getContext(&quot;2d&quot;)</code>;目前支持<code>2d</code>的场景</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>绘制矩形</p>
+<ul>
+<li><code>rect(L,T,W,H)</code>:创建一个矩形</li>
+<li><code>fillRect(L,T,W,H)</code>:绘制填充的矩形</li>
+<li><code>strokeRect(L,T,W,H)</code>绘制矩形(无填充)<ul>
+<li>默认一像素黑色边框</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>设置绘图</p>
+<ul>
+<li><code>fillStyle</code>:填充颜色(绘制<code>canvas</code>是有顺序的)</li>
+<li><code>lineWidth</code>:线宽度，笔迹粗细</li>
+<li><code>strokeStyle</code>:边线颜色</li>
+</ul>
+</li>
+<li><p>绘制路径</p>
+<ul>
+<li><code>stroke</code> ：绘制，划线(黑色默认)</li>
+<li><code>fill</code> :填充(黑色默认)</li>
+<li><code>rect(矩形区域)</code></li>
+<li><code>clearRect</code> 擦除一个矩形区域</li>
+<li><code>save</code> 进入到 XXX（高逼格）状态</li>
+<li><code>restore</code> 退出 xxx（高逼格）状态</li>
+</ul>
+</li>
+<li><p>绘制圆形</p>
+<ul>
+<li><code>arc(x,y,半径,起始弧度,结束弧度,旋转方向)</code></li>
+<li><code>x</code>，<code>y</code>起始位置</li>
+<li>弧度与角度：<code>弧度=角度 x π / 180</code></li>
+<li>旋转方向：顺时针（默认：<code>false</code>），逆时针（<code>true</code>）</li>
+</ul>
+</li>
+<li><p><strong>绘制字体</strong></p>
+<ul>
+<li><code>font</code>：设置字体大小</li>
+<li><code>fillText</code>：填充字体</li>
+<li><code>strokeText</code>：绘制字体</li>
+</ul>
+</li>
+</ul>
+<h3 id="二、视频音频"><a href="#二、视频音频" class="headerlink" title="二、视频音频"></a>二、视频音频</h3><hr>
+<ul>
+<li>视频音频格式的简单介绍<ul>
+<li>常见的视频格式<ul>
+<li>视频的组成部分：画面、音频、编码格式</li>
+<li>视频编码：H.264、Theora、VP8(google 开源)</li>
+</ul>
+</li>
+<li>常见的音频格式<ul>
+<li>视频编码：ACC、MP3、Vorbis</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><code>HTML5</code>能在完全脱离插件的情况下播放音视频,但是不是所有格式都支持。</li>
+<li>支持的视频格式：<ul>
+<li><code>Ogg=</code>带有<code>Theora</code>视频编码<code>+Vorbis</code>音频编码的<code>Ogg</code>文件</li>
+<li><code>MEPG4=</code>带有 H.264 视频编码<code>+AAC</code>音频编码的<code>MPEG4</code>文件</li>
+<li><code>WebM=</code>带有<code>VP8</code>视频编码<code>+Vorbis</code>音频编码的<code>WebM</code>格式</li>
+</ul>
+</li>
+</ul>
+<h4 id="Video的使用"><a href="#Video的使用" class="headerlink" title="Video的使用"></a><code>Video</code>的使用</h4><hr>
+<ul>
+<li>单独用法<ul>
+<li><code>&lt;video src=&quot;文件地址&quot; controls=&quot;controls&quot;&gt;&lt;/video&gt;</code></li>
+</ul>
+</li>
+<li>带提示用法</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt; <span class="attr">video</span> <span class="attr">src</span>=<span class="string">"文件地址"</span> <span class="attr">controls</span>=<span class="string">"controls"</span>&gt;</span></span><br><span class="line">	您的浏览器暂不支持video标签。播放视频</span><br><span class="line"><span class="tag">&lt;/ <span class="attr">video</span> &gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>兼容用法</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt; <span class="attr">video</span>  <span class="attr">controls</span>=<span class="string">"controls"</span>  <span class="attr">width</span>=<span class="string">"300"</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">source</span> <span class="attr">src</span>=<span class="string">"move.ogg"</span> <span class="attr">type</span>=<span class="string">"video/ogg"</span> &gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">source</span> <span class="attr">src</span>=<span class="string">"move.mp4"</span> <span class="attr">type</span>=<span class="string">"video/mp4"</span> &gt;</span></span><br><span class="line">	您的浏览器暂不支持video标签。播放视频</span><br><span class="line"><span class="tag">&lt;/ <span class="attr">video</span> &gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>Video</code>的常见属性</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Autoplay</td>
+<td>Autoplay</td>
+<td>视频就绪自动播放</td>
+</tr>
+<tr>
+<td>controls</td>
+<td>controls</td>
+<td>向用户显示播放控件</td>
+</tr>
+<tr>
+<td>Width</td>
+<td>Pixels(像素)</td>
+<td>设置播放器宽度</td>
+</tr>
+<tr>
+<td>Height</td>
+<td>Pixels(像素)</td>
+<td>设置播放器高度</td>
+</tr>
+<tr>
+<td>Loop</td>
+<td>Loop</td>
+<td>播放完是否继续播放该视频，循环播放</td>
+</tr>
+<tr>
+<td>Preload</td>
+<td>load{auto,meta,none}</td>
+<td>规定是否预加载视频。</td>
+</tr>
+<tr>
+<td>Src</td>
+<td>url</td>
+<td>视频 url 地址</td>
+</tr>
+<tr>
+<td>Poster</td>
+<td>Imgurl</td>
+<td>加载等待的画面图片</td>
+</tr>
+<tr>
+<td>Autobuffer</td>
+<td>Autobuffer</td>
+<td>设置为浏览器缓冲方式，不设置 autoply 才有效</td>
+</tr>
+</tbody></table>
+<ul>
+<li><code>Video</code>的<code>API</code>方法</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>属性</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>play()</td>
+<td>currentSrc</td>
+<td>play</td>
+</tr>
+<tr>
+<td>pause()</td>
+<td>currentTime</td>
+<td>pause</td>
+</tr>
+<tr>
+<td>load()</td>
+<td>videoWidth</td>
+<td>progress</td>
+</tr>
+<tr>
+<td>canPlayType()</td>
+<td>videoHeight</td>
+<td>error</td>
+</tr>
+</tbody></table>
+<h3 id="三、地理信息与本地存储"><a href="#三、地理信息与本地存储" class="headerlink" title="三、地理信息与本地存储"></a>三、地理信息与本地存储</h3><hr>
+<h4 id="地理位置"><a href="#地理位置" class="headerlink" title="地理位置"></a>地理位置</h4><hr>
+<ul>
+<li><p>经度 : 南北极的连接线</p>
+</li>
+<li><p>纬度 : 东西连接的线</p>
+</li>
+<li><p>位置信息从何而来</p>
+<ul>
+<li><code>IP</code>地址</li>
+<li><code>GPS</code>全球定位系统</li>
+<li><code>Wi-Fi</code>无线网络</li>
+<li>基站</li>
+</ul>
+</li>
+<li><p><code>avigator.geolocation</code></p>
+<ul>
+<li><p>单次定位请求 ：<code>getCurrentPosition</code>(请求成功,请求失败,数据收集方式)</p>
+</li>
+<li><p>请求成功函数</p>
+<ul>
+<li>经度 : <code>coords.longitude</code></li>
+<li>纬度 : <code>coords.latitude</code></li>
+<li>准确度 : <code>coords.accuracy</code></li>
+<li>海拔 : <code>coords.altitude</code></li>
+<li>海拔准确度 : <code>coords.altitudeAcuracy</code></li>
+<li>行进方向 : <code>coords.heading</code></li>
+<li>地面速度 : <code>coords.speed</code></li>
+<li>请求的时间: <code>new Date(position.timestamp)</code></li>
+</ul>
+</li>
+<li><p>请求失败函数</p>
+<ul>
+<li>失败编号 ：<code>code</code><ul>
+<li>0 : 不包括其他错误编号中的错误</li>
+<li>1 : 用户拒绝浏览器获取位置信息</li>
+<li>2 : 尝试获取用户信息，但失败了</li>
+<li>3 : 设置了<code>timeout</code>值，获取位置超时了</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>数据收集 : json 的形式</p>
+<ul>
+<li><code>enableHighAcuracy</code> : 更精确的查找，默认<code>false</code></li>
+<li><code>timeout</code> : 获取位置允许最长时间，默认<code>infinity</code></li>
+<li><code>maximumAge</code> : 位置可以缓存的最大时间，默认<code>0</code></li>
+</ul>
+</li>
+<li><p>多次定位请求* : <code>watchPosition</code></p>
+<ul>
+<li>移动设备有用，位置改变才会触发</li>
+<li>配置参数：<code>frequency</code> 更新的频率</li>
+<li>关闭更新请求 : <code>clearWatch</code></li>
+</ul>
+</li>
+<li><p>百度地图<code>API</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script src=<span class="string">"http://api.map.baidu.com/api?v=2.0&amp;ak=qZfInp9MaT9Qa0PoNy4Rmx3Y9W9ZXMfw"</span>&gt;&lt;<span class="regexp">/script&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="本地存储"><a href="#本地存储" class="headerlink" title="本地存储"></a>本地存储</h4><hr>
+<ul>
+<li><code>Storage</code><ul>
+<li><code>sessionStorage</code><ul>
+<li><code>session</code>临时回话，从页面打开到页面关闭的时间段</li>
+<li>窗口的临时存储，页面关闭，本地存储消失</li>
+</ul>
+</li>
+<li><code>localStorage</code><ul>
+<li>永久存储（可以手动删除数据）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Storage</code>的特点<ul>
+<li>存储量限制 ( 5M )</li>
+<li>客户端完成，不会请求服务器处理</li>
+<li><code>sessionStorage</code>数据是不共享、 <code>localStorage</code>共享</li>
+</ul>
+</li>
+<li><code>Storage API</code><ul>
+<li><code>setItem()</code>:<ul>
+<li>设置数据，(<code>key</code>,<code>value</code>)类型，类型都是字符串</li>
+<li>可以用获取属性的形式操作</li>
+</ul>
+</li>
+<li><code>getItem():</code><ul>
+<li>获取数据，通过<code>key</code>来获取到相应的<code>value</code></li>
+</ul>
+</li>
+<li><code>removeItem()</code>:<ul>
+<li>删除数据，通过 key 来删除相应的<code>value</code></li>
+</ul>
+</li>
+<li><code>clear()</code>:<ul>
+<li>删除全部存储的值</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>存储事件:<ul>
+<li>当数据有修改或删除的情况下，就会触发<code>storage</code>事件</li>
+<li>在对数据进行改变的窗口对象上是不会触发的`</li>
+<li><code>Key</code> : 修改或删除的<code>key</code>值，如果调用<code>clear()</code>,<code>key</code>为<code>null</code></li>
+<li><code>newValue</code> : 新设置的值，如果调用<code>removeStorage()</code>,<code>key</code>为<code>null</code></li>
+<li><code>oldValue</code> : 调用改变前的<code>value</code>值</li>
+<li><code>storageArea</code> : 当前的<code>storage</code>对象</li>
+<li><code>url</code> : 触发该脚本变化的文档的 url</li>
+<li>注：<code>session</code>同窗口才可以,例子：<code>iframe</code>操作</li>
+</ul>
+</li>
+</ul>
+<h3 id="四、HTML5-拖拽"><a href="#四、HTML5-拖拽" class="headerlink" title="四、HTML5 拖拽"></a>四、HTML5 拖拽</h3><hr>
+<ul>
+<li><p>图片自带拖拽功能</p>
+</li>
+<li><p>其他元素可设置<code>draggable</code>属性</p>
+</li>
+<li><p><code>draggable ：true</code></p>
+<ul>
+<li>拖拽元素(被拖拽元素对象)事件 :<ul>
+<li><code>ondragstart</code> : 拖拽前触发</li>
+<li><code>ondrag</code> :拖拽前、拖拽结束之间，连续触发</li>
+<li><code>ondragend</code> :拖拽结束触发</li>
+</ul>
+</li>
+<li>目标元素(拖拽元素被拖到的对象)事件 :<ul>
+<li><code>ondragenter</code> :进入目标元素触发</li>
+<li><code>ondragover</code>:进入目标、离开目标之间，连续触发</li>
+<li><code>ondragleave</code> :离开目标元素触发</li>
+<li><code>ondrop</code> :在目标元素上释放鼠标触发<ul>
+<li>需要在<code>ondragover</code>事件里面阻止默认事件</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>拖拽兼容问题</p>
+<ul>
+<li>火狐浏览器下需设置<code>dataTransfer</code>对象才可以拖拽除图片外的其他标签<ul>
+<li><code>dataTransfer</code>对象</li>
+<li><code>setData()</code> : 设置数据 <code>key</code>和<code>value</code>(必须是字符串)</li>
+<li><code>getData()</code> : 获取数据，根据<code>key</code>值，获取对应的<code>value</code></li>
+<li><code>effectAllowed</code> : 设置光标样式(<code>none</code>, <code>copy</code>, <code>copyLink</code>, <code>copyMove</code>, <code>link</code>, <code>linkMove</code>,<code>move</code>, <code>all</code> 和<code>uninitialized</code>)</li>
+<li><code>setDragImage</code> ：三个参数（指定的元素，坐标<code>X</code>，坐标<code>Y</code>）</li>
+<li><code>files</code>： 获取外部拖拽的文件，返回一个<code>filesList</code>列表<ul>
+<li><code>filesList</code>下有个<code>type</code>属性，返回文件的类型</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>读取文件信息</p>
+<ul>
+<li><code>FileReader</code>(读取文件信息)<ul>
+<li><code>readAsDataURL</code></li>
+</ul>
+</li>
+<li>参数为要读取的文件对象<ul>
+<li><code>onload</code>当读取文件成功完成的时候触发此事件</li>
+<li><code>this. result</code> 获取读取的文件数据</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="五、跨文档操作"><a href="#五、跨文档操作" class="headerlink" title="五、跨文档操作"></a>五、跨文档操作</h3><hr>
+<ul>
+<li><p>跨文档请求</p>
+</li>
+<li><p>同域跨文档 - <code>iframe</code>内页： - 父页面操作子页面：<code>contentWindow</code> - 子页面操作父页面：<code>window.top</code>(找到最顶级的父页面)/<code>parent</code>(第一父页面) - 新窗口页： - 父页面操作子页面：<code>window.open</code> - 子页面操作父页面：<code>window.opener</code></p>
+</li>
+<li><p>不同域跨文档 - <code>postMessage（“发送的数据”,”接收的域”）</code> - <code>message</code>事件监听 - <code>ev.origin</code>发送数据来源的域 - <code>ev.data</code> 发送的数据 - 通过判断发送的数据来执行相应的需求</p>
+</li>
+<li><p>ajax 跨域</p>
+<ul>
+<li><code>XMLHttpRequest</code> 新增功能 - 跨域请求：修改服务端头信息 - I<code>E</code>兼容：<code>XDomaiRequest</code></li>
+<li>进度事件： - <code>upload.onprogress(ev)</code> 上传进度(实现文件上传进度条) - <code>ev.total</code> 发送文件的总量 - <code>ev.loaded</code> 已发送的量 - <code>FormData</code> 构建提交二进制数据</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/HTML5/" rel="tag"># HTML5</a>
+              <a href="/tags/API/" rel="tag"># API</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/front-end/web/HTML5+CSS3%20/" rel="prev" title="HTML5+CSS3整体回顾">
+      <i class="fa fa-chevron-left"></i> HTML5+CSS3整体回顾
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/tools/learning-methods/" rel="next" title="世界上最好的学习法：费曼学习法">
+      世界上最好的学习法：费曼学习法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、Canvas-API"><span class="nav-number">1.</span> <span class="nav-text">一、Canvas API</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#方法"><span class="nav-number">1.1.</span> <span class="nav-text">方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#属性"><span class="nav-number">1.2.</span> <span class="nav-text">属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#canvas-常用总结"><span class="nav-number">1.3.</span> <span class="nav-text">canvas 常用总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、视频音频"><span class="nav-number">2.</span> <span class="nav-text">二、视频音频</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Video的使用"><span class="nav-number">2.1.</span> <span class="nav-text">Video的使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、地理信息与本地存储"><span class="nav-number">3.</span> <span class="nav-text">三、地理信息与本地存储</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#地理位置"><span class="nav-number">3.1.</span> <span class="nav-text">地理位置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#本地存储"><span class="nav-number">3.2.</span> <span class="nav-text">本地存储</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四、HTML5-拖拽"><span class="nav-number">4.</span> <span class="nav-text">四、HTML5 拖拽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#五、跨文档操作"><span class="nav-number">5.</span> <span class="nav-text">五、跨文档操作</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

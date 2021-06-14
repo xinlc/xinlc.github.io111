@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Developing AngularJS Development Setup Running Tests Coding Rules Commit Message Guidelines Writing Documentation   Development SetupThis document describes how to set up your development environment">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Richard Xin&#39;s Blog">
+<meta property="og:url" content="https://blog.lichao.xin/resource/tools/git/DEVELOPERS.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Developing AngularJS Development Setup Running Tests Coding Rules Commit Message Guidelines Writing Documentation   Development SetupThis document describes how to set up your development environment">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-14T01:33:23.015Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:23.015Z">
+<meta property="article:author" content="Richard">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/resource/tools/git/DEVELOPERS">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title> | Richard Xin's Blog
+</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+  
+  
+
+          <div class="content page posts-expand">
+            
+
+    
+    
+    
+    <div class="post-block" lang="zh-CN">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+          
+            <li><a href="/resource/">RESOURCE</a></li>
+            <li><a href="/resource/tools/">TOOLS</a></li>
+            <li><a href="/resource/tools/git/">GIT</a></li>
+            <li>DEVELOPERS</li>
+          
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+          <h1 id="Developing-AngularJS"><a href="#Developing-AngularJS" class="headerlink" title="Developing AngularJS"></a>Developing AngularJS</h1><ul>
+<li><a href="#setup">Development Setup</a></li>
+<li><a href="#tests">Running Tests</a></li>
+<li><a href="#rules">Coding Rules</a></li>
+<li><a href="#commits">Commit Message Guidelines</a></li>
+<li><a href="#documentation">Writing Documentation</a></li>
+</ul>
+<h2 id="Development-Setup"><a href="#Development-Setup" class="headerlink" title=" Development Setup"></a><a name="setup"> Development Setup</h2><p>This document describes how to set up your development environment to build and test AngularJS, and<br>explains the basic mechanics of using <code>git</code>, <code>node</code>, <code>yarn</code> and <code>grunt</code>.</p>
+<h3 id="Installing-Dependencies"><a href="#Installing-Dependencies" class="headerlink" title="Installing Dependencies"></a>Installing Dependencies</h3><p>Before you can build AngularJS, you must install and configure the following dependencies on your<br>machine:</p>
+<ul>
+<li><p><a href="http://git-scm.com/" target="_blank" rel="noopener">Git</a>: The <a href="https://help.github.com/articles/set-up-git" target="_blank" rel="noopener">Github Guide to<br>Installing Git</a> is a good source of information.</p>
+</li>
+<li><p><a href="http://nodejs.org" target="_blank" rel="noopener">Node.js v8.x (LTS)</a>: We use Node to generate the documentation, run a<br>development web server, run tests, and generate distributable files. Depending on your system,<br>you can install Node either from source or as a pre-packaged bundle.</p>
+<p>We recommend using <a href="https://github.com/creationix/nvm" target="_blank" rel="noopener">nvm</a> (or<br><a href="https://github.com/coreybutler/nvm-windows" target="_blank" rel="noopener">nvm-windows</a>)<br>to manage and install Node.js, which makes it easy to change the version of Node.js per project.</p>
+</li>
+<li><p><a href="https://yarnpkg.com" target="_blank" rel="noopener">Yarn</a>: We use Yarn to install our Node.js module dependencies<br>(rather than using npm). See the detailed <a href="https://yarnpkg.com/en/docs/install" target="_blank" rel="noopener">installation instructions</a>.</p>
+</li>
+<li><p><a href="http://www.java.com" target="_blank" rel="noopener">Java</a>: We minify JavaScript using<br><a href="https://developers.google.com/closure/" target="_blank" rel="noopener">Closure Tools</a>, which require Java (version 7 or higher)<br>to be installed and included in your<br><a href="http://docs.oracle.com/javase/tutorial/essential/environment/paths.html" target="_blank" rel="noopener">PATH</a> variable.</p>
+</li>
+<li><p><a href="http://gruntjs.com" target="_blank" rel="noopener">Grunt</a>: We use Grunt as our build system. We’re using it as a local dependency,<br>but you can also add the grunt command-line tool globally (with <code>yarn global add grunt-cli</code>), which allows<br>you to leave out the <code>yarn</code> prefix for all our grunt commands.</p>
+</li>
+</ul>
+<h3 id="Forking-AngularJS-on-Github"><a href="#Forking-AngularJS-on-Github" class="headerlink" title="Forking AngularJS on Github"></a>Forking AngularJS on Github</h3><p>To contribute code to AngularJS, you must have a GitHub account so you can push code to your own<br>fork of AngularJS and open Pull Requests in the <a href="https://github.com/angular/angular.js" target="_blank" rel="noopener">GitHub Repository</a>.</p>
+<p>To create a Github account, follow the instructions <a href="https://github.com/signup/free" target="_blank" rel="noopener">here</a>.<br>Afterwards, go ahead and <a href="http://help.github.com/forking" target="_blank" rel="noopener">fork</a> the<br><a href="https://github.com/angular/angular.js" target="_blank" rel="noopener">main AngularJS repository</a>.</p>
+<h3 id="Building-AngularJS"><a href="#Building-AngularJS" class="headerlink" title="Building AngularJS"></a>Building AngularJS</h3><p>To build AngularJS, you clone the source code repository and use Grunt to generate the non-minified<br>and minified AngularJS files:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Clone your Github repository:</span></span><br><span class="line">git clone https://github.com/&lt;github username&gt;/angular.js.git</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Go to the AngularJS directory:</span></span><br><span class="line">cd angular.js</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Add the main AngularJS repository as an upstream remote to your repository:</span></span><br><span class="line">git remote add upstream "https://github.com/angular/angular.js.git"</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Install JavaScript dependencies:</span></span><br><span class="line">yarn install</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Build AngularJS:</span></span><br><span class="line">yarn grunt package</span><br></pre></td></tr></table></figure>
+
+<p><strong>Note:</strong> If you’re using Windows, you must use an elevated command prompt (right click, run as<br>Administrator). This is because <code>yarn grunt package</code> creates some symbolic links.</p>
+<p>The build output is in the <code>build</code> directory. It consists of the following files and<br>directories:</p>
+<ul>
+<li><p><code>angular-&lt;version&gt;.zip</code> — The complete zip file, containing all of the release build<br>artifacts.</p>
+</li>
+<li><p><code>angular.js</code> / <code>angular.min.js</code> — The regular and minified core AngularJS script file.</p>
+</li>
+<li><p><code>angular-*.js</code> / <code>angular-*.min.js</code> — All other AngularJS module script files.</p>
+</li>
+<li><p><code>docs/</code> — A directory that contains a standalone version of the docs<br>(same as served in <code>docs.angularjs.org</code>).</p>
+</li>
+</ul>
+<h3 id="Running-a-Local-Development-Web-Server"><a href="#Running-a-Local-Development-Web-Server" class="headerlink" title=" Running a Local Development Web Server"></a><a name="local-server"></a> Running a Local Development Web Server</h3><p>To debug code, run end-to-end tests, and serve the docs, it is often useful to have a local<br>HTTP server. For this purpose, we have made available a local web server based on Node.js.</p>
+<ol>
+<li><p>To start the web server, run:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt webserver</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>To access the local server, enter the following URL into your web browser:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;localhost:8000&#x2F;</span><br></pre></td></tr></table></figure>
+<p>By default, it serves the contents of the AngularJS project directory.</p>
+</li>
+<li><p>To access the locally served docs, visit this URL:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;localhost:8000&#x2F;build&#x2F;docs&#x2F;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h2 id="Running-Tests"><a href="#Running-Tests" class="headerlink" title=" Running Tests"></a><a name="tests"> Running Tests</h2><h3 id="Running-the-Unit-Test-Suite"><a href="#Running-the-Unit-Test-Suite" class="headerlink" title=" Running the Unit Test Suite"></a><a name="unit-tests"></a> Running the Unit Test Suite</h3><p>We write unit and integration tests with Jasmine and execute them with Karma. To run all of the<br>tests once on Chrome run:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt test:unit</span><br></pre></td></tr></table></figure>
+
+<p>To run the tests on other browsers use the command line flag:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt test:unit --browsers=Chrome,Firefox</span><br></pre></td></tr></table></figure>
+
+<p><strong>Note:</strong> there should be <em>no spaces between browsers</em>. <code>Chrome, Firefox</code> is INVALID.</p>
+<p>If you have a Saucelabs or Browserstack account, you can also run the unit tests on these services<br>via our pre-defined customLaunchers. See the <a href="/karma-shared.conf.js">karma config file</a> for all pre-configured browsers.</p>
+<p>For example, to run the whole unit test suite on selected browsers:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Browserstack</span></span><br><span class="line">yarn grunt test:unit --browsers=BS_Chrome,BS_Firefox,BS_Safari,BS_IE_9,BS_IE_10,BS_IE_11,BS_EDGE,BS_iOS_10</span><br><span class="line"><span class="meta">#</span><span class="bash"> Saucelabs</span></span><br><span class="line">yarn grunt test:unit --browsers=SL_Chrome,SL_Firefox,SL_Safari,SL_IE_9,SL_IE_10,SL_IE_11,SL_EDGE,SL_iOS_10</span><br></pre></td></tr></table></figure>
+
+<p>Running these commands requires you to set up <a href="https://github.com/karma-runner/karma-browserstack-launcher" target="_blank" rel="noopener">Karma Browserstack</a> or<br><a href="https://github.com/karma-runner/karma-sauce-launcher" target="_blank" rel="noopener">Karma-Saucelabs</a>, respectively.</p>
+<p>During development, however, it’s more productive to continuously run unit tests every time the<br>source or test files change. To execute tests in this mode run:</p>
+<ol>
+<li><p>To start the Karma server, capture Chrome browser and run unit tests, run:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt autotest</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>To capture more browsers, open this URL in the desired browser (URL might be different if you<br>have multiple instance of Karma running, read Karma’s console output for the correct URL):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;localhost:9876&#x2F;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>To re-run tests just change any source or test file.</p>
+</li>
+</ol>
+<p>To learn more about all of the preconfigured Grunt tasks run:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt --help</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Running-the-End-to-end-Test-Suite"><a href="#Running-the-End-to-end-Test-Suite" class="headerlink" title=" Running the End-to-end Test Suite"></a><a name="e2e-tests"></a> Running the End-to-end Test Suite</h3><p>AngularJS’s end to end tests are run with Protractor. Simply run:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt test:e2e</span><br></pre></td></tr></table></figure>
+
+<p>This will start the webserver and run the tests on Chrome.</p>
+<h2 id="Coding-Rules"><a href="#Coding-Rules" class="headerlink" title=" Coding Rules"></a><a name="rules"></a> Coding Rules</h2><p>To ensure consistency throughout the source code, keep these rules in mind as you are working:</p>
+<ul>
+<li>All features or bug fixes <strong>must be tested</strong> by one or more <a href="https://docs.angularjs.org/guide/unit-testing" target="_blank" rel="noopener">specs</a>.</li>
+<li>All public API methods <strong>must be documented</strong> with ngdoc, an extended version of jsdoc (we added<br>support for markdown and templating via @ngdoc tag). To see how we document our APIs, please check<br>out the existing source code and see the section about <a href="#documentation">writing documentation</a></li>
+<li>With the exceptions listed below, we follow the rules contained in<br><a href="https://google.github.io/styleguide/javascriptguide.xml" target="_blank" rel="noopener">Google’s JavaScript Style Guide</a>:<ul>
+<li><strong>Do not use namespaces</strong>: Instead,  wrap the entire AngularJS code base in an anonymous<br>closure and export our API explicitly rather than implicitly.</li>
+<li>Wrap all code at <strong>100 characters</strong>.</li>
+<li>Instead of complex inheritance hierarchies, we <strong>prefer simple objects</strong>. We use prototypal<br>inheritance only when absolutely necessary.</li>
+<li>We <strong>love functions and closures</strong> and, whenever possible, prefer them over objects.</li>
+<li>To write concise code that can be better minified, we <strong>use aliases internally</strong> that map to<br>the external API. See our existing code to see what we mean.</li>
+<li>We <strong>don’t go crazy with type annotations</strong> for private internal APIs unless it’s an internal<br>API that is used throughout AngularJS. The best guidance is to do what makes the most sense.</li>
+</ul>
+</li>
+</ul>
+<h3 id="Specific-topics"><a href="#Specific-topics" class="headerlink" title="Specific topics"></a>Specific topics</h3><h4 id="Provider-configuration"><a href="#Provider-configuration" class="headerlink" title="Provider configuration"></a>Provider configuration</h4><p>When adding configuration (options) to <a href="https://code.angularjs.org/snapshot/docs/api/auto/service/$provide#provider" target="_blank" rel="noopener">providers</a>, we follow a special pattern.</p>
+<ul>
+<li>for each option, add a <code>method</code> that …<ul>
+<li>works as a getter and returns the current value when called without argument</li>
+<li>works as a setter and returns itself for chaining when called with argument</li>
+<li>for boolean options, uses the naming scheme <code>&lt;option&gt;Enabled([enabled])</code></li>
+</ul>
+</li>
+<li>non-primitive options (e.g. objects) should be copied or the properties assigned explicitly to a<br>new object so that the configuration cannot be changed during runtime.</li>
+</ul>
+<p>For a boolean config example, see <a href="https://github.com/angular/angular.js/blob/32fbb2e78f53d765fbb170f7cf99e42e072d363b/src/ng/compile.js#L1378-L1413" target="_blank" rel="noopener"><code>$compileProvider#debugInfoEnabled</code></a></p>
+<p>For an object config example, see <a href="https://github.com/angular/angular.js/blob/202f1809ad14827a6ac6a125157c605d65e0b551/src/ng/location.js#L752-L797" target="_blank" rel="noopener"><code>$location.html5Mode</code></a></p>
+<h4 id="Throwing-errors"><a href="#Throwing-errors" class="headerlink" title="Throwing errors"></a>Throwing errors</h4><p>User-facing errors should be thrown with <a href="https://github.com/angular/angular.js/blob/202f1809ad14827a6ac6a125157c605d65e0b551/src/minErr.js#L53-L113" target="_blank" rel="noopener"><code>minErr</code></a>, a special error function that provides<br>errors ids, templated error messages, and adds a link to a detailed error description.</p>
+<p>The <code>$compile:badrestrict</code> error is a good example for a well-defined <code>minErr</code>:<br><a href="https://github.com/angular/angular.js/blob/202f1809ad14827a6ac6a125157c605d65e0b551/src/ng/compile.js#L1107-L1110" target="_blank" rel="noopener">code</a> and <a href="docs/content/error/$compile/badrestrict.ngdoc">description</a>.</p>
+<h2 id="Git-Commit-Guidelines"><a href="#Git-Commit-Guidelines" class="headerlink" title=" Git Commit Guidelines"></a><a name="commits"></a> Git Commit Guidelines</h2><p>We have very precise rules over how our git commit messages can be formatted.  This leads to <strong>more<br>readable messages</strong> that are easy to follow when looking through the <strong>project history</strong>.  But also,<br>we use the git commit messages to <strong>generate the AngularJS change log</strong>.</p>
+<p>The commit message formatting can be added using a typical git workflow or through the use of a CLI<br>wizard (<a href="https://github.com/commitizen/cz-cli" target="_blank" rel="noopener">Commitizen</a>). To use the wizard, run <code>yarn run commit</code><br>in your terminal after staging your changes in git.</p>
+<h3 id="Commit-Message-Format"><a href="#Commit-Message-Format" class="headerlink" title="Commit Message Format"></a>Commit Message Format</h3><p>Each commit message consists of a <strong>header</strong>, a <strong>body</strong> and a <strong>footer</strong>.  The header has a special<br>format that includes a <strong>type</strong>, a <strong>scope</strong> and a <strong>subject</strong>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;</span><br><span class="line">&lt;BLANK LINE&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;BLANK LINE&gt;</span><br><span class="line">&lt;footer&gt;</span><br></pre></td></tr></table></figure>
+
+<p>The <strong>header</strong> is mandatory and the <strong>scope</strong> of the header is optional.</p>
+<p>Any line of the commit message cannot be longer 100 characters! This allows the message to be easier<br>to read on GitHub as well as in various git tools.</p>
+<h3 id="Revert"><a href="#Revert" class="headerlink" title="Revert"></a>Revert</h3><p>If the commit reverts a previous commit, it should begin with <code>revert:</code>, followed by the header<br>of the reverted commit.<br>In the body it should say: <code>This reverts commit &lt;hash&gt;.</code>, where the hash is the SHA of the commit<br>being reverted.</p>
+<h3 id="Type"><a href="#Type" class="headerlink" title="Type"></a>Type</h3><p>Must be one of the following:</p>
+<ul>
+<li><strong>feat</strong>: A new feature</li>
+<li><strong>fix</strong>: A bug fix</li>
+<li><strong>docs</strong>: Documentation only changes</li>
+<li><strong>style</strong>: Changes that do not affect the meaning of the code (white-space, formatting, missing<br>semi-colons, etc)</li>
+<li><strong>refactor</strong>: A code change that neither fixes a bug nor adds a feature</li>
+<li><strong>perf</strong>: A code change that improves performance</li>
+<li><strong>test</strong>: Adding missing or correcting existing tests</li>
+<li><strong>chore</strong>: Changes to the build process or auxiliary tools and libraries such as documentation<br>generation</li>
+</ul>
+<h3 id="Scope"><a href="#Scope" class="headerlink" title="Scope"></a>Scope</h3><p>The scope could be anything specifying place of the commit change. For example <code>$location</code>,<br><code>$browser</code>, <code>$compile</code>, <code>$rootScope</code>, <code>ngHref</code>, <code>ngClick</code>, <code>ngView</code>, etc…</p>
+<p>You can use <code>*</code> when the change affects more than a single scope.</p>
+<h3 id="Subject"><a href="#Subject" class="headerlink" title="Subject"></a>Subject</h3><p>The subject contains succinct description of the change:</p>
+<ul>
+<li>use the imperative, present tense: “change” not “changed” nor “changes”</li>
+<li>don’t capitalize first letter</li>
+<li>no dot (.) at the end</li>
+</ul>
+<h3 id="Body"><a href="#Body" class="headerlink" title="Body"></a>Body</h3><p>Just as in the <strong>subject</strong>, use the imperative, present tense: “change” not “changed” nor “changes”.<br>The body should include the motivation for the change and contrast this with previous behavior.</p>
+<h3 id="Footer"><a href="#Footer" class="headerlink" title="Footer"></a>Footer</h3><p>The footer should contain any information about <strong>Breaking Changes</strong> and is also the place to<br><a href="https://help.github.com/articles/closing-issues-via-commit-messages/" target="_blank" rel="noopener">reference GitHub issues that this commit closes</a>.</p>
+<p><strong>Breaking Changes</strong> should start with the word <code>BREAKING CHANGE:</code> with a space or two newlines.<br>The rest of the commit message is then used for this.</p>
+<p>A detailed explanation can be found in this <a href="https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#" target="_blank" rel="noopener">document</a>.</p>
+<h2 id="Writing-Documentation"><a href="#Writing-Documentation" class="headerlink" title=" Writing Documentation"></a><a name="documentation"></a> Writing Documentation</h2><p>The AngularJS project uses a form of <a href="http://usejsdoc.org/" target="_blank" rel="noopener">jsdoc</a> called ngdoc for all of its code<br>documentation.</p>
+<p>This means that all the docs are stored inline in the source code and so are kept in sync as it<br>changes.</p>
+<p>There is also extra content (the developer guide, error pages, the tutorial,<br>and misceallenous pages) that live inside the AngularJS repository as markdown files.</p>
+<p>This means that since we generate the documentation from the source code, we can easily provide<br>version-specific documentation by simply checking out a version of AngularJS and running the build.</p>
+<p>Extracting the source code documentation, processing and building the docs is handled by the<br>documentation generation tool <a href="https://github.com/angular/dgeni" target="_blank" rel="noopener">Dgeni</a>.</p>
+<h3 id="Building-and-viewing-the-docs-locally"><a href="#Building-and-viewing-the-docs-locally" class="headerlink" title="Building and viewing the docs locally"></a>Building and viewing the docs locally</h3><p>The docs can be built from scratch using grunt:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt docs</span><br></pre></td></tr></table></figure>
+
+<p>This defers the doc-building task to <code>gulp</code>.</p>
+<p>Note that the docs app is using the local build files to run. This means you might first have to run<br>the build:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn grunt build</span><br></pre></td></tr></table></figure>
+
+<p>(This is also necessary if you are making changes to minErrors).</p>
+<p>To view the docs, see <a href="#local-server">Running a Local Development Web Server</a>.</p>
+<h3 id="Writing-jsdoc"><a href="#Writing-jsdoc" class="headerlink" title="Writing jsdoc"></a>Writing jsdoc</h3><p>The ngdoc utility has basic support for many of the standard jsdoc directives.  But in particular it<br>is interested in the following block tags:</p>
+<ul>
+<li><p><code>@name name</code> - the name of the ngdoc document</p>
+</li>
+<li><p><code>@param {type} name description</code> - describes a parameter of a function</p>
+</li>
+<li><p><code>@returns {type} description</code> - describes what a function returns</p>
+</li>
+<li><p><code>@requires</code> - normally indicates that a JavaScript module is required; in an Angular service it is<br>used to describe what other services this service relies on</p>
+</li>
+<li><p><code>@property</code> - describes a property of an object</p>
+</li>
+<li><p><code>@description</code> - used to provide a description of a component in markdown</p>
+</li>
+<li><p><code>@link</code> - specifies a link to a URL or a type in the API reference.<br>Links to the API have the following structure:</p>
+<ul>
+<li>the module namespace, followed by <code>.</code> (optional, default <code>ng</code>)</li>
+<li>the <code>@ngdoc</code> type (see below), followed by <code>:</code> (optional, automatically inferred)</li>
+<li>the name</li>
+<li>the method, property, or anchor (optional)</li>
+<li>the display name</li>
+</ul>
+<p>For example: <code>{@link ng.type:$rootScope.Scope#$new Scope.$new()}</code>.</p>
+</li>
+<li><p><code>@example</code> - specifies an example. This can be a simple code block, or a<br><a href="#the-example-tag">runnable example</a>.</p>
+</li>
+<li><p><code>@deprecated</code> - specifies that the following code is deprecated and should not be used.<br>In The AngularJS docs, there are two specific patterns which can be used to further describe<br>the deprecation: <code>sinceVersion=&quot;&lt;version&gt;&quot;</code> and <code>removeVersion=&quot;&lt;version&gt;&quot;</code></p>
+</li>
+</ul>
+<p>The <code>type</code> in <code>@param</code> and <code>@returns</code> must be wrapped in <code>{}</code> curly braces, e.g. <code>{Object|Array}</code>.<br>Parameters can be made optional by <em>either</em> appending a <code>=</code> to the type, e.g. <code>{Object=}</code>, <em>or</em> by<br>putting the <code>[name]</code> in square brackets.<br>Default values are only possible with the second syntax by appending <code>=&lt;value&gt;</code> to the parameter<br>name, e.g. <code>@param {boolean} [ownPropsOnly=false]</code>.</p>
+<p>Descriptions can contain markdown formatting.</p>
+<h4 id="AngularJS-specific-jsdoc-directives"><a href="#AngularJS-specific-jsdoc-directives" class="headerlink" title="AngularJS-specific jsdoc directives"></a>AngularJS-specific jsdoc directives</h4><p>In addition to the standard jsdoc tags, there are a number that are specific to the Angular<br>code-base:</p>
+<ul>
+<li><code>@ngdoc</code> - specifies the type of thing being documented. See below for more detail.</li>
+<li><code>@eventType emit|broadcast</code> - specifies whether the event is emitted or broadcast</li>
+<li><code>@usage</code> - shows how to use a <code>function</code> or <code>directive</code>. Is usually automatically generated.</li>
+<li><code>@knownIssue</code> - adds info about known quirks, problems, or limitations with the API, and possibly,<br>workarounds. This section is not for bugs.</li>
+</ul>
+<p>The following are specific to directives:</p>
+<ul>
+<li><code>@animations</code> - specifies the animations a directive supports</li>
+<li><code>@multiElement</code> - specifies if a directive can span over multiple elements</li>
+<li><code>@priority</code> - specifies a directive’s priority</li>
+<li><code>@restrict</code> - is extracted to show the usage of a directive. For example, for [E]lement,<br>[A]ttribute, and [C]lass, use <code>@restrict ECA</code></li>
+<li><code>@scope</code> - specifies that a directive will create a new scope</li>
+</ul>
+<h3 id="The-ngdoc-Directive"><a href="#The-ngdoc-Directive" class="headerlink" title="The @ngdoc Directive"></a>The <code>@ngdoc</code> Directive</h3><p>This directive helps to specify the template used to render the item being documented.  For instance,<br>a directive would have different properties to a filter and so would be documented differently.  The<br>commonly used types are:</p>
+<ul>
+<li><code>overview</code> - a general page (guide, api index)</li>
+<li><code>provider</code> - AngularJS provider, such as <code>$compileProvider</code> or <code>$httpProvider</code>.</li>
+<li><code>service</code> - injectable AngularJS service, such as <code>$compile</code> or <code>$http</code>.</li>
+<li><code>object</code> - well defined object (often exposed as a service)</li>
+<li><code>function</code> - function that will be available to other methods (such as a helper function within<br>the ng module)</li>
+<li><code>method</code> - method on an object/service/controller</li>
+<li><code>property</code> - property on an object/service/controller</li>
+<li><code>event</code> -  AngularJS event that will propagate through the <code>$scope</code> tree.</li>
+<li><code>directive</code> - AngularJS  directive</li>
+<li><code>filter</code> - AngularJS filter</li>
+<li><code>error</code> - minErr error description</li>
+</ul>
+<h3 id="General-documentation-with-Markdown"><a href="#General-documentation-with-Markdown" class="headerlink" title="General documentation with Markdown"></a>General documentation with Markdown</h3><p>Any text in tags can contain markdown syntax for formatting. Generally, you can use any markdown<br>feature.</p>
+<h4 id="Headings"><a href="#Headings" class="headerlink" title="Headings"></a>Headings</h4><p>Only use <em>h2</em> headings and lower, as the page title is set in <em>h1</em>. Also make sure you follow the<br>heading hierarchy. This ensures correct table of contents are created.</p>
+<h4 id="Code-blocks"><a href="#Code-blocks" class="headerlink" title="Code blocks"></a>Code blocks</h4><p>In line code can be specified by enclosing the code in back-ticks (`).<br>A block of multi-line code can be enclosed in triple back-ticks (```) but it is formatted better<br>if it is enclosed in &lt;pre&gt;…&lt;/pre&gt; tags and the code lines themselves are indented.</p>
+<h3 id="Writing-runnable-live-examples-and-e2e-tests"><a href="#Writing-runnable-live-examples-and-e2e-tests" class="headerlink" title="Writing runnable (live) examples and e2e tests"></a>Writing runnable (live) examples and e2e tests</h3><p>It is possible to embed examples in the documentation along with appropriate e2e tests. These<br>examples and scenarios will be converted to runnable code within the documentation.  So it is<br>important that they work correctly.  To ensure this, all these e2e scenarios are run as part of the<br>automated Travis tests.</p>
+<p>If you are adding an example with an e2e test, you should <a href="#e2e-tests">run the test locally</a> first<br>to ensure it passes. You can change <code>it(...)</code> to <code>fit(...)</code> to run only your test,<br>but make sure you change it back to <code>it(...)</code> before committing.</p>
+<h4 id="The-lt-example-gt-tag"><a href="#The-lt-example-gt-tag" class="headerlink" title="The &lt;example&gt; tag"></a>The <code>&lt;example&gt;</code> tag</h4><p>This tag identifies a block of HTML that will define a runnable example. It can take the following<br>attributes:</p>
+<ul>
+<li><code>animations</code> - if set to <code>true</code> then this example uses ngAnimate.</li>
+<li><code>deps</code> - Semicolon-separated list of additional angular module files to be loaded,<br>e.g. <code>angular-animate.js</code></li>
+<li><code>name</code> - every example should have a name. It should start with the component, e.g directive name,<br>and not contain whitespace</li>
+<li><code>module</code> - the name of the app module as defined in the example’s JavaScript</li>
+</ul>
+<p>Within this tag we provide <code>&lt;file&gt;</code> tags that specify what files contain the example code.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;example</span><br><span class="line">  module&#x3D;&quot;angularAppModule&quot;</span><br><span class="line">  name&#x3D;&quot;exampleName&quot;</span><br><span class="line">  deps&#x3D;&quot;angular-animate.js;angular-route.js&quot;</span><br><span class="line">  animations&#x3D;&quot;true&quot;&gt;</span><br><span class="line">  ...</span><br><span class="line">  &lt;file name&#x3D;&quot;index.html&quot;&gt;...&lt;&#x2F;file&gt;</span><br><span class="line">  &lt;file name&#x3D;&quot;script.js&quot;&gt;...&lt;&#x2F;file&gt;</span><br><span class="line">  &lt;file name&#x3D;&quot;animations.css&quot;&gt;...&lt;&#x2F;file&gt;</span><br><span class="line">  &lt;file name&#x3D;&quot;protractor.js&quot;&gt;...&lt;&#x2F;file&gt;</span><br><span class="line">  ...</span><br><span class="line">&lt;&#x2F;example&gt;</span><br></pre></td></tr></table></figure>
+
+<p>You can see an example of a well-defined example <a href="https://github.com/angular/angular.js/blob/0822d34b10ea0371c260c80a1486a4d508ea5a91/src/ng/directive/ngRepeat.js#L249-L340" target="_blank" rel="noopener">in the <code>ngRepeat</code> documentation</a>.</p>
+
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+          
+            <li><a href="/resource/">RESOURCE</a></li>
+            <li><a href="/resource/tools/">TOOLS</a></li>
+            <li><a href="/resource/tools/git/">GIT</a></li>
+            <li>DEVELOPERS</li>
+          
+  </ul>
+
+    
+    
+    
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Developing-AngularJS"><span class="nav-number">1.</span> <span class="nav-text">Developing AngularJS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Development-Setup"><span class="nav-number">1.1.</span> <span class="nav-text"> Development Setup</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Installing-Dependencies"><span class="nav-number">1.1.1.</span> <span class="nav-text">Installing Dependencies</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Forking-AngularJS-on-Github"><span class="nav-number">1.1.2.</span> <span class="nav-text">Forking AngularJS on Github</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Building-AngularJS"><span class="nav-number">1.1.3.</span> <span class="nav-text">Building AngularJS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-a-Local-Development-Web-Server"><span class="nav-number">1.1.4.</span> <span class="nav-text"> Running a Local Development Web Server</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Running-Tests"><span class="nav-number">1.2.</span> <span class="nav-text"> Running Tests</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-the-Unit-Test-Suite"><span class="nav-number">1.2.1.</span> <span class="nav-text"> Running the Unit Test Suite</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-the-End-to-end-Test-Suite"><span class="nav-number">1.2.2.</span> <span class="nav-text"> Running the End-to-end Test Suite</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Coding-Rules"><span class="nav-number">1.3.</span> <span class="nav-text"> Coding Rules</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Specific-topics"><span class="nav-number">1.3.1.</span> <span class="nav-text">Specific topics</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Provider-configuration"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Provider configuration</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Throwing-errors"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">Throwing errors</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Git-Commit-Guidelines"><span class="nav-number">1.4.</span> <span class="nav-text"> Git Commit Guidelines</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Commit-Message-Format"><span class="nav-number">1.4.1.</span> <span class="nav-text">Commit Message Format</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Revert"><span class="nav-number">1.4.2.</span> <span class="nav-text">Revert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Type"><span class="nav-number">1.4.3.</span> <span class="nav-text">Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scope"><span class="nav-number">1.4.4.</span> <span class="nav-text">Scope</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Subject"><span class="nav-number">1.4.5.</span> <span class="nav-text">Subject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Body"><span class="nav-number">1.4.6.</span> <span class="nav-text">Body</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Footer"><span class="nav-number">1.4.7.</span> <span class="nav-text">Footer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Writing-Documentation"><span class="nav-number">1.5.</span> <span class="nav-text"> Writing Documentation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Building-and-viewing-the-docs-locally"><span class="nav-number">1.5.1.</span> <span class="nav-text">Building and viewing the docs locally</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Writing-jsdoc"><span class="nav-number">1.5.2.</span> <span class="nav-text">Writing jsdoc</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AngularJS-specific-jsdoc-directives"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">AngularJS-specific jsdoc directives</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ngdoc-Directive"><span class="nav-number">1.5.3.</span> <span class="nav-text">The @ngdoc Directive</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#General-documentation-with-Markdown"><span class="nav-number">1.5.4.</span> <span class="nav-text">General documentation with Markdown</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Headings"><span class="nav-number">1.5.4.1.</span> <span class="nav-text">Headings</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Code-blocks"><span class="nav-number">1.5.4.2.</span> <span class="nav-text">Code blocks</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Writing-runnable-live-examples-and-e2e-tests"><span class="nav-number">1.5.5.</span> <span class="nav-text">Writing runnable (live) examples and e2e tests</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#The-lt-example-gt-tag"><span class="nav-number">1.5.5.1.</span> <span class="nav-text">The &lt;example&gt; tag</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

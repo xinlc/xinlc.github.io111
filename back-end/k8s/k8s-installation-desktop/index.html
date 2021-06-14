@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="目前安装 Kubernetes 的方式多样，主要是：Minikube、二进制部署、kubeadm、Kops、Rancher、Kubespray。 Docker Desktop 自带 K8s，适用于学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker Desktop 部署 Kubernetes">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/k8s/k8s-installation-desktop/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="目前安装 Kubernetes 的方式多样，主要是：Minikube、二进制部署、kubeadm、Kops、Rancher、Kubespray。 Docker Desktop 自带 K8s，适用于学习。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-21T19:30:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.391Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/k8s/k8s-installation-desktop/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Docker Desktop 部署 Kubernetes | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/k8s/k8s-installation-desktop/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Docker Desktop 部署 Kubernetes
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-21 19:30:00" itemprop="dateCreated datePublished" datetime="2020-05-21T19:30:00+00:00">2020-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>目前安装 Kubernetes 的方式多样，主要是：Minikube、二进制部署、kubeadm、Kops、Rancher、Kubespray。</p>
+<p>Docker Desktop 自带 K8s，适用于学习。</p>
+<a id="more"></a>
+
+<h2 id="K8s-for-Docker-Desktop-安装"><a href="#K8s-for-Docker-Desktop-安装" class="headerlink" title="K8s for Docker Desktop 安装"></a>K8s for Docker Desktop 安装</h2><p>需要先安装<a href="https://www.docker.com/products/docker-desktop" target="_blank" rel="noopener">docker desktop</a> 或 <a href="https://hub.docker.com/editions/community/docker-ce-desktop-mac" target="_blank" rel="noopener">docker-ce-desktop-mac</a></p>
+<p>为 Docker daemon 配置镜像加速，参考<a href="https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors" target="_blank" rel="noopener">阿里云镜像服务</a> 或中科大镜像加速地址<a href="https://docker.mirrors.ustc.edu.cn" target="_blank" rel="noopener">https://docker.mirrors.ustc.edu.cn</a></p>
+<p>由于国内网络环境问题，这里使用阿里云提供的K8s所需镜像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/AliyunContainerService/k8s-for-docker-desktop.git</span><br><span class="line"><span class="built_in">cd</span> k8s-for-docker-desktop</span><br><span class="line">./load_images.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在Windows上，使用 PowerShell</span></span><br><span class="line"><span class="comment"># .\load_images.ps1</span></span><br></pre></td></tr></table></figure>
+
+<p>开启 Kubernetes，并等待 Kubernetes 开始运行，Preferences -&gt; Kubernetes -&gt; 勾选 Enable Kubernetes &amp; Show system containers(advanced)</p>
+<p>说明:</p>
+<ul>
+<li>如果因为安全策略无法执行 PowerShell 脚本，请在 “以管理员身份运行” 的 PowerShell 中执行 <code>Set-ExecutionPolicy RemoteSigned</code> 命令。</li>
+<li>如果需要，可以通过修改 <code>images.properties</code> 文件自行加载你自己需要的镜像</li>
+</ul>
+<p><strong>TIPS：</strong></p>
+<p>在Mac上:</p>
+<p>如果在Kubernetes部署的过程中出现问题，可以通过docker desktop应用日志获得实时日志信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pred=<span class="string">'process matches ".*(ocker|vpnkit).*"</span></span><br><span class="line"><span class="string">  || (process in &#123;"taskgated-helper", "launchservicesd", "kernel"&#125; &amp;&amp; eventMessage contains[c] "docker")'</span></span><br><span class="line">/usr/bin/<span class="built_in">log</span> stream --style syslog --level=debug --color=always --predicate <span class="string">"<span class="variable">$pred</span>"</span></span><br></pre></td></tr></table></figure>
+
+<p>在Windows上:</p>
+<p>如果在Kubernetes部署的过程中出现问题，可以在 C:\ProgramData\DockerDesktop下的service.txt 查看Docker日志;<br>如果看到 Kubernetes一直在启动状态，请参考 <a href="https://github.com/docker/for-win/issues/3769#issuecomment-486046718" target="_blank" rel="noopener">Issue 3769(comment)</a> 和 <a href="https://github.com/docker/for-win/issues/1962#issuecomment-431091114" target="_blank" rel="noopener">Issue 1962(comment)</a></p>
+<h3 id="配置-Kubernetes"><a href="#配置-Kubernetes" class="headerlink" title="配置 Kubernetes"></a>配置 Kubernetes</h3><p>可选操作: 切换Kubernetes运行上下文至 docker-desktop (之前版本的 context 为 docker-for-desktop)</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl config use-context docker-desktop</span><br></pre></td></tr></table></figure>
+
+<p>验证 Kubernetes 集群状态</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl cluster-info</span><br><span class="line">kubectl get nodes</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置-Kubernetes-控制台"><a href="#配置-Kubernetes-控制台" class="headerlink" title="配置 Kubernetes 控制台"></a>配置 Kubernetes 控制台</h3><h4 id="部署-Kubernetes-dashboard"><a href="#部署-Kubernetes-dashboard" class="headerlink" title="部署 Kubernetes dashboard"></a>部署 Kubernetes dashboard</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc5/aio/deploy/recommended.yaml</span><br></pre></td></tr></table></figure>
+
+<p>或</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f kubernetes-dashboard.yaml</span><br></pre></td></tr></table></figure>
+
+<p>检查 kubernetes-dashboard 应用状态</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pod -n kubernetes-dashboard</span><br></pre></td></tr></table></figure>
+
+<p>开启 API Server 访问代理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl proxy</span><br></pre></td></tr></table></figure>
+
+<p>通过如下 URL 访问 Kubernetes dashboard</p>
+<p><a href="http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/" target="_blank" rel="noopener">http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/</a></p>
+<h4 id="配置控制台访问令牌"><a href="#配置控制台访问令牌" class="headerlink" title="配置控制台访问令牌"></a>配置控制台访问令牌</h4><p>对于Mac环境</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TOKEN=$(kubectl -n kube-system describe secret default| awk '$1=="token:"&#123;print $2&#125;')</span><br><span class="line">kubectl config set-credentials docker-for-desktop --token="$&#123;TOKEN&#125;"</span><br><span class="line">echo $TOKEN</span><br></pre></td></tr></table></figure>
+
+<p>对于Windows环境</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">TOKEN=((kubectl -n kube-system describe secret default | Select-String <span class="string">"token:"</span>) -split <span class="string">" +"</span>)[1]</span></span><br><span class="line">kubectl config set-credentials docker-for-desktop --token="$&#123;TOKEN&#125;"</span><br><span class="line">echo $TOKEN</span><br></pre></td></tr></table></figure>
+
+<h4 id="登录dashboard的时候"><a href="#登录dashboard的时候" class="headerlink" title="登录dashboard的时候"></a>登录dashboard的时候</h4><p>选择 <strong>令牌</strong></p>
+<p>输入上文控制台输出的内容</p>
+<p>或者选择 <strong>Kubeconfig</strong> 文件,路径如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Mac: $HOME&#x2F;.kube&#x2F;config</span><br><span class="line">Win: %UserProfile%\.kube\config</span><br></pre></td></tr></table></figure>
+
+<p>点击登陆，进入Kubernetes Dashboard</p>
+<h3 id="配置-Ingress"><a href="#配置-Ingress" class="headerlink" title="配置 Ingress"></a>配置 Ingress</h3><p>说明：如果测试 Istio，不需要安装 Ingress</p>
+<h4 id="安装-Ingress"><a href="#安装-Ingress" class="headerlink" title="安装 Ingress"></a>安装 Ingress</h4><p><a href="https://github.com/kubernetes/ingress-nginx/blob/master/docs/deploy/index.md" target="_blank" rel="noopener">源地址安装说明</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- 若安装脚本无法安装，可以跳转到该地址查看最新操作</span><br></pre></td></tr></table></figure>
+
+<p>安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/cloud/deploy.yaml</span><br></pre></td></tr></table></figure>
+
+<p>验证</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods --all-namespaces -l app.kubernetes.io/name=ingress-nginx</span><br></pre></td></tr></table></figure>
+
+<h4 id="测试示例应用"><a href="#测试示例应用" class="headerlink" title="测试示例应用"></a>测试示例应用</h4><p>部署测试应用，详情参见<a href="https://matthewpalmer.net/kubernetes-app-developer/articles/kubernetes-ingress-guide-nginx-example.html" target="_blank" rel="noopener">社区文章</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f sample/apple.yaml</span><br><span class="line">kubectl create -f sample/banana.yaml</span><br><span class="line">kubectl create -f sample/ingress.yaml</span><br></pre></td></tr></table></figure>
+
+<p>测试示例应用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ curl -kL http://localhost/apple</span><br><span class="line">apple</span><br><span class="line">$ curl -kL http://localhost/banana</span><br><span class="line">banana</span><br></pre></td></tr></table></figure>
+
+<p>删除示例应用</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl delete -f sample/apple.yaml</span><br><span class="line">kubectl delete -f sample/banana.yaml</span><br><span class="line">kubectl delete -f sample/ingress.yaml</span><br></pre></td></tr></table></figure>
+
+<h4 id="删除-Ingress"><a href="#删除-Ingress" class="headerlink" title="删除 Ingress"></a>删除 Ingress</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/cloud/deploy.yaml</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装-Helm"><a href="#安装-Helm" class="headerlink" title="安装 Helm"></a>安装 Helm</h3><p>可以根据文档安装 helm v3 <a href="https://helm.sh/docs/intro/install/" target="_blank" rel="noopener">https://helm.sh/docs/intro/install/</a></p>
+<h4 id="在-Mac-OS-上安装"><a href="#在-Mac-OS-上安装" class="headerlink" title="在 Mac OS 上安装"></a>在 Mac OS 上安装</h4><h5 id="通过-brew-安装"><a href="#通过-brew-安装" class="headerlink" title="通过 brew 安装"></a>通过 brew 安装</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Use homebrew on Mac</span></span><br><span class="line">brew install helm</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Add helm repo</span></span><br><span class="line">helm repo add stable http://mirror.azure.cn/kubernetes/charts/</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Update charts repo</span></span><br><span class="line">helm repo update</span><br></pre></td></tr></table></figure>
+
+<h4 id="在Windows上安装"><a href="#在Windows上安装" class="headerlink" title="在Windows上安装"></a>在Windows上安装</h4><p>如果在后续使用 helm 安装组件的过程中出现版本兼容问题，可以参考 <code>通过二进制包安装</code> 思路安装匹配的版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Use Chocolatey on Windows</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注：安装的时候需要保证网络能够访问googleapis这个域名</span></span><br><span class="line">choco install kubernetes-helm</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Change helm repo</span></span><br><span class="line">helm repo add stable http://mirror.azure.cn/kubernetes/charts/</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Update charts repo</span></span><br><span class="line">helm repo update</span><br></pre></td></tr></table></figure>
+
+<h4 id="测试-Helm-可选"><a href="#测试-Helm-可选" class="headerlink" title="测试 Helm (可选)"></a>测试 Helm (可选)</h4><p>安装 Wordpress</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">helm install wordpress stable/wordpress</span><br></pre></td></tr></table></figure>
+
+<p>查看 wordpress 发布状态</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">helm install wordpress stable/wordpress</span><br></pre></td></tr></table></figure>
+
+<p>卸载 wordpress 发布</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">helm uninstall wordpress</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置-Istio"><a href="#配置-Istio" class="headerlink" title="配置 Istio"></a>配置 Istio</h3><p>说明：Istio Ingress Gateway和Ingress缺省的端口冲突，请移除Ingress并进行下面测试</p>
+<p>可以根据文档安装 Istio <a href="https://istio.io/docs/setup/getting-started/" target="_blank" rel="noopener">https://istio.io/docs/setup/getting-started/</a></p>
+<h4 id="下载-Istio-1-5-0"><a href="#下载-Istio-1-5-0" class="headerlink" title="下载 Istio 1.5.0"></a>下载 Istio 1.5.0</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.5.0 sh -</span><br><span class="line"><span class="built_in">cd</span> istio-1.5.0</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PWD</span>/bin:<span class="variable">$PATH</span></span><br></pre></td></tr></table></figure>
+
+<p>在Windows上，您可以手工下载Istio安装包，或者把<code>getLatestIstio.ps1</code>拷贝到你希望下载 Istio 的目录，并执行 - 说明：根据社区提供的<a href="https://gist.github.com/kameshsampath/796060a806da15b39aa9569c8f8e6bcf" target="_blank" rel="noopener">安装脚本</a>修改而来</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\getLatestIstio.ps1</span><br></pre></td></tr></table></figure>
+
+<h4 id="安装-Istio"><a href="#安装-Istio" class="headerlink" title="安装 Istio"></a>安装 Istio</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">istioctl manifest apply --set profile=demo</span><br></pre></td></tr></table></figure>
+
+<h4 id="检查-Istio-状态"><a href="#检查-Istio-状态" class="headerlink" title="检查 Istio 状态"></a>检查 Istio 状态</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods -n istio-system</span><br></pre></td></tr></table></figure>
+
+<h4 id="为-default-名空间开启自动-sidecar-注入"><a href="#为-default-名空间开启自动-sidecar-注入" class="headerlink" title="为 default 名空间开启自动 sidecar 注入"></a>为 <code>default</code> 名空间开启自动 sidecar 注入</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl label namespace default istio-injection=enabled</span><br><span class="line">kubectl get namespace -L istio-injection</span><br></pre></td></tr></table></figure>
+
+<h4 id="安装-Book-Info-示例"><a href="#安装-Book-Info-示例" class="headerlink" title="安装 Book Info 示例"></a>安装 Book Info 示例</h4><p>请参考 <a href="https://istio.io/docs/examples/bookinfo/" target="_blank" rel="noopener">https://istio.io/docs/examples/bookinfo/</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml</span><br></pre></td></tr></table></figure>
+
+<p>查看示例应用资源</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get svc,pod</span><br></pre></td></tr></table></figure>
+
+<p>确认示例应用在运行中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl exec -it $(kubectl get pod -l app=ratings -o jsonpath='&#123;.items[0].metadata.name&#125;') -c ratings -- curl productpage:9080/productpage | grep -o "&lt;title&gt;.*&lt;/title&gt;"</span><br></pre></td></tr></table></figure>
+
+<p>创建 Ingress Gateway</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f samples/bookinfo/networking/bookinfo-gateway.yaml</span><br></pre></td></tr></table></figure>
+
+<p>查看 Gateway 配置</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get gateway</span><br></pre></td></tr></table></figure>
+
+<p>确认示例应用可以访问</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export GATEWAY_URL=localhost:80</span><br><span class="line">curl -s http://$&#123;GATEWAY_URL&#125;/productpage | grep -o "&lt;title&gt;.*&lt;/title&gt;"</span><br></pre></td></tr></table></figure>
+
+<p>可以通过浏览器访问</p>
+<p><a href="http://localhost/productpage" target="_blank" rel="noopener">http://localhost/productpage</a></p>
+<h4 id="删除实例应用"><a href="#删除实例应用" class="headerlink" title="删除实例应用"></a>删除实例应用</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">samples/bookinfo/platform/kube/cleanup.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="卸载-Istio"><a href="#卸载-Istio" class="headerlink" title="卸载 Istio"></a>卸载 Istio</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">istioctl manifest generate --set profile=demo | kubectl delete -f -</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/AliyunContainerService/k8s-for-docker-desktop/" target="_blank" rel="noopener">https://github.com/AliyunContainerService/k8s-for-docker-desktop/</a></li>
+<li><a href="https://minikube.sigs.k8s.io/" target="_blank" rel="noopener">https://minikube.sigs.k8s.io/</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux/" target="_blank" rel="noopener">https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-installation-intro/" rel="prev" title="Kubernetes 多种安装方式介绍">
+      <i class="fa fa-chevron-left"></i> Kubernetes 多种安装方式介绍
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-installation-minikube/" rel="next" title="Minikube 部署 Kubernetes">
+      Minikube 部署 Kubernetes <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#K8s-for-Docker-Desktop-安装"><span class="nav-number">1.</span> <span class="nav-text">K8s for Docker Desktop 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置-Kubernetes"><span class="nav-number">1.1.</span> <span class="nav-text">配置 Kubernetes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置-Kubernetes-控制台"><span class="nav-number">1.2.</span> <span class="nav-text">配置 Kubernetes 控制台</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#部署-Kubernetes-dashboard"><span class="nav-number">1.2.1.</span> <span class="nav-text">部署 Kubernetes dashboard</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置控制台访问令牌"><span class="nav-number">1.2.2.</span> <span class="nav-text">配置控制台访问令牌</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#登录dashboard的时候"><span class="nav-number">1.2.3.</span> <span class="nav-text">登录dashboard的时候</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置-Ingress"><span class="nav-number">1.3.</span> <span class="nav-text">配置 Ingress</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装-Ingress"><span class="nav-number">1.3.1.</span> <span class="nav-text">安装 Ingress</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试示例应用"><span class="nav-number">1.3.2.</span> <span class="nav-text">测试示例应用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除-Ingress"><span class="nav-number">1.3.3.</span> <span class="nav-text">删除 Ingress</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装-Helm"><span class="nav-number">1.4.</span> <span class="nav-text">安装 Helm</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#在-Mac-OS-上安装"><span class="nav-number">1.4.1.</span> <span class="nav-text">在 Mac OS 上安装</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#通过-brew-安装"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">通过 brew 安装</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在Windows上安装"><span class="nav-number">1.4.2.</span> <span class="nav-text">在Windows上安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试-Helm-可选"><span class="nav-number">1.4.3.</span> <span class="nav-text">测试 Helm (可选)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置-Istio"><span class="nav-number">1.5.</span> <span class="nav-text">配置 Istio</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#下载-Istio-1-5-0"><span class="nav-number">1.5.1.</span> <span class="nav-text">下载 Istio 1.5.0</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装-Istio"><span class="nav-number">1.5.2.</span> <span class="nav-text">安装 Istio</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#检查-Istio-状态"><span class="nav-number">1.5.3.</span> <span class="nav-text">检查 Istio 状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#为-default-名空间开启自动-sidecar-注入"><span class="nav-number">1.5.4.</span> <span class="nav-text">为 default 名空间开启自动 sidecar 注入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装-Book-Info-示例"><span class="nav-number">1.5.5.</span> <span class="nav-text">安装 Book Info 示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除实例应用"><span class="nav-number">1.5.6.</span> <span class="nav-text">删除实例应用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#卸载-Istio"><span class="nav-number">1.6.</span> <span class="nav-text">卸载 Istio</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">2.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

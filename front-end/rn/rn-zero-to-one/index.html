@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="React Native 从入门到入坑！项目模板">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React Native 之 从0到1">
+<meta property="og:url" content="https://blog.lichao.xin/front-end/rn/rn-zero-to-one/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="React Native 从入门到入坑！项目模板">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-08-03T10:31:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.399Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="mobile">
+<meta property="article:tag" content="react-native">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/front-end/rn/rn-zero-to-one/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>React Native 之 从0到1 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/front-end/rn/rn-zero-to-one/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          React Native 之 从0到1
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-03 10:31:00" itemprop="dateCreated datePublished" datetime="2019-08-03T10:31:00+00:00">2019-08-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/RN/" itemprop="url" rel="index"><span itemprop="name">RN</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>React Native 从入门到入坑！<br>项目<a href="https://github.com/xinlc/react-native-typescript-template" target="_blank" rel="noopener">模板</a></p>
+<a id="more"></a>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><h3 id="IOS"><a href="#IOS" class="headerlink" title="IOS"></a>IOS</h3><ul>
+<li>系统：MacOS</li>
+<li>XCode：10.3</li>
+<li>RN：0.60</li>
+<li>使用 <a href="https://brew.sh/" target="_blank" rel="noopener">Homebrew</a> 安装软件</li>
+</ul>
+<p>安装相关软件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">brew install node       <span class="comment"># 推荐使用 nvm 管理 node</span></span><br><span class="line">brew install yarn       <span class="comment"># 使用 yarn 管理 npm</span></span><br><span class="line">brew install watchman   <span class="comment"># 文件监听</span></span><br><span class="line">brew install cocoapods  <span class="comment"># ios 依赖管理</span></span><br><span class="line">brew tap AdoptOpenJDK/openjdk</span><br><span class="line">brew cask install adoptopenjdk8</span><br></pre></td></tr></table></figure>
+
+<p>初始化项目：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 cli</span></span><br><span class="line">yarn global add react-native-cli</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化项目, 安装pods文件可能需要翻墙</span></span><br><span class="line">react-native init AwesomeProject</span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">react-native init AwesomeProject --version X.XX.X</span><br></pre></td></tr></table></figure>
+
+<p>运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> AwesomeProject</span><br><span class="line">react-native run-ios</span><br></pre></td></tr></table></figure>
+
+<h3 id="Android"><a href="#Android" class="headerlink" title="Android"></a>Android</h3><ul>
+<li>下载安装 <a href="https://developer.android.com/studio/index.html" target="_blank" rel="noopener">Android Studio</a>；</li>
+<li><code>Android Studio</code> 默认安装最新的 <code>Android SDK</code>。可以通过 <code>Android Studio</code> 中的 <code>SDK Manager</code> 安装其他 Android SDK。<code>Preferences → Appearance &amp; Behavior → System Settings → Android SDK.</code>；</li>
+<li>从 SDK Manager 中选择<code>SDK Platforms</code>选项卡，然后选中右下角<code>Show Package Details</code>。查找并展开；<code>Android 9 (Pie)</code>，然后确保选中以下项目：</li>
+<li><code>Android SDK Platform 28</code>；</li>
+<li><code>Intel x86 Atom_64 System Image</code> 或 <code>Google APIs Intel x86 Atom System Image</code>；</li>
+<li>选择<code>SDK Tools</code>选项卡，然后选中右下角<code>Show Package Details</code>。查找并展开<code>Android SDK Build-Tools</code>，然后选中<code>28.0.3</code>。最后，点击<code>Apply</code>下载并安装<code>Android SDK</code>和相关的构建工具；</li>
+<li>配置环境变量, <code>$HOME/.bashrc</code> (推荐使用 <code>zsh</code>, <code>$HOME/.zshrc</code>) 加入如下内容：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">export ANDROID_HOME&#x3D;$HOME&#x2F;Library&#x2F;Android&#x2F;sdk</span><br><span class="line">export PATH&#x3D;$PATH:$ANDROID_HOME&#x2F;emulator</span><br><span class="line">export PATH&#x3D;$PATH:$ANDROID_HOME&#x2F;tools</span><br><span class="line">export PATH&#x3D;$PATH:$ANDROID_HOME&#x2F;tools&#x2F;bin</span><br><span class="line">export PATH&#x3D;$PATH:$ANDROID_HOME&#x2F;platform-tools</span><br></pre></td></tr></table></figure>
+
+<h3 id="VSCode"><a href="#VSCode" class="headerlink" title="VSCode"></a>VSCode</h3><p>推荐安装：</p>
+<ul>
+<li><code>ESLint</code></li>
+<li><code>Prettier</code></li>
+<li><code>TabNine</code></li>
+<li><code>Reactjs code snippets</code></li>
+<li><code>React-Native/React/Redux snippets for es6/es7</code></li>
+<li><code>Project Manager</code></li>
+<li><code>Search node_modules</code></li>
+<li><code>Guides</code></li>
+<li><code>Color Highlight</code></li>
+<li><code>vscode-icons</code></li>
+<li><code>Import Cose</code></li>
+</ul>
+<p>添加配置如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"eslint.validate"</span>: [</span><br><span class="line">    <span class="string">"javascript"</span>,</span><br><span class="line">    <span class="string">"javascriptreact"</span>,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"language"</span>: <span class="string">"typescript"</span>,</span><br><span class="line">      <span class="attr">"autoFix"</span>: <span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"language"</span>: <span class="string">"typescriptreact"</span>,</span><br><span class="line">      <span class="attr">"autoFix"</span>: <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="react-native-typescript-template-使用"><a href="#react-native-typescript-template-使用" class="headerlink" title="react-native-typescript-template 使用"></a><a href="https://github.com/xinlc/react-native-typescript-template" target="_blank" rel="noopener">react-native-typescript-template</a> 使用</h2><p>项目使用的技术栈：</p>
+<ul>
+<li>使用 <code>TypeScript</code> 开发，用了就知道，比 <code>Flow</code> 好很多；</li>
+<li>函数式组件 <a href="https://reactjs.org/docs/hooks-intro.html" target="_blank" rel="noopener">React Hooks</a>；</li>
+<li><code>redux</code> 状态管理；</li>
+<li><code>redux-saga</code> 解决组件副作用，业务抽离；</li>
+<li><code>react-native-router-flux</code> Router 管理；</li>
+<li><code>ant-design</code> 组件库；</li>
+<li><code>axios</code> http 管理；</li>
+<li><code>iron-redux</code> 一个类型完美的 Redux 去形式化的库。主要解决 Redux 冗余样板代码问题；</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 克隆本项目</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/xinlc/react-native-typescript-template</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 安装依赖</span></span><br><span class="line"><span class="comment"># RN 0.60 支持自动Link, https://github.com/react-native-community/cli/blob/master/docs/autolinking.m</span></span><br><span class="line"><span class="comment"># 字体需要单独 Link</span></span><br><span class="line">react-native link</span><br><span class="line">react-native link @ant-design/icons-react-native</span><br><span class="line"></span><br><span class="line">yarn install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 可能需要翻墙</span></span><br><span class="line"><span class="built_in">cd</span> ios &amp; pod install</span><br><span class="line"></span><br><span class="line">3. 运行</span><br><span class="line"><span class="comment"># Development server</span></span><br><span class="line">yarn start</span><br><span class="line"></span><br><span class="line"><span class="comment"># IOS</span></span><br><span class="line">react-native run-ios</span><br><span class="line"></span><br><span class="line"><span class="comment"># Android</span></span><br><span class="line">react-native run-android</span><br></pre></td></tr></table></figure>
+
+<p>Debugger 相关命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">react-devtools</span><br><span class="line">adb reverse tcp:8097 tcp:8097</span><br><span class="line"></span><br><span class="line">adb devices</span><br><span class="line">adb -s &lt;device name&gt; reverse tcp:8081 tcp:8081</span><br><span class="line">adb reverse tcp:8081 tcp:8081</span><br><span class="line"></span><br><span class="line">adb shell input keyevent 82</span><br></pre></td></tr></table></figure>
+
+<h2 id="TypeScript-配置"><a href="#TypeScript-配置" class="headerlink" title="TypeScript 配置"></a>TypeScript 配置</h2><p><a href="https://github.com/xinlc/react-native-typescript-template/blob/master/tsconfig.json" target="_blank" rel="noopener">tsconfig.json</a> 参考</p>
+<ol>
+<li>安装相关依赖：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yarn add --dev typescript</span><br><span class="line">yarn add --dev react-native-typescript-transformer</span><br><span class="line">yarn tsc --init --pretty --jsx react</span><br><span class="line">touch rn-cli.config.js</span><br><span class="line">yarn add --dev @types/react @types/react-native</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>配置 <code>rn-cli.config.js</code>, 没有就在项目根目录下新建。</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  getTransformModulePath() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">require</span>.resolve(<span class="string">"react-native-typescript-transformer"</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">  getSourceExts() &#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="string">"ts"</span>, <span class="string">"tsx"</span>];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>项目根目录的 <code>index.js</code> 需要使用 <code>.js</code> 扩展，其他文件就可以使用 <code>.ts</code> 或 <code>.tsx</code> 了。</li>
+</ol>
+<h2 id="图标-amp-启动图设置"><a href="#图标-amp-启动图设置" class="headerlink" title="图标&amp;启动图设置"></a>图标&amp;启动图设置</h2><p>推荐使用<a href="https://icon.wuruihong.com/" target="_blank" rel="noopener">图标工厂</a></p>
+<h3 id="图标"><a href="#图标" class="headerlink" title="图标"></a>图标</h3><h4 id="IOS-1"><a href="#IOS-1" class="headerlink" title="IOS"></a>IOS</h4><p>在 XCode 中：</p>
+<ol>
+<li>点击 <code>Images.scassets</code> 删除 <code>Appicon</code>。</li>
+<li>将生成好的 <code>AppIcon.appiconset</code> 拖入 <code>Images.scassets</code> 空白面板。</li>
+</ol>
+<h4 id="Android-1"><a href="#Android-1" class="headerlink" title="Android"></a>Android</h4><ol>
+<li>替换 <code>android/app/src/main/res</code> 下的图标</li>
+<li>修改 <code>android/app/src/main/AndroidManifest.xml</code></li>
+</ol>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">  &lt;application</span><br><span class="line">    android:name=".MainApplication"</span><br><span class="line">    android:label="@string/app_name"</span><br><span class="line">    android:icon="@mipmap/ic_launcher"</span><br><span class="line"><span class="deletion">-    android:roundIcon="@mipmap/ic_launcher_round"</span></span><br><span class="line">    android:allowBackup="false</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动图"><a href="#启动图" class="headerlink" title="启动图"></a>启动图</h3><p>这里使用 <a href="https://github.com/crazycodeboy/react-native-splash-screen" target="_blank" rel="noopener">react-native-splash-screen</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">yarn add react-native-splash-screen</span><br></pre></td></tr></table></figure>
+
+<h4 id="IOS-2"><a href="#IOS-2" class="headerlink" title="IOS"></a>IOS</h4><ol>
+<li>重新安装 <code>Pods</code> 依赖</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ios &amp; pod install</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>更新 <code>AppDelegate.m</code> 并添加如下内容</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;AppDelegate.h&quot;</span><br><span class="line"></span><br><span class="line">#import &lt;React&#x2F;RCTBundleURLProvider.h&gt;</span><br><span class="line">#import &lt;React&#x2F;RCTRootView.h&gt;</span><br><span class="line">#import &quot;RNSplashScreen.h&quot;  &#x2F;&#x2F; here</span><br><span class="line"></span><br><span class="line">@implementation AppDelegate</span><br><span class="line"></span><br><span class="line">- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; ...other code</span><br><span class="line"></span><br><span class="line">    [RNSplashScreen show];  &#x2F;&#x2F; here</span><br><span class="line">    &#x2F;&#x2F; or</span><br><span class="line">    &#x2F;&#x2F;[RNSplashScreen showSplash:@&quot;LaunchScreen&quot; inRootView:rootView];</span><br><span class="line">    return YES;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>添加 <code>LaunchImage</code></li>
+</ol>
+<ul>
+<li>点击 <code>Images.scassets</code> 右测空白面板，右键 <code>App Icons &amp; Launch Images</code> ➜<br><code>New IOS Launch Image</code></li>
+<li>可以在属性中去掉一些不需要支持的版本</li>
+<li>把切好的图愉快的拖入对应框中吧</li>
+</ul>
+<ol start="4">
+<li>设置为 <code>Launch Image</code>启动</li>
+</ol>
+<ul>
+<li>点击 <code>LaunchScreen.xib</code> ➜ <code>View</code> ➜ <code>Use as Launch Screen</code></li>
+<li><code>General</code> ➜ <code>App Icons and Launch Iamges</code> ➜ <code>Launch Images Source</code> 选择 <code>LaunchImage</code></li>
+<li>清空 <code>Launch Screen File</code></li>
+</ul>
+<ol start="5">
+<li>在你的首页中关闭闪屏</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> SplashScreen <span class="keyword">from</span> <span class="string">"react-native-splash-screen"</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">WelcomePage</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  componentDidMount() &#123;</span><br><span class="line">    <span class="comment">// do stuff while splash screen is shown</span></span><br><span class="line">    <span class="comment">// After having done stuff (such as async tasks) hide the splash screen</span></span><br><span class="line">    SplashScreen.hide();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Android-2"><a href="#Android-2" class="headerlink" title="Android"></a>Android</h4><ol>
+<li>更新 <code>MainActivity.java</code> 并添加如下内</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> android.os.Bundle; <span class="comment">// here</span></span><br><span class="line"><span class="keyword">import</span> com.facebook.react.ReactActivity;</span><br><span class="line"><span class="keyword">import</span> org.devio.rn.splashscreen.SplashScreen; <span class="comment">// here</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">ReactActivity</span> </span>&#123;</span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        SplashScreen.show(<span class="keyword">this</span>);  <span class="comment">// here</span></span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...other code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>在 <code>app/src/main/res/layout</code> 中创建 <code>launch_screen.xml</code> 并添加如下内容</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">RelativeLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"vertical"</span> <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ImageView</span> <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span> <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span> <span class="attr">android:src</span>=<span class="string">"@drawable/launch_screen"</span> <span class="attr">android:scaleType</span>=<span class="string">"centerCrop"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">RelativeLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>添加 <code>launch_screen.png</code> 到 <code>drawable-xxx</code></li>
+<li>在 <code>app/src/main/res/values/colors.xml</code> 添加如下内容</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">"primary_dark"</span>&gt;</span>#000000<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>P.S. 在 Android 闪屏效果不是很好，会有一瞬间白屏。可以在 <code>MainActivity</code> 上加背景图。</p>
+</blockquote>
+<h2 id="打包发布"><a href="#打包发布" class="headerlink" title="打包发布"></a>打包发布</h2><h3 id="IOS-3"><a href="#IOS-3" class="headerlink" title="IOS"></a>IOS</h3><p>待完善……</p>
+<h3 id="Android-3"><a href="#Android-3" class="headerlink" title="Android"></a>Android</h3><h4 id="为-App-签名"><a href="#为-App-签名" class="headerlink" title="为 App 签名"></a>为 App 签名</h4><ol>
+<li>生成私有签名密钥 <code>keytool</code>。</li>
+</ol>
+<ul>
+<li>在 Windows 上 keytool 运行在 <code>C:\Program Files\Java\jdkx.x.x_x\bin</code></li>
+<li>在 Mac 上，如果不确定<code>jdk bin</code>文件夹的位置，可以运行下面命令</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 输入下面命，会返回jdk文件夹</span></span><br><span class="line">/usr/libexec/java_home <span class="comment"># 返回/Library/Java/JavaVirtualMachines/jdkX.X.X_XXX.jdk/Contents/Home</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 此命令会提示输入密钥库和密钥，然后它将密钥库生成为一个名为my-release-key.keystore文件。</span></span><br><span class="line"><span class="comment"># 密钥库包含一个密钥，有效期为10000天。别名是稍后在签署应用时使用的名称。</span></span><br><span class="line">keytool -genkeypair -v -keystore my-release-key.keystore -<span class="built_in">alias</span> my-key-alias -keyalg RSA -keysize 2048 -validity 10000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或用下面这条命令</span></span><br><span class="line"><span class="comment"># sudo keytool -genkey -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：请记住将密钥库文件保密, 最好不要上传到版本控制里。</p>
+</blockquote>
+<ol start="3">
+<li>配置<code>gradle</code>变量</li>
+</ol>
+<ul>
+<li>将<code>my-release-key.keystore</code>文件放在<code>android/app</code>项目文件夹中的目录下。</li>
+<li>编辑文件<code>~/.gradle/gradle.properties</code>或<code>android/gradle.properties</code>，并添加以下内容（替换<strong>*</strong>为正确的密钥库密码, 别名和密钥密码）</li>
+</ul>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">MYAPP_RELEASE_STORE_FILE</span>=<span class="string">my-release-key.keystore</span></span><br><span class="line"><span class="attr">MYAPP_RELEASE_KEY_ALIAS</span>=<span class="string">my-key-alias</span></span><br><span class="line"><span class="attr">MYAPP_RELEASE_STORE_PASSWORD</span>=<span class="string">*****</span></span><br><span class="line"><span class="attr">MYAPP_RELEASE_KEY_PASSWORD</span>=<span class="string">*****</span></span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>将签名配置添加到应用程序的 gradle 配置中, 编辑<code>android/app/build.gradle</code>项目文件夹中的文件，然后添加签名配置</li>
+</ol>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">android &#123;</span><br><span class="line">  ...</span><br><span class="line">  defaultConfig &#123; ... &#125;</span><br><span class="line">  signingConfigs &#123;</span><br><span class="line">    release &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">project</span>.hasProperty(<span class="string">'MYAPP_RELEASE_STORE_FILE'</span>)) &#123;</span><br><span class="line">        storeFile <span class="keyword">file</span>(MYAPP_RELEASE_STORE_FILE)</span><br><span class="line">        storePassword MYAPP_RELEASE_STORE_PASSWORD</span><br><span class="line">        keyAlias MYAPP_RELEASE_KEY_ALIAS</span><br><span class="line">        keyPassword MYAPP_RELEASE_KEY_PASSWORD</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  buildTypes &#123;</span><br><span class="line">    release &#123;</span><br><span class="line">      ...</span><br><span class="line">      signingConfig signingConfigs.release</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>生成发布 APK</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> android</span><br><span class="line"></span><br><span class="line">./gradlew assembleRelease</span><br><span class="line"><span class="comment">#./gradlew bundleRelease</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="性能调优"><a href="#性能调优" class="headerlink" title="性能调优"></a>性能调优</h2><p><a href="https://facebook.github.io/react-native/docs/performance" target="_blank" rel="noopener">Performance</a></p>
+<h3 id="移除-console-log-语句"><a href="#移除-console-log-语句" class="headerlink" title="移除 console.log 语句"></a>移除 <code>console.log</code> 语句</h3><p>在运行打好了离线包的应用时，控制台打印语句可能会极大地拖累 JavaScript 线程。<br>使用 <code>babel-plugin-transform-remove-console</code> 来移除<code>console.*</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装插件</span></span><br><span class="line">yarn add --dev babel-plugin-transform-remove-console</span><br></pre></td></tr></table></figure>
+
+<p>然后在项目根目录下编辑（或者是新建）一个名为 <code>babel.config.js</code>或<code>.babelrc</code> 的文件，在其中加入：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"env"</span>: &#123;</span><br><span class="line">    <span class="attr">"production"</span>: &#123;</span><br><span class="line">      <span class="attr">"plugins"</span>: [<span class="string">"transform-remove-console"</span>]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="拆包-RAM-bundles-和内联引用"><a href="#拆包-RAM-bundles-和内联引用" class="headerlink" title="拆包(RAM bundles)和内联引用"></a>拆包(RAM bundles)和内联引用</h3><p>如果你有一个较为庞大的应用程序，你可能要考虑使用 RAM(Random Access Modules，随机存取模块）格式的 bundle 和内联引用。这对于具有大量页面的应用程序是非常有用的，这些页面在应用程序的典型使用过程中可能不会被打开。通常对于启动后一段时间内不需要大量代码的应用程序来说是非常有用的。例如应用程序包含复杂的配置文件屏幕或较少使用的功能，但大多数会话只涉及访问应用程序的主屏幕更新。我们可以通过使用 RAM 格式来优化 bundle 的加载，并且内联引用这些功能和页面（当它们被实际使用时）</p>
+<h4 id="加载-JavaScript"><a href="#加载-JavaScript" class="headerlink" title="加载 JavaScript"></a>加载 JavaScript</h4><p>在 react-native 执行 JS 代码之前，必须将代码加载到内存中并进行解析。如果你加载了一个 50MB 的 bundle，那么所有的 50mb 都必须被加载和解析才能被执行。RAM 格式的 bundle 则对此进行了优化，即启动时只加载 50MB 中实际需要的部分，之后再逐渐按需加载更多的包。</p>
+<h4 id="内联引用"><a href="#内联引用" class="headerlink" title="内联引用"></a>内联引用</h4><p>内联引用(require 代替 import)可以延迟模块或文件的加载，直到实际需要该文件。一个基本的例子看起来像这样：</p>
+<h5 id="优化前"><a href="#优化前" class="headerlink" title="优化前"></a>优化前</h5><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; Component &#125; <span class="keyword">from</span> <span class="string">"react"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Text &#125; <span class="keyword">from</span> <span class="string">"react-native"</span>;</span><br><span class="line"><span class="comment">// ... import some very expensive modules</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// You may want to log at the file level to verify when this is happening</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"VeryExpensive component loaded"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">VeryExpensive</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  <span class="comment">// lots and lots of code</span></span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">Text</span>&gt;</span>Very Expensive Component<span class="tag">&lt;/<span class="name">Text</span>&gt;</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="优化后"><a href="#优化后" class="headerlink" title="优化后"></a>优化后</h5><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; Component &#125; <span class="keyword">from</span> <span class="string">"react"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; TouchableOpacity, View, Text &#125; <span class="keyword">from</span> <span class="string">"react-native"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> VeryExpensive = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">Optimized</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  state = &#123; <span class="attr">needsExpensive</span>: <span class="literal">false</span> &#125;;</span><br><span class="line"></span><br><span class="line">  didPress = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (VeryExpensive == <span class="literal">null</span>) &#123;</span><br><span class="line">      VeryExpensive = <span class="built_in">require</span>(<span class="string">"./VeryExpensive"</span>).default;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.setState(<span class="function"><span class="params">()</span> =&gt;</span> (&#123;</span><br><span class="line">      needsExpensive: <span class="literal">true</span></span><br><span class="line">    &#125;));</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;View style=&#123;&#123; <span class="attr">marginTop</span>: <span class="number">20</span> &#125;&#125;&gt;</span><br><span class="line">        &lt;TouchableOpacity onPress=&#123;<span class="keyword">this</span>.didPress&#125;&gt;</span><br><span class="line">          &lt;Text&gt;Load&lt;<span class="regexp">/Text&gt;</span></span><br><span class="line"><span class="regexp">        &lt;/</span>TouchableOpacity&gt;</span><br><span class="line">        &#123;<span class="keyword">this</span>.state.needsExpensive ? <span class="xml"><span class="tag">&lt;<span class="name">VeryExpensive</span> /&gt;</span></span> : <span class="literal">null</span>&#125;</span><br><span class="line">      &lt;<span class="regexp">/View&gt;</span></span><br><span class="line"><span class="regexp">    );</span></span><br><span class="line"><span class="regexp">  &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>即便不使用 RAM 格式，内联引用也会使启动时间减少，因为优化后的代码只有在第一次 require 时才会执行。</p>
+</blockquote>
+<h4 id="启用-RAM-格式"><a href="#启用-RAM-格式" class="headerlink" title="启用 RAM 格式"></a>启用 RAM 格式</h4><p>在 iOS 上使用 RAM 格式将创建一个简单的索引文件，React Native 将根据此文件一次加载一个模块。在 Android 上，默认情况下它会为每个模块创建一组文件。你可以像 iOS 一样，强制 Android 只创建一个文件，但使用多个文件可以提高性能，并降低内存占用。</p>
+<p>在 Xcode 中启用 RAM 格式，需要编辑 <code>build phase</code> 里的<code>&quot;Bundle React Native code and images&quot;</code>。在<code>../node_modules/react-native/scripts/react-native-xcode.sh</code>中添加 <code>export BUNDLE_COMMAND=&quot;ram-bundle&quot;</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> BUNDLE_COMMAND=<span class="string">"ram-bundle"</span></span><br><span class="line"><span class="built_in">export</span> NODE_BINARY=node</span><br><span class="line">../node_modules/react-native/scripts/react-native-xcode.sh</span><br></pre></td></tr></table></figure>
+
+<p>在 Android 上启用 RAM 格式，需要编辑 <code>android/app/build.gradle</code> 文件。在<code>apply from: &quot;../../node_modules/react-native/react.gradle&quot;</code>之前修改或添加<code>project.ext.react</code>：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">project</span>.ext.react = [</span><br><span class="line">  bundleCommand: <span class="string">"ram-bundle"</span>,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>如果在 Android 上，你想使用单个索引文件（如前所述），请在 Android 上使用以下行：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">project</span>.ext.react = [</span><br><span class="line">  bundleCommand: <span class="string">"ram-bundle"</span>,</span><br><span class="line">  extraPackagerArgs: [<span class="string">"--indexed-ram-bundle"</span>]</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置预加载及内联引用"><a href="#配置预加载及内联引用" class="headerlink" title="配置预加载及内联引用"></a>配置预加载及内联引用</h4><p>现在我们已经启用了 RAM 格式，然而调用<code>require</code>会造成额外的开销。因为当遇到尚未加载的模块时，<code>require</code>需要通过 bridge 来发送消息。这主要会影响到启动速度，因为在应用程序加载初始模块时可能触发相当大量的请求调用。幸运的是，我们可以配置一部分模块进行预加载。为了做到这一点，你将需要实现某种形式的内联引用。</p>
+<h4 id="调试预加载的模块"><a href="#调试预加载的模块" class="headerlink" title="调试预加载的模块"></a>调试预加载的模块</h4><p>在您的根文件 (index.(ios|android).js) 中，您可以在初始导入(initial imports)之后添加以下内容：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> modules = <span class="built_in">require</span>.getModules();</span><br><span class="line"><span class="keyword">const</span> moduleIds = <span class="built_in">Object</span>.keys(modules);</span><br><span class="line"><span class="keyword">const</span> loadedModuleNames = moduleIds</span><br><span class="line">  .filter(<span class="function"><span class="params">moduleId</span> =&gt;</span> modules[moduleId].isInitialized)</span><br><span class="line">  .map(<span class="function"><span class="params">moduleId</span> =&gt;</span> modules[moduleId].verboseName);</span><br><span class="line"><span class="keyword">const</span> waitingModuleNames = moduleIds</span><br><span class="line">  .filter(<span class="function"><span class="params">moduleId</span> =&gt;</span> !modules[moduleId].isInitialized)</span><br><span class="line">  .map(<span class="function"><span class="params">moduleId</span> =&gt;</span> modules[moduleId].verboseName);</span><br><span class="line"></span><br><span class="line"><span class="comment">// make sure that the modules you expect to be waiting are actually waiting</span></span><br><span class="line"><span class="built_in">console</span>.log(</span><br><span class="line">  <span class="string">"loaded:"</span>,</span><br><span class="line">  loadedModuleNames.length,</span><br><span class="line">  <span class="string">"waiting:"</span>,</span><br><span class="line">  waitingModuleNames.length</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// grab this text blob, and put it in a file named packager/modulePaths.js</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`module.exports = <span class="subst">$&#123;<span class="built_in">JSON</span>.stringify(loadedModuleNames.sort())&#125;</span>;`</span>);</span><br></pre></td></tr></table></figure>
+
+<p>当你运行你的应用程序时，你可以查看 console 控制台，有多少模块已经加载，有多少模块在等待。你可能想查看 moduleNames，看看是否有任何意外。注意在首次 import 时调用的内联引用。你可能需要检查和重构，以确保只有你想要的模块在启动时加载。请注意，您可以根据需要修改 Systrace 对象，以帮助调试有问题的引用。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">require</span>.Systrace.beginEvent = <span class="function"><span class="params">message</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (message.includes(problematicModule)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>虽然每个 App 各有不同，但只加载第一个页面所需的模块是有普适意义的。当你满意时，把 loadedModuleNames 的输出放到 packager/modulePaths.js 文件中。</p>
+<h4 id="更新配置文件-metro-config-js"><a href="#更新配置文件-metro-config-js" class="headerlink" title="更新配置文件(metro.config.js)"></a>更新配置文件(metro.config.js)</h4><p>现在我们需要在项目的根目录中更新<code>metro.config.js</code>来使用我们新生成的<code>modulePaths.js</code>文件:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> modulePaths = <span class="built_in">require</span>(<span class="string">"./packager/modulePaths"</span>);</span><br><span class="line"><span class="keyword">const</span> resolve = <span class="built_in">require</span>(<span class="string">"path"</span>).resolve;</span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">"fs"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Update the following line if the root folder of your app is somewhere else.</span></span><br><span class="line"><span class="comment">// const ROOT_FOLDER = resolve(__dirname, '..');</span></span><br><span class="line"><span class="keyword">const</span> ROOT_FOLDER = resolve(__dirname, <span class="string">"."</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> config = &#123;</span><br><span class="line">  transformer: &#123;</span><br><span class="line">    getTransformOptions: <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> moduleMap = &#123;&#125;;</span><br><span class="line">      modulePaths.forEach(<span class="function"><span class="params">path</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (fs.existsSync(path)) &#123;</span><br><span class="line">          moduleMap[resolve(path)] = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        preloadedModules: moduleMap,</span><br><span class="line">        transform: &#123; <span class="attr">inlineRequires</span>: &#123; <span class="attr">blacklist</span>: moduleMap &#125; &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  projectRoot: ROOT_FOLDER</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = config;</span><br></pre></td></tr></table></figure>
+
+<p>在启用 RAM 格式之后，配置文件中的<code>preloadedModules</code>条目指示哪些模块需要预加载。当 bundle 被加载时，这些模块立即被加载，甚至在任何 requires 执行之前。blacklist 表明这些模块不应该被要求内联引用，因为它们是预加载的，所以使用内联没有性能优势。实际上每次解析内联引用 JavaScript 都会花费额外的时间。</p>
+<h3 id="Hermes-引擎"><a href="#Hermes-引擎" class="headerlink" title="Hermes 引擎"></a>Hermes 引擎</h3><p><a href="https://facebook.github.io/react-native/docs/hermes" target="_blank" rel="noopener">Using Hermes</a></p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>持续更新中……</p>
+<h3 id="RN-Issues"><a href="#RN-Issues" class="headerlink" title="RN Issues"></a>RN Issues</h3><h4 id="FlatList-中-使用-TextInput-会自动失去焦点。"><a href="#FlatList-中-使用-TextInput-会自动失去焦点。" class="headerlink" title="FlatList 中 使用 TextInput, 会自动失去焦点。"></a>FlatList 中 使用 TextInput, 会自动失去焦点。</h4><ul>
+<li><a href="https://github.com/facebook/react-native/issues/23916" target="_blank" rel="noopener">issues/23916</a><br>解决：<blockquote>
+<p>加入 FlatList.removeClippedSubviews={false}</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="IOS-4"><a href="#IOS-4" class="headerlink" title="IOS"></a>IOS</h3><h4 id="添加简体字语言包"><a href="#添加简体字语言包" class="headerlink" title="添加简体字语言包"></a>添加简体字语言包</h4><p>在 XCode 中点击你的项目 ➜ <code>PROJECT</code> ➜ <code>你的项目名</code> ➜ <code>Info</code> ➜ <code>Localizations</code> ➜ <code>Chinese(Simplified)</code></p>
+<h3 id="Android-4"><a href="#Android-4" class="headerlink" title="Android"></a>Android</h3><h4 id="关闭-PNG-合法性检查"><a href="#关闭-PNG-合法性检查" class="headerlink" title="关闭 PNG 合法性检查"></a>关闭 PNG 合法性检查</h4><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="comment">// fix appt is not a png issue when build</span></span><br><span class="line">  aaptOptions &#123;</span><br><span class="line">    cruncherEnabled = <span class="keyword">false</span></span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="android-9-release-打包不能联网-http"><a href="#android-9-release-打包不能联网-http" class="headerlink" title="android 9 release 打包不能联网(http)"></a>android 9 release 打包不能联网(http)</h4><p><a href="https://developer.android.google.cn/about/versions/pie/android-9.0-changes-28" target="_blank" rel="noopener">android-9.0-changes-28</a></p>
+<p>默认情况下启用网络传输层安全协议 (TLS)<br>如果你的应用以 Android 9 或更高版本为目标平台，则默认情况下  isCleartextTrafficPermitted()  函数返回  false。 如果你的应用需要为特定域名启用明文，您必须在应用的网络安全性配置中针对这些域名将  cleartextTrafficPermitted  显式设置为  true。</p>
+<p>在<code>src/main/res</code>中创建<code>xml</code>文件夹，并创建<code>network_security_config.xml</code>文件:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">network-security-config</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">base-config</span> <span class="attr">cleartextTrafficPermitted</span>=<span class="string">"true"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">trust-anchors</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">certificates</span> <span class="attr">src</span>=<span class="string">"system"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">trust-anchors</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">base-config</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">network-security-config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在<code>src/main/androidManifest.xml</code> 添加:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="tag">&lt;<span class="name">application</span></span></span><br><span class="line"><span class="tag">  <span class="attr">...</span></span></span><br><span class="line"><span class="tag">  <span class="attr">android:networkSecurityConfig</span>=<span class="string">"@xml/network_security_config"</span></span></span><br><span class="line"><span class="tag">  <span class="attr">...</span></span></span><br><span class="line"><span class="tag">  &gt;</span></span><br><span class="line">    ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h4 id="Chrome-调试时-setTimeout-和-setInterval-失效"><a href="#Chrome-调试时-setTimeout-和-setInterval-失效" class="headerlink" title="Chrome 调试时 setTimeout 和 setInterval 失效"></a>Chrome 调试时 setTimeout 和 setInterval 失效</h4><p><a href="https://github.com/facebook/react-native/issues/9436" target="_blank" rel="noopener">issues/9436</a></p>
+<p>解决：</p>
+<ul>
+<li>关闭调试</li>
+<li>需要将调试计算机与设备同步。在您的计算机上执行：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell su root <span class="string">"date `date +%m%d%H%M%Y.%S`"</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="生成-Release-包之前最好先运行-react-native-run-android，别问为什么……"><a href="#生成-Release-包之前最好先运行-react-native-run-android，别问为什么……" class="headerlink" title="生成 Release 包之前最好先运行 react-native run-android，别问为什么……"></a>生成 Release 包之前最好先运行 react-native run-android，别问为什么……</h4><h2 id="RN-常用组件库"><a href="#RN-常用组件库" class="headerlink" title="RN 常用组件库"></a>RN 常用组件库</h2><ul>
+<li><a href="https://js.coach/" target="_blank" rel="noopener">js-coach</a> <code>查找第三方库</code></li>
+<li><a href="https://github.com/aksonov/react-native-router-flux" target="_blank" rel="noopener">react-native-router-flux</a> <code>声明式路由</code></li>
+<li><a href="https://reactnavigation.org/docs/en/getting-started.html" target="_blank" rel="noopener">react-navigation</a> <code>官方推荐路由</code></li>
+<li><a href="https://github.com/oblador/react-native-vector-icons" target="_blank" rel="noopener">react-native-vector-icons</a> <code>字体图标，可自定义</code></li>
+<li><a href="https://github.com/crazycodeboy/react-native-splash-screen" target="_blank" rel="noopener">react-native-splash-screen</a> <code>闪屏</code></li>
+<li><a href="https://github.com/react-native-community/react-native-camera" target="_blank" rel="noopener">react-native-camera</a> <code>相机，可扫二维码</code></li>
+<li><a href="https://github.com/ivpusic/react-native-image-crop-picker" target="_blank" rel="noopener">react-native-image-crop-picker</a> <code>图片选中，可裁剪</code></li>
+<li><a href="https://github.com/react-native-community/react-native-permissions" target="_blank" rel="noopener">react-native-permissions</a> <code>获取权限</code></li>
+<li><a href="https://github.com/wix/react-native-calendars" target="_blank" rel="noopener">react-native-calendars</a> <code>日历组件</code></li>
+<li><a href="https://github.com/rt2zz/react-native-contacts" target="_blank" rel="noopener">react-native-contacts</a> <code>获取通讯录</code></li>
+<li><a href="https://github.com/react-native-community/react-native-device-info" target="_blank" rel="noopener">react-native-device-info</a> <code>获取设备信息</code></li>
+<li><a href="https://github.com/archriss/react-native-image-gallery" target="_blank" rel="noopener">react-native-image-gallery</a> <code>图片浏览</code></li>
+<li><a href="https://github.com/Microsoft/react-native-code-push" target="_blank" rel="noopener">code push</a> <code>APP热更新</code></li>
+<li><a href="https://github.com/moment/moment/" target="_blank" rel="noopener">moment</a> <code>日期处理</code></li>
+<li><a href="https://github.com/axios/axios" target="_blank" rel="noopener">axios</a> <code>http库</code></li>
+<li><a href="https://github.com/immutable-js/immutable-js" target="_blank" rel="noopener">immutable</a> <code>不可变数据</code></li>
+<li><a href="https://www.lodashjs.com/docs/latest" target="_blank" rel="noopener">lodash</a> <code>常用工具库</code></li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://reactjs.org/" target="_blank" rel="noopener">react</a></li>
+<li><a href="https://facebook.github.io/react-native/" target="_blank" rel="noopener">react-native</a></li>
+<li><a href="https://facebook.github.io/react-native/docs/view" target="_blank" rel="noopener">react-native-components</a></li>
+<li><a href="https://mobile.ant.design/index-cn" target="_blank" rel="noopener">ant-design-mobile</a></li>
+<li><a href="https://github.com/reactjs/redux" target="_blank" rel="noopener">redux</a></li>
+<li><a href="https://www.redux.org.cn" target="_blank" rel="noopener">redux-cn</a></li>
+<li><a href="https://react-redux.js.org/" target="_blank" rel="noopener">react-redux</a></li>
+<li><a href="https://redux-saga-in-chinese.js.org" target="_blank" rel="noopener">redux-sage</a></li>
+<li><a href="https://github.com/nefe/iron-redux" target="_blank" rel="noopener">iron-redux</a></li>
+<li><a href="https://github.com/redux-utilities/redux-actions" target="_blank" rel="noopener">redux-actions</a></li>
+<li><a href="https://github.com/microsoft/TypeScript" target="_blank" rel="noopener">TypeScript</a></li>
+<li><a href="https://github.com/Microsoft/TypeSearch" target="_blank" rel="noopener">TypeSearch</a></li>
+<li><a href="https://github.com/yarnpkg/yarn" target="_blank" rel="noopener">yarn</a></li>
+<li><a href="https://github.com/dvajs/dva" target="_blank" rel="noopener">dva</a></li>
+<li><a href="https://github.com/mobxjs/mobx" target="_blank" rel="noopener">mobx</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mobile/" rel="tag"># mobile</a>
+              <a href="/tags/react-native/" rel="tag"># react-native</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-dockerfile/" rel="prev" title="Docker 之 Dockefile">
+      <i class="fa fa-chevron-left"></i> Docker 之 Dockefile
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/linux-map/" rel="next" title="Linux 知识地图">
+      Linux 知识地图 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#环境搭建"><span class="nav-number">1.</span> <span class="nav-text">环境搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#IOS"><span class="nav-number">1.1.</span> <span class="nav-text">IOS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Android"><span class="nav-number">1.2.</span> <span class="nav-text">Android</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VSCode"><span class="nav-number">1.3.</span> <span class="nav-text">VSCode</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#react-native-typescript-template-使用"><span class="nav-number">2.</span> <span class="nav-text">react-native-typescript-template 使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TypeScript-配置"><span class="nav-number">3.</span> <span class="nav-text">TypeScript 配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#图标-amp-启动图设置"><span class="nav-number">4.</span> <span class="nav-text">图标&amp;启动图设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#图标"><span class="nav-number">4.1.</span> <span class="nav-text">图标</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IOS-1"><span class="nav-number">4.1.1.</span> <span class="nav-text">IOS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Android-1"><span class="nav-number">4.1.2.</span> <span class="nav-text">Android</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动图"><span class="nav-number">4.2.</span> <span class="nav-text">启动图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IOS-2"><span class="nav-number">4.2.1.</span> <span class="nav-text">IOS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Android-2"><span class="nav-number">4.2.2.</span> <span class="nav-text">Android</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#打包发布"><span class="nav-number">5.</span> <span class="nav-text">打包发布</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#IOS-3"><span class="nav-number">5.1.</span> <span class="nav-text">IOS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Android-3"><span class="nav-number">5.2.</span> <span class="nav-text">Android</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#为-App-签名"><span class="nav-number">5.2.1.</span> <span class="nav-text">为 App 签名</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能调优"><span class="nav-number">6.</span> <span class="nav-text">性能调优</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#移除-console-log-语句"><span class="nav-number">6.1.</span> <span class="nav-text">移除 console.log 语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拆包-RAM-bundles-和内联引用"><span class="nav-number">6.2.</span> <span class="nav-text">拆包(RAM bundles)和内联引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加载-JavaScript"><span class="nav-number">6.2.1.</span> <span class="nav-text">加载 JavaScript</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内联引用"><span class="nav-number">6.2.2.</span> <span class="nav-text">内联引用</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#优化前"><span class="nav-number">6.2.2.1.</span> <span class="nav-text">优化前</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#优化后"><span class="nav-number">6.2.2.2.</span> <span class="nav-text">优化后</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#启用-RAM-格式"><span class="nav-number">6.2.3.</span> <span class="nav-text">启用 RAM 格式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置预加载及内联引用"><span class="nav-number">6.2.4.</span> <span class="nav-text">配置预加载及内联引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#调试预加载的模块"><span class="nav-number">6.2.5.</span> <span class="nav-text">调试预加载的模块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更新配置文件-metro-config-js"><span class="nav-number">6.2.6.</span> <span class="nav-text">更新配置文件(metro.config.js)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hermes-引擎"><span class="nav-number">6.3.</span> <span class="nav-text">Hermes 引擎</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常见问题"><span class="nav-number">7.</span> <span class="nav-text">常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RN-Issues"><span class="nav-number">7.1.</span> <span class="nav-text">RN Issues</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#FlatList-中-使用-TextInput-会自动失去焦点。"><span class="nav-number">7.1.1.</span> <span class="nav-text">FlatList 中 使用 TextInput, 会自动失去焦点。</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IOS-4"><span class="nav-number">7.2.</span> <span class="nav-text">IOS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#添加简体字语言包"><span class="nav-number">7.2.1.</span> <span class="nav-text">添加简体字语言包</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Android-4"><span class="nav-number">7.3.</span> <span class="nav-text">Android</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#关闭-PNG-合法性检查"><span class="nav-number">7.3.1.</span> <span class="nav-text">关闭 PNG 合法性检查</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#android-9-release-打包不能联网-http"><span class="nav-number">7.3.2.</span> <span class="nav-text">android 9 release 打包不能联网(http)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Chrome-调试时-setTimeout-和-setInterval-失效"><span class="nav-number">7.3.3.</span> <span class="nav-text">Chrome 调试时 setTimeout 和 setInterval 失效</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成-Release-包之前最好先运行-react-native-run-android，别问为什么……"><span class="nav-number">7.3.4.</span> <span class="nav-text">生成 Release 包之前最好先运行 react-native run-android，别问为什么……</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RN-常用组件库"><span class="nav-number">8.</span> <span class="nav-text">RN 常用组件库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

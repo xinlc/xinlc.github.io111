@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="缓存，是互联网分层架构中，非常重要的一个部分，通常用它来降低数据库压力，提升系统整体性能，缩短访问时间。缓存作为微服务化设计的一把利剑，解决了高并发、大数据场景下的数据预读能力，大大提高了服务的性能，可以说缓存无处不在。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务架构之分布式缓存：Jetcache">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/java/jetcache/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="缓存，是互联网分层架构中，非常重要的一个部分，通常用它来降低数据库压力，提升系统整体性能，缩短访问时间。缓存作为微服务化设计的一把利剑，解决了高并发、大数据场景下的数据预读能力，大大提高了服务的性能，可以说缓存无处不在。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/8.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/9.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/java/jetcache/7.jpg">
+<meta property="article:published_time" content="2020-03-25T20:48:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.387Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="MicroServices">
+<meta property="article:tag" content="SpringCloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/java/jetcache/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/java/jetcache/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>微服务架构之分布式缓存：Jetcache | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/java/jetcache/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          微服务架构之分布式缓存：Jetcache
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-25 20:48:00" itemprop="dateCreated datePublished" datetime="2020-03-25T20:48:00+00:00">2020-03-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>缓存，是互联网分层架构中，非常重要的一个部分，通常用它来降低数据库压力，提升系统整体性能，缩短访问时间。缓存作为微服务化设计的一把利剑，解决了高并发、大数据场景下的数据预读能力，大大提高了服务的性能，可以说缓存无处不在。</p>
+<a id="more"></a>
+
+<h2 id="什么是缓存？"><a href="#什么是缓存？" class="headerlink" title="什么是缓存？"></a>什么是缓存？</h2><p>缓存，就是数据交换的缓冲区，针对服务对象的不同（本质就是不同的硬件）都可以构建缓存。</p>
+<p>目的是，把读写速度慢的介质的数据保存在读写速度快的介质中，从而提高读写速度，减少时间消耗。 例如：</p>
+<ul>
+<li>CPU 高速缓存 ：高速缓存的读写速度远高于内存。<ul>
+<li>CPU 读数据时，如果在高速缓存中找到所需数据，就不需要读内存</li>
+<li>CPU 写数据时，先写到高速缓存，再回写到内存。</li>
+</ul>
+</li>
+<li>磁盘缓存：磁盘缓存其实就把常用的磁盘数据保存在内存中，内存读写速度也是远高于磁盘的。<ul>
+<li>读数据时，从内存读取。</li>
+<li>写数据时，可先写到内存，定时或定量回写到磁盘，或者是同步回写。</li>
+</ul>
+</li>
+</ul>
+<h2 id="为什么需要缓存？"><a href="#为什么需要缓存？" class="headerlink" title="为什么需要缓存？"></a>为什么需要缓存？</h2><p>使用缓存的目的，就是提升读写性能。而实际业务场景下，更多的是为了提升读性能，带来更好的性能，更高的并发量。</p>
+<p>日常业务中，我们使用比较多的数据库是 MySQL，缓存是 Redis 。Redis 比 MySQL 的读写性能好很多。那么，我们将 MySQL 的热点数据，缓存到 Redis 中，提升读取性能，也减小 MySQL 的读取压力。例如说：</p>
+<ul>
+<li>论坛帖子的访问频率比较高，且要实时更新阅读量，使用 Redis 记录帖子的阅读量，可以提升性能和并发；</li>
+<li>商品信息，数据更新的频率不高，但是读取的频率很高，特别是热门商品；</li>
+</ul>
+<p>一致性问题是分布式常见的问题，分为最终一致性和强一致性。如果对数据有强一致性要求，不能放缓存，我们只能保证最终一致性。</p>
+<h2 id="缓存分类"><a href="#缓存分类" class="headerlink" title="缓存分类"></a>缓存分类</h2><p>从用户请求数据到数据返回，一般会经过浏览器、CDN、代理服务器、应用服务器以及数据库各个环节。每个环节都可以运用缓存技术。缓存的请求顺序是：用户请求 → HTTP 缓存 → CDN 缓存 → 代理服务器缓存 → 进程内缓存 → 分布式缓存 → 数据库。</p>
+<h3 id="HTTP-缓存"><a href="#HTTP-缓存" class="headerlink" title="HTTP 缓存"></a>HTTP 缓存</h3><p>当用户通过浏览器请求服务器的时候，会发起 HTTP 请求，如果对每次 HTTP 请求进行缓存，那么可以减少应用服务器的压力。当第一次请求的时候，浏览器本地缓存库没有缓存数据，会从服务器取数据，并且放到浏览器的缓存库中，下次再进行请求的时候会根据缓存的策略来读取本地或者服务的信息。</p>
+<p>一般信息的传递通过 HTTP 请求头 Header 来传递。目前比较常见的缓存方式有两种，分别是：</p>
+<h4 id="强制缓存"><a href="#强制缓存" class="headerlink" title="强制缓存"></a>强制缓存</h4><p>当浏览器本地缓存库保存了缓存信息，在缓存数据未失效的情况下，可以直接使用缓存数据。否则就需要重新获取数据。</p>
+<p>这种缓存机制看上去比较直接，那么如何判断缓存数据是否失效呢？这里需要关注 HTTP Header 中的两个字段 Expires 和 Cache-Control。</p>
+<p>Expires 为服务端返回的过期时间，客户端第一次请求服务器，服务器会返回资源的过期时间。如果客户端再次请求服务器，会把请求时间与过期时间做比较。如果请求时间小于过期时间，那么说明缓存没有过期，则可以直接使用本地缓存库的信息。反之，说明数据已经过期，必须从服务器重新获取信息，获取完毕又会更新最新的过期时间。</p>
+<p>这种方式在 HTTP 1.0 用的比较多，到了 HTTP 1.1 会使用 Cache-Control 替代。Cache-Control 中有个 max-age 属性，单位是秒，用来表示缓存内容在客户端的过期时间。例如：max-age 是 60 秒，当前缓存没有数据，客户端第一次请求完后，将数据放入本地缓存。那么在 60 秒以内客户端再发送请求，都不会请求应用服务器，而是从本地缓存中直接返回数据。如果两次请求相隔时间超过了 60 秒，那么就需要通过服务器获取数据。</p>
+<h4 id="对比缓存"><a href="#对比缓存" class="headerlink" title="对比缓存"></a>对比缓存</h4><p>需要对比前后两次的缓存标志来判断是否使用缓存。浏览器第一次请求时，服务器会将缓存标识与数据一起返回，浏览器将二者备份至本地缓存库中。浏览器再次请求时，将备份的缓存标识发送给服务器。</p>
+<p>服务器根据缓存标识进行判断，如果判断数据没有发生变化，把判断成功的 304 状态码发给浏览器。这时浏览器就可以使用缓存的数据。服务器返回的就只是 Header，不包含 Body。下面介绍两种标识规则：</p>
+<ol>
+<li>Last-Modified/If-Modified-Since 规则：</li>
+</ol>
+<p>在客户端第一次请求的时候，服务器会返回资源最后的修改时间，记作 Last-Modified。客户端将这个字段连同资源缓存起来。Last-Modified 被保存以后，在下次请求时会以 Last-Modified-Since 字段被发送。当客户端再次请求服务器时，会把 Last-Modified 连同请求的资源一起发给服务器，这时 Last-Modified 会被命名为 If-Modified-Since，存放的内容都是一样的。</p>
+<p>服务器收到请求，会把 If-Modified-Since 字段与服务器上保存的 Last-Modified 字段作比较：</p>
+<ul>
+<li>若服务器上的 Last-Modified 最后修改时间大于请求的 If-Modified-Since，说明资源被改动过，就会把资源（包括 Header+Body）重新返回给浏览器，同时返回状态码 200；</li>
+<li>若资源的最后修改时间小于或等于 If-Modified-Since，说明资源没有改动过，只会返回 Header，并且返回状态码 304。浏览器接受到这个消息就可以使用本地缓存库的数据；</li>
+</ul>
+<blockquote>
+<p>注意：Last-Modified 和 If-Modified-Since 指的是同一个值，只是在客户端和服务器端的叫法不同。</p>
+</blockquote>
+<ol start="2">
+<li>ETag / If-None-Match 规则：</li>
+</ol>
+<p>客户端第一次请求的时候，服务器会给每个资源生成一个 ETag 标记。这个 ETag 是根据每个资源生成的唯一 Hash 串，资源如果发生变化 ETag 随之更改，之后将这个 ETag 返回给客户端，客户端把请求的资源和 ETag 都缓存到本地。ETag 被保存以后，在下次请求时会当作 If-None-Match 字段被发送出去。在浏览器第二次请求服务器相同资源时，会把资源对应的 ETag 一并发送给服务器。在请求时 ETag 转化成 If-None-Match，但其内容不变。</p>
+<p>服务器收到请求后，会把 If-None-Match 与服务器上资源的 ETag 进行比较：</p>
+<ul>
+<li>如果不一致，说明资源被改动过，则返回资源（Header+Body），返回状态码 200；</li>
+<li>如果一致，说明资源没有被改过，则返回 Header，返回状态码 304。浏览器接受到这个消息就可以使用本地缓存库的数据。</li>
+</ul>
+<blockquote>
+<p>注意：ETag 和 If-None-Match 指的是同一个值，只是在客户端和服务器端的叫法不同。</p>
+</blockquote>
+<h3 id="CDN-缓存"><a href="#CDN-缓存" class="headerlink" title="CDN 缓存"></a>CDN 缓存</h3><p>HTTP 缓存主要是对静态数据进行缓存，把从服务器拿到的数据缓存到客户端/浏览器。如果在客户端和服务器之间再加上一层 CDN，可以让 CDN 为应用服务器提供缓存，如果在 CDN 上缓存，就不用再请求应用服务器了。并且 HTTP 缓存提到的两种策略同样可以在 CDN 服务器执行。CDN 的全称是 Content Delivery Network，即内容分发网络。</p>
+<p><img src="/images/java/jetcache/1.jpg" alt="1"></p>
+<p>它的工作流程如下：</p>
+<ul>
+<li>客户端发送 URL 给 DNS 服务器；</li>
+<li>DNS 通过域名解析，把请求指向 CDN 网络中的 DNS 负载均衡器；</li>
+<li>DNS 负载均衡器将最近 CDN 节点的 IP 告诉 DNS，DNS 告之客户端最新 CDN 节点的 IP；</li>
+<li>客户端请求最近的 CDN 节点；</li>
+<li>CDN 节点从应用服务器获取资源返回给客户端，同时将静态信息缓存。注意：客户端下次互动的对象就是 CDN 缓存了，CDN 可以和应用服务器同步缓存信息。</li>
+</ul>
+<p>CDN 接受客户端的请求，它就是离客户端最近的服务器，它后面会链接多台服务器，起到了缓存和负载均衡的作用。</p>
+<h3 id="负载均衡缓存"><a href="#负载均衡缓存" class="headerlink" title="负载均衡缓存"></a>负载均衡缓存</h3><p>虽说它的主要工作是对应用服务器进行负载均衡，但是它也可以作缓存。可以把一些修改频率不高的数据缓存在这里，例如：用户信息，配置信息。通过服务定期刷新这个缓存就行了。</p>
+<p><img src="/images/java/jetcache/2.jpg" alt="2"></p>
+<p>以 Nginx 为例，它的工作流程如下：</p>
+<ul>
+<li>用户请求在达到应用服务器之前，会先访问 Nginx 负载均衡器，如果发现有缓存信息，直接返回给用户；</li>
+<li>如果没有发现缓存信息，Nginx 回源到应用服务器获取信息；</li>
+<li>另外，有一个缓存更新服务，定期把应用服务器中相对稳定的信息更新到 Nginx 本地缓存中。</li>
+</ul>
+<h3 id="进程内缓存"><a href="#进程内缓存" class="headerlink" title="进程内缓存"></a>进程内缓存</h3><p>进程内缓存又叫托管堆缓存，以 Java 为例，这部分缓存放在 JVM 的托管堆上面，同时会受到托管堆回收算法的影响。由于其运行在内存中，对数据的响应速度很快，通常我们会把热点数据放在这里。</p>
+<p>在进程内缓存没有命中的时候，我们会去搜索进程外的缓存或者分布式缓存。这种缓存的好处是没有序列化和反序列化，是最快的缓存。缺点是缓存的空间不能太大，对垃圾回收器的性能有影响。目前比较流行的实现有 Ehcache、GuavaCache、Caffeine。这些架构可以很方便的把一些热点数据放到进程内的缓存中。</p>
+<h3 id="分布式缓存"><a href="#分布式缓存" class="headerlink" title="分布式缓存"></a>分布式缓存</h3><p>与进程内缓存不同，进程外缓存在应用运行的进程之外，它拥有更大的缓存容量，并且可以部署到不同的物理节点，通常会用分布式缓存的方式实现。分布式缓存是与应用分离的缓存服务，最大的特点是，自身是一个独立的应用/服务，与本地应用隔离，多个应用可直接共享一个或者多个缓存应用/服务。</p>
+<p>既然是分布式缓存，缓存的数据会分布到不同的缓存节点上，每个缓存节点缓存的数据大小通常也是有限制的。数据被缓存到不同的节点，为了能方便的访问这些节点，需要引入缓存代理，类似 <a href="https://github.com/twitter/twemproxy" target="_blank" rel="noopener">Twemproxy</a>。他会帮助请求找到对应的缓存节点。同时如果缓存节点增加了，这个代理也会只能识别并且把新的缓存数据分片到新的节点，做横向的扩展。</p>
+<p>为了提高缓存的可用性，会在原有的缓存节点上加入 Master/Slave 的设计。当缓存数据写入 Master 节点的时候，会同时同步一份到 Slave 节点。一旦 Master 节点失效，可以通过代理直接切换到 Slave 节点，这时 Slave 节点就变成了 Master 节点，保证缓存的正常工作。每个缓存节点还会提供缓存过期的机制，并且会把缓存内容定期以快照的方式保存到文件上，方便缓存崩溃之后启动预热加载。</p>
+<h2 id="JetCache-简介"><a href="#JetCache-简介" class="headerlink" title="JetCache 简介"></a>JetCache 简介</h2><p>JetCache 是一个基于 Java 的缓存系统封装，提供统一的 API 和注解来简化缓存的使用。 JetCache 提供了比 SpringCache 更加强大的注解，可以原生的支持 TTL、两级缓存、分布式自动刷新，还提供了 Cache 接口用于手工缓存操作。 当前有四个实现，RedisCache、TairCache（此部分未在github开源）、CaffeineCache(in memory)和一个简易的 LinkedHashMapCache(in memory)，要添加新的实现也是非常简单的。</p>
+<p>全部特性:</p>
+<ul>
+<li>通过统一的 API 访问 Cache 系统；</li>
+<li>通过注解实现声明式的方法缓存，支持TTL和两级缓存；</li>
+<li>通过注解创建并配置 Cache 实例；</li>
+<li>针对所有 Cache 实例和方法缓存的自动统计；</li>
+<li>Key的生成策略和Value的序列化策略是可以配置的；</li>
+<li>分布式缓存自动刷新，分布式锁 (2.2+)；</li>
+<li>异步Cache API (2.2+，使用Redis的lettuce客户端时)；</li>
+<li>Spring Boot 支持；</li>
+</ul>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>JDK：1.8</li>
+<li>Spring Boot：2.2.4.RELEASE</li>
+<li>JetCache：2.5.16</li>
+<li>Jedis：2.9.3</li>
+</ul>
+<h2 id="集成-JetCache"><a href="#集成-JetCache" class="headerlink" title="集成 JetCache"></a>集成 JetCache</h2><p>在 pom.xml 中添加相关依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alicp.jetcache<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetcache-starter-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- springboot 2.2.0以上的版本 jetcache 使用redis问题 --&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- Caused by: java.lang.NoClassDefFoundError: redis/clients/util/Pool --&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- https://github.com/alibaba/jetcache/issues/426 --&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 这个是因为jedis做了不兼容的修改导致的，如果你不用spring cache，把jedis的版本改为2.9.3就可以了。如果你要用spring cache，用最新的master自己编译一个包可以支持新版jedis。 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>redis.clients<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jedis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后创建一个 App 类放在业务包的根下，EnableMethodCache，EnableCreateCacheAnnotation 这两个注解分别激活 Cached 和 CreateCache 注解，其他和标准的 Spring Boot 程序是一样的。这个类可以直接 main 方法运行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alicp.jetcache.anno.config.EnableCreateCacheAnnotation;</span><br><span class="line"><span class="keyword">import</span> com.alicp.jetcache.anno.config.EnableMethodCache;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.SpringApplication;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.SpringBootApplication;</span><br><span class="line"></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableMethodCache</span>(basePackages = <span class="string">"com.company.service"</span>)</span><br><span class="line"><span class="meta">@EnableCreateCacheAnnotation</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySpringBootApp</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(MySpringBootApp<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 application.yml 中进行配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 缓存配置</span></span><br><span class="line"><span class="attr">jetcache:</span></span><br><span class="line">  <span class="comment"># 缓存开关，开发模式建议关闭缓存方便调试</span></span><br><span class="line">  <span class="attr">enableMethodCache:</span> <span class="literal">false</span></span><br><span class="line">  <span class="comment"># 统计间隔，已分钟为单位，0表示不统计</span></span><br><span class="line">  <span class="comment"># statIntervalMinutes: 15</span></span><br><span class="line">  <span class="attr">statIntervalMinutes:</span> <span class="number">0</span></span><br><span class="line">  <span class="comment"># areaName是否作为缓存key前缀，默认true</span></span><br><span class="line">  <span class="attr">areaInCacheName:</span> <span class="literal">false</span></span><br><span class="line">  <span class="comment"># 本地缓存 一级</span></span><br><span class="line">  <span class="attr">local:</span></span><br><span class="line">    <span class="attr">default:</span></span><br><span class="line">      <span class="comment"># 已支持可选：linkedhashmap、caffeine</span></span><br><span class="line">      <span class="attr">type:</span> <span class="string">linkedhashmap</span></span><br><span class="line">      <span class="comment"># key转换器的全局配置，当前只有：fastjson, @see com.alicp.jetcache.support.FastjsonKeyConvertor</span></span><br><span class="line">      <span class="attr">keyConvertor:</span> <span class="string">fastjson</span></span><br><span class="line">      <span class="comment"># 每个缓存实例的最大元素的全局配置，仅local类型的缓存需要指定</span></span><br><span class="line">      <span class="attr">limit:</span> <span class="number">100</span></span><br><span class="line">      <span class="comment"># 以毫秒为单位指定超时时间的全局配置</span></span><br><span class="line">      <span class="attr">expireAfterWriteInMillis:</span> <span class="number">5000</span></span><br><span class="line">      <span class="comment"># 以毫秒为单位，指定多长时间没有访问，就让缓存失效，当前只有本地缓存支持。0表示不使用这个功能</span></span><br><span class="line">      <span class="attr">expireAfterAccessInMillis:</span> <span class="number">1000</span></span><br><span class="line">  <span class="comment"># 远程缓存 二级</span></span><br><span class="line">  <span class="attr">remote:</span></span><br><span class="line">    <span class="attr">default:</span></span><br><span class="line">      <span class="attr">type:</span> <span class="string">redis</span></span><br><span class="line">      <span class="attr">database:</span> <span class="number">1</span></span><br><span class="line">      <span class="attr">host:</span> <span class="string">localhost</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">6379</span></span><br><span class="line">      <span class="attr">password:</span> <span class="number">123456</span></span><br><span class="line">      <span class="attr">keyConvertor:</span> <span class="string">fastjson</span></span><br><span class="line">      <span class="comment"># 序列化器的全局配置。仅remote类型的缓存需要指定，可选java和kryo</span></span><br><span class="line">      <span class="attr">valueEncoder:</span> <span class="string">java</span></span><br><span class="line">      <span class="attr">valueDecoder:</span> <span class="string">java</span></span><br><span class="line">      <span class="comment"># 以毫秒为单位指定超时时间的全局配置, 默认 无穷大</span></span><br><span class="line">      <span class="attr">expireAfterWriteInMillis:</span> <span class="number">60000</span></span><br><span class="line">      <span class="attr">poolConfig:</span></span><br><span class="line">        <span class="attr">minIdle:</span> <span class="number">5</span></span><br><span class="line">        <span class="attr">maxIdle:</span> <span class="number">20</span></span><br><span class="line">        <span class="attr">maxTotal:</span> <span class="number">50</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>更多配置：<a href="https://github.com/alibaba/jetcache/wiki/Config_CN" target="_blank" rel="noopener">https://github.com/alibaba/jetcache/wiki/Config_CN</a></p>
+</blockquote>
+<h3 id="创建缓存实例"><a href="#创建缓存实例" class="headerlink" title="创建缓存实例"></a>创建缓存实例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@CreateCache</span>(expire = <span class="number">100</span>)</span><br><span class="line"><span class="keyword">private</span> Cache&lt;Long, UserDO&gt; userCache;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用起来就像map一样</span></span><br><span class="line">UserDO user = userCache.get(<span class="number">123L</span>);</span><br><span class="line">userCache.put(<span class="number">123L</span>, user);</span><br><span class="line">userCache.remove(<span class="number">123L</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个两级（内存+远程）的缓存，内存中的元素个数限制在50个。</span></span><br><span class="line"><span class="comment">// name属性不是必须的，但是起个名字是个好习惯，展示统计数据的使用，会使用这个名字。如果同一个area两个@CreateCache的name配置一样，它们生成的Cache将指向同一个实例。</span></span><br><span class="line"><span class="meta">@CreateCache</span>(name = <span class="string">"UserService.userCache"</span>, expire = <span class="number">100</span>, cacheType = CacheType.BOTH, localLimit = <span class="number">50</span>)</span><br><span class="line"><span class="keyword">private</span> Cache&lt;Long, UserDO&gt; userCache;</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建方法缓存"><a href="#创建方法缓存" class="headerlink" title="创建方法缓存"></a>创建方法缓存</h3><p>使用 @Cached 方法可以为一个方法添加上缓存。JetCache 通过 Spring AOP 生成代理，来支持缓存功能。注解可以加在接口方法上也可以加在类方法上，但需要保证是个 Spring bean。</p>
+<p>key 使用 Spring 的 <a href="https://docs.spring.io/spring/docs/4.2.x/spring-framework-reference/html/expressions.html" target="_blank" rel="noopener">SpEL</a> 脚本来指定。如果要使用参数名（比如这里的key=”#userId”），项目编译设置target必须为1.8格式，并且指定 javac 的 -parameters 参数，否则就要使用key=”args[0]”这样按下标访问的形式。更多用法 <a href="https://github.com/alibaba/jetcache/wiki/MethodCache_CN" target="_blank" rel="noopener">参考官方文档</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 缓存到远程</span></span><br><span class="line">    <span class="meta">@Cached</span>(name=<span class="string">"UserService.getUserById."</span>, key = <span class="string">"#userId"</span>, expire = <span class="number">3600</span>)</span><br><span class="line">    <span class="function">User <span class="title">getUserById</span><span class="params">(<span class="keyword">long</span> userId)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 两级（内存+远程)</span></span><br><span class="line">    <span class="meta">@Cached</span>(name = <span class="string">"UserService.getUserById2."</span>, key = <span class="string">"#userId"</span>, expire = <span class="number">60</span>, cacheType = CacheType.BOTH)</span><br><span class="line">    <span class="function">User <span class="title">getUserById2</span><span class="params">(<span class="keyword">long</span> userId)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 参数使用对象</span></span><br><span class="line">    <span class="meta">@Cached</span>(name = <span class="string">"UserService.getUserById3."</span>, key = <span class="string">"#userVo.userId"</span>, expire = <span class="number">30</span>, cacheType = CacheType.BOTH)</span><br><span class="line">    <span class="function">User <span class="title">getUserById3</span><span class="params">(UserVo userVo)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只缓存到本地</span></span><br><span class="line">    <span class="meta">@Cached</span>(name = <span class="string">"UserService.getUserById4."</span>, key = <span class="string">"#userVo.userId"</span>, cacheType = CacheType.LOCAL, expire = <span class="number">60</span>, localLimit = <span class="number">1000</span>)</span><br><span class="line">    <span class="function">User <span class="title">getUserById4</span><span class="params">(UserVo userVo)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 多个参数拼接key</span></span><br><span class="line">    <span class="meta">@Cached</span>(name = <span class="string">"UserService.getUserById5."</span>, key = <span class="string">"#param1+'-'+#param2+'-'+#param3"</span>,</span><br><span class="line">      cacheType = CacheType.LOCAL, expire = <span class="number">60</span>, timeUnit = TimeUnit.SECONDS, localLimit = <span class="number">10000</span>)</span><br><span class="line">    <span class="function">User <span class="title">getUserById5</span><span class="params">(String param1, String param2, String param3)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 自动刷新缓存，每隔15秒刷新一次，如果30秒没有访问就停止刷新，可解决缓存雪崩问题</span></span><br><span class="line">    <span class="meta">@Cached</span>(name=<span class="string">"userCache."</span>, key = <span class="string">"#userId"</span>, expire = <span class="number">3600</span>)</span><br><span class="line">    <span class="meta">@CacheRefresh</span>(refresh = <span class="number">15</span>, stopRefreshAfterLastAccess = <span class="number">30</span>)</span><br><span class="line">    <span class="meta">@CachePenetrationProtect</span> <span class="comment">// 当缓存访问未命中的情况下，对并发进行的加载行为进行保护。当前版本实现的是单JVM内的保护，即同一个JVM中同一个key只有一个线程去加载，其它线程等待结果。</span></span><br><span class="line">    <span class="function">User <span class="title">getUserById</span><span class="params">(<span class="keyword">long</span> userId)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 更新缓存</span></span><br><span class="line">    <span class="meta">@CacheUpdate</span>(name=<span class="string">"userCache."</span>, key=<span class="string">"#user.userId"</span>, value=<span class="string">"#user"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">updateUser</span><span class="params">(User user)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 删除缓存</span></span><br><span class="line">    <span class="meta">@CacheInvalidate</span>(name=<span class="string">"userCache."</span>, key=<span class="string">"#userId"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">deleteUser</span><span class="params">(<span class="keyword">long</span> userId)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：缓存的对象要实现 Serializable 接口。</p>
+</blockquote>
+<h3 id="支持同一个类内部不同方法调用时也走缓存"><a href="#支持同一个类内部不同方法调用时也走缓存" class="headerlink" title="支持同一个类内部不同方法调用时也走缓存"></a>支持同一个类内部不同方法调用时也走缓存</h3><p>在使用 Spring AOP 的时候，我们从 IOC 容器中获取的 Bean 对象其实都是代理对象，而不是那些 Bean 对象本身，而当在自己的 Service 类中使用 this 关键字嵌套调用同类中的其他方法时，由于 this 关键字引用的并不是该 Service Bean 对象的代理对象，而是其本身，故 Spring AOP 是不能拦截到这些被嵌套调用的方法的。</p>
+<p>解决方法：类自我注入，使用 @lazy 和 @Autowired 注解实现自我注入，然后使用时用注解的实例代替this调用方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserServiceImpl</span> <span class="keyword">implements</span> <span class="title">UserService</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Lazy</span></span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="keyword">private</span> UserService userService;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function">User <span class="title">getUserById</span><span class="params">(<span class="keyword">long</span> userId)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function">User <span class="title">getUser</span><span class="params">(<span class="keyword">long</span> userId)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> userService.getUserById(userId);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 其他实现省略</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="缓存的更新模式"><a href="#缓存的更新模式" class="headerlink" title="缓存的更新模式"></a>缓存的更新模式</h2><h3 id="Cache-Aside-模式"><a href="#Cache-Aside-模式" class="headerlink" title="Cache Aside 模式"></a>Cache Aside 模式</h3><p><img src="/images/java/jetcache/3.jpg" alt="3"></p>
+<ol>
+<li>读取失效：cache 数据没有命中，查询DB，成功后把数据写入缓存。</li>
+<li>读取命中：读取cache数据。</li>
+<li>更新：把数据更新到DB，失效缓存。</li>
+</ol>
+<h3 id="Read-Write-Through-模式"><a href="#Read-Write-Through-模式" class="headerlink" title="Read/Write Through 模式"></a>Read/Write Through 模式</h3><p><img src="/images/java/jetcache/4.jpg" alt="4"></p>
+<p>缓存代理了DB读取、写入的逻辑，可以把缓存看成唯一的存储。</p>
+<h3 id="Write-Behind-Caching-Write-Back-模式"><a href="#Write-Behind-Caching-Write-Back-模式" class="headerlink" title="Write Behind Caching(Write Back) 模式"></a>Write Behind Caching(Write Back) 模式</h3><p><img src="/images/java/jetcache/5.jpg" alt="5"></p>
+<p>这种模式下所有的操作都走缓存，缓存里的数据再通过异步的方式同步到数据库里面。所以系统的写性能能够大大提升了。</p>
+<h2 id="缓存失效策略"><a href="#缓存失效策略" class="headerlink" title="缓存失效策略"></a>缓存失效策略</h2><p>一般而言，缓存系统中都会对缓存的对象设置一个超时时间，避免浪费相对比较稀缺的缓存资源。对于缓存时间的处理有两种，分别是主动失效和被动失效。</p>
+<h3 id="主动失效"><a href="#主动失效" class="headerlink" title="主动失效"></a>主动失效</h3><p>主动失效是指系统有一个主动检查缓存是否失效的机制，比如通过定时任务或者单独的线程不断的去检查缓存队列中的对象是否失效，如果失效就把他们清除掉，避免浪费。主动失效的好处是能够避免内存的浪费，但是会占用额外的CPU时间。</p>
+<h3 id="被动失效"><a href="#被动失效" class="headerlink" title="被动失效"></a>被动失效</h3><p>被动失效是通过访问缓存对象的时候才去检查缓存对象是否失效，这样的好处是系统占用的CPU时间更少，但是风险是长期不被访问的缓存对象不会被系统清除。</p>
+<h2 id="缓存淘汰策略"><a href="#缓存淘汰策略" class="headerlink" title="缓存淘汰策略"></a>缓存淘汰策略</h2><p>缓存淘汰，又称为缓存逐出(cache replacement algorithms或者cache replacement policies)，是指在存储空间不足的情况下，缓存系统主动释放一些缓存对象获取更多的存储空间。</p>
+<p>对于大部分内存型的分布式缓存（非持久化），淘汰策略优先于失效策略，一旦空间不足，缓存对象即使没有过期也会被释放。一般 LRU 用的比较多。</p>
+<h3 id="FIFO"><a href="#FIFO" class="headerlink" title="FIFO"></a>FIFO</h3><p>先进先出（First In First Out）是一种简单的淘汰策略，缓存对象以队列的形式存在，如果空间不足，就释放队列头部的（先缓存）对象。一般用链表实现。</p>
+<h3 id="LRU"><a href="#LRU" class="headerlink" title="LRU"></a>LRU</h3><p>最近最久未使用（Least Recently Used），这种策略是根据访问的时间先后来进行淘汰的，如果空间不足，会释放最久没有访问的对象（上次访问时间最早的对象）。比较常见的是通过优先队列来实现。</p>
+<h3 id="LFU"><a href="#LFU" class="headerlink" title="LFU"></a>LFU</h3><p>最近最少使用（Least Frequently Used），这种策略根据最近访问的频率来进行淘汰，如果空间不足，会释放最近访问频率最低的对象。这个算法也是用优先队列实现的比较常见。</p>
+<h2 id="分布式缓存的常见问题"><a href="#分布式缓存的常见问题" class="headerlink" title="分布式缓存的常见问题"></a>分布式缓存的常见问题</h2><p>根据事物的两面性，在分布式缓存带来高性能的同时，我们也需要重视它的可用性。那么哪些潜在的风险是我们需要防范的呢？</p>
+<h3 id="缓存与数据库双写不一致"><a href="#缓存与数据库双写不一致" class="headerlink" title="缓存与数据库双写不一致"></a>缓存与数据库双写不一致</h3><p>一般来说，如果允许缓存可以稍微的跟数据库偶尔有不一致的情况，也就是说如果你的系统不是严格要求 “缓存+数据库” 必须保持一致性的话，最好不要做这个方案，即：读请求和写请求串行化，串到一个内存队列里去。串行化可以保证一定不会出现不一致的情况，但是它也会导致系统的吞吐量大幅度降低，用比正常情况下多几倍的机器去支撑线上的一个请求。</p>
+<p>最经典的就是缓存+数据库读写的模式(Cache Aside Pattern)。</p>
+<ul>
+<li>读的时候，先读缓存，缓存没有的话，再读数据库，然后取出数据后放入缓存，同时返回响应。</li>
+<li>更新的时候，先更新数据库，然后再删除缓存。</li>
+</ul>
+<h3 id="一级缓存跟二级缓存不一致问题"><a href="#一级缓存跟二级缓存不一致问题" class="headerlink" title="一级缓存跟二级缓存不一致问题"></a>一级缓存跟二级缓存不一致问题</h3><p>Jetcache 作者的建议是给本地缓存设置一个较短的超时时间，采用消息通知会引来一定复杂度，<a href="https://github.com/alibaba/jetcache/issues/39" target="_blank" rel="noopener">具体看社区讨论</a>。</p>
+<p>这里推荐一个 Java 两级缓存框架 <a href="https://gitee.com/ld/J2Cache/" target="_blank" rel="noopener">J2Cache</a>，感觉很有意思改天可以尝试一下。</p>
+<h4 id="消息队列修改方案"><a href="#消息队列修改方案" class="headerlink" title="消息队列修改方案"></a>消息队列修改方案</h4><p><img src="/images/java/jetcache/8.jpg" alt="8"></p>
+<p>应用在修改完自身缓存数据和数据库数据之后，给消息队列发送数据变化通知，其他应用订阅了消息通知，在收到通知的时候修改缓存数据。</p>
+<h4 id="Timer-修改方案"><a href="#Timer-修改方案" class="headerlink" title="Timer 修改方案"></a>Timer 修改方案</h4><p><img src="/images/java/jetcache/9.jpg" alt="9"></p>
+<p>为了避免耦合，降低复杂性，对“实时一致性”不敏感的情况下，每个应用都会启动一个 Timer，定时从数据库拉取最新的数据，更新缓存。</p>
+<p>不过在有的应用更新数据库后，其他节点通过 Timer 获取数据之间，会读到脏数据。这里需要控制好 Timer 的频率，以及应用与对实时性要求不高的场景。</p>
+<h3 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h3><p>指查询一个一定不存在的数据，由于缓存是不命中时被动写，即从 DB 查询到数据，则更新到缓存中，并且出于容错考虑，如果从 DB 查不到数据则不写入缓存，这将导致这个不存在的数据每次请求都要去 DB 查询，失去了缓存的意义。在流量大时，DB 可能就挂掉了。</p>
+<p><img src="/images/java/jetcache/6.jpg" alt="6"></p>
+<p>举个栗子。系统A，每秒 5000 个请求，结果其中 4000 个请求是黑客发出的恶意攻击。数据库 id 是从 1 开始的，而黑客发过来的请求 id 全部都是负数。这样的话，缓存中不会有，请求每次都“视缓存于无物”，直接查询数据库。这种恶意攻击场景的缓存穿透就会直接把数据库给打死。</p>
+<p>解决方案：</p>
+<ul>
+<li>方案一： 缓存空对象，当从 DB 查询数据为空，我们仍然将这个空结果进行缓存，具体的值需要使用特殊的标识， 能和真正缓存的数据区分开，另外将其过期时间设为较短时间。</li>
+<li>方案二： 使用布隆过滤器，在缓存的基础上，构建布隆过滤器数据结构，在布隆过滤器中存储对应的 key，如果存在，则说明 key 对应的值为空。这样整个业务逻辑如下：<ul>
+<li>根据 key 查询缓存，如果存在对应的值，直接返回；如果不存在则继续执行。</li>
+<li>根据 key 查询缓存在布隆过滤器的值，如果存在值，则说明该 key 不存在对应的值，直接返回空，如果不存在值，继续向下执行。</li>
+<li>查询 DB 对应的值，如果存在，则更新到缓存，并返回该值，如果不存在值，则更新缓存到布隆过滤器中，并返回空。</li>
+</ul>
+</li>
+</ul>
+<h3 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h3><p>缓存由于某些原因无法提供服务，所有请求全部达到 DB 中，导致 DB 负荷大增，最终挂掉的情况。</p>
+<p><img src="/images/java/jetcache/7.jpg" alt="7"></p>
+<p>比如，对于系统 A，假设每天高峰期每秒 5000 个请求，本来缓存在高峰期可以扛住每秒 4000 个请求，但是缓存机器意外发生了全盘宕机。缓存挂了，此时 1 秒 5000 个请求全部落数据库，数据库必然扛不住，它会报一下警，然后就挂了。此时，如果没有采用什么特别的方案来处理这个故障，DBA 很着急，重启数据库，但是数据库立马又被新的流量给打死了。</p>
+<p>解决方案：</p>
+<ul>
+<li>缓存高可用：使用 Redis Sentinel 等搭建缓存的高可用，避免缓存挂掉无法提供服务的情况，从而降低出现缓存雪崩的情况。</li>
+<li>使用本地缓存：如果使用本地缓存，即使分布式缓存挂了，也可以将 DB 查询的结果缓存到本地，避免后续请 求全部达到 DB 中。当然引入本地缓存也会有相应的问题，比如本地缓存实时性如何保证。对于这个问题，可以使用消息队列，在数据更新时，发布数据更新的消息，而进程中有相应的消费者消费该消息，从而更新本地缓存；简单点可以通过设置较短的过期时间，请求时从 DB 重新拉取。</li>
+<li>请求限流和服务降级：通过限制 DB 的每秒请求数，避免数据库挂掉。对于被限流的请求，采用服务降级处理，比如提供默认的值，或者空白值。</li>
+</ul>
+<h3 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h3><p>某个 key 非常热点，访问非常频繁，处于集中式高并发访问的情况，当这个 key 在失效的瞬间，大量的请求就击穿了缓存，直接请求数据库，就像是在一道屏障上凿开了一个洞。</p>
+<p>解决方案：</p>
+<ul>
+<li>使用互斥锁 (mutex key)：感知到缓存失效，去查询 DB 时，使用分布式锁，使得只有一个线程去数据库加载数据，加锁失败的线程，等待即可。<ul>
+<li>获取分布式锁，直到成功或超时。如果超时，则抛出异常，返回。如果成功，继续向下执行。</li>
+<li>再去缓存中。如果存在值，则直接返回；如果不存在，则继续往下执行。因为，获得到锁，可能已经被“那个”线程去查询过 DB ，并更新到缓存中了。</li>
+<li>查询 DB ，并更新到缓存中，返回值。</li>
+</ul>
+</li>
+<li>手动过期：redis 上从不设置过期时间，功能上将过期时间存在 key 对应的 value 里，如果发现要过期，通过一个后台的异步线程进行缓存的构建，也就是“手动”过期。</li>
+</ul>
+<h3 id="缓存并发竞争"><a href="#缓存并发竞争" class="headerlink" title="缓存并发竞争"></a>缓存并发竞争</h3><p>某个时刻，多个系统实例都去更新某个 key。可以基于 redis 或 zookeeper 实现分布式锁。每个系统通过 redis 获取分布式锁，确保同一时间，只能有一个系统实例在操作某个 key，别人都不允许读和写。</p>
+<p>要写入缓存的数据都是从 mysql 里查出来的，都得写入 mysql 中，写入 mysql 中的时候必须保存一个时间戳，从 mysql 查出来的时候，时间戳也要查出来。</p>
+<p>每次要写之前，先判断一下当前这个 value 的时间戳是否比缓存里的 value 的时间戳要新。如果是的话，那么可以写，否则，就不能用旧的数据覆盖新的数据。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/alibaba/jetcache/" target="_blank" rel="noopener">https://github.com/alibaba/jetcache/</a></li>
+<li><a href="https://github.com/alibaba/jetcache/wiki/" target="_blank" rel="noopener">https://github.com/alibaba/jetcache/wiki/</a></li>
+<li><a href="https://gitee.com/ld/J2Cache/" target="_blank" rel="noopener">https://gitee.com/ld/J2Cache/</a></li>
+<li><a href="https://spring.io/guides/gs/caching/" target="_blank" rel="noopener">https://spring.io/guides/gs/caching/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MicroServices/" rel="tag"># MicroServices</a>
+              <a href="/tags/SpringCloud/" rel="tag"># SpringCloud</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/java/prometheus/" rel="prev" title="微服务架构之 Metrics 监控：Prometheus">
+      <i class="fa fa-chevron-left"></i> 微服务架构之 Metrics 监控：Prometheus
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/java/spring-cloud-alibaba-seata/" rel="next" title="微服务架构之分布式事务：Spring Cloud Alibaba Seata">
+      微服务架构之分布式事务：Spring Cloud Alibaba Seata <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是缓存？"><span class="nav-number">1.</span> <span class="nav-text">什么是缓存？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要缓存？"><span class="nav-number">2.</span> <span class="nav-text">为什么需要缓存？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存分类"><span class="nav-number">3.</span> <span class="nav-text">缓存分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP-缓存"><span class="nav-number">3.1.</span> <span class="nav-text">HTTP 缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#强制缓存"><span class="nav-number">3.1.1.</span> <span class="nav-text">强制缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对比缓存"><span class="nav-number">3.1.2.</span> <span class="nav-text">对比缓存</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CDN-缓存"><span class="nav-number">3.2.</span> <span class="nav-text">CDN 缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡缓存"><span class="nav-number">3.3.</span> <span class="nav-text">负载均衡缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程内缓存"><span class="nav-number">3.4.</span> <span class="nav-text">进程内缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式缓存"><span class="nav-number">3.5.</span> <span class="nav-text">分布式缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JetCache-简介"><span class="nav-number">4.</span> <span class="nav-text">JetCache 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境"><span class="nav-number">5.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集成-JetCache"><span class="nav-number">6.</span> <span class="nav-text">集成 JetCache</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建缓存实例"><span class="nav-number">6.1.</span> <span class="nav-text">创建缓存实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建方法缓存"><span class="nav-number">6.2.</span> <span class="nav-text">创建方法缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#支持同一个类内部不同方法调用时也走缓存"><span class="nav-number">6.3.</span> <span class="nav-text">支持同一个类内部不同方法调用时也走缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存的更新模式"><span class="nav-number">7.</span> <span class="nav-text">缓存的更新模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Cache-Aside-模式"><span class="nav-number">7.1.</span> <span class="nav-text">Cache Aside 模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Read-Write-Through-模式"><span class="nav-number">7.2.</span> <span class="nav-text">Read&#x2F;Write Through 模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Write-Behind-Caching-Write-Back-模式"><span class="nav-number">7.3.</span> <span class="nav-text">Write Behind Caching(Write Back) 模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存失效策略"><span class="nav-number">8.</span> <span class="nav-text">缓存失效策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主动失效"><span class="nav-number">8.1.</span> <span class="nav-text">主动失效</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#被动失效"><span class="nav-number">8.2.</span> <span class="nav-text">被动失效</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存淘汰策略"><span class="nav-number">9.</span> <span class="nav-text">缓存淘汰策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FIFO"><span class="nav-number">9.1.</span> <span class="nav-text">FIFO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LRU"><span class="nav-number">9.2.</span> <span class="nav-text">LRU</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LFU"><span class="nav-number">9.3.</span> <span class="nav-text">LFU</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式缓存的常见问题"><span class="nav-number">10.</span> <span class="nav-text">分布式缓存的常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存与数据库双写不一致"><span class="nav-number">10.1.</span> <span class="nav-text">缓存与数据库双写不一致</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一级缓存跟二级缓存不一致问题"><span class="nav-number">10.2.</span> <span class="nav-text">一级缓存跟二级缓存不一致问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#消息队列修改方案"><span class="nav-number">10.2.1.</span> <span class="nav-text">消息队列修改方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Timer-修改方案"><span class="nav-number">10.2.2.</span> <span class="nav-text">Timer 修改方案</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存穿透"><span class="nav-number">10.3.</span> <span class="nav-text">缓存穿透</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存雪崩"><span class="nav-number">10.4.</span> <span class="nav-text">缓存雪崩</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存击穿"><span class="nav-number">10.5.</span> <span class="nav-text">缓存击穿</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存并发竞争"><span class="nav-number">10.6.</span> <span class="nav-text">缓存并发竞争</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">11.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Keepalived + HAProxy&#x2F;Nginx 实现高可用负载均衡。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="负载均衡高可用 之 Keepalived">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/lb-ha/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Keepalived + HAProxy&#x2F;Nginx 实现高可用负载均衡。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/lb-ha/1.png">
+<meta property="article:published_time" content="2020-04-26T20:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Keepalived">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/linux/lb-ha/1.png">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/lb-ha/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>负载均衡高可用 之 Keepalived | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/lb-ha/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          负载均衡高可用 之 Keepalived
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-26 20:00:00" itemprop="dateCreated datePublished" datetime="2020-04-26T20:00:00+00:00">2020-04-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Keepalived + HAProxy/Nginx 实现高可用负载均衡。</p>
+<a id="more"></a>
+
+<h2 id="Keepalived-介绍"><a href="#Keepalived-介绍" class="headerlink" title="Keepalived 介绍"></a>Keepalived 介绍</h2><p>Keepalived 是一种高性能的服务器高可用或热备解决方案， Keepalived 可以用来防止服务器单点故障的发生，通过配合 HAProxy 或 Nginx 可以实现 web 前端服务的高可用。</p>
+<p>Keepalived 以 VRRP 协议为实现基础，用 VRRP 协议来实现高可用性(HA)。 VRRP(Virtual RouterRedundancy Protocol)协议是用于实现路由器冗余的协议， VRRP 协议将两台或多台路由器设备虚拟成一个设备，对外提供虚拟路由器 IP(一个或多个)，而在路由器组内部，如果实际拥有这个对外 IP 的路由器如果工作正常的话就是 MASTER，或者是通过算法选举产生， MASTER 实现针对虚拟路由器 IP 的各种网络功能，如 ARP 请求， ICMP，以及数据的转发等；其他设备不拥有该虚拟 IP，状态是 BACKUP，除了接收 MASTER 的VRRP 状态通告信息外，不执行对外的网络功能。当主机失效时，BACKUP 将接管原先 MASTER 的网络功能。VRRP 协议使用多播数据来传输 VRRP 数据， VRRP 数据使用特殊的虚拟源 MAC 地址发送数据而不是自身网卡的 MAC 地址， VRRP 运行时只有 MASTER 路由器定时发送 VRRP 通告信息，表示 MASTER 工作正常以及虚拟路由器 IP(组)， BACKUP 只接收 VRRP 数据，不发送数据，如果一定时间内没有接收到 MASTER 的通告信息，各 BACKUP 将宣告自己成为 MASTER，发送通告信息，重新进行 MASTER 选举状态。</p>
+<h2 id="LVS、Ngnix、HAProxy-负载均衡比较"><a href="#LVS、Ngnix、HAProxy-负载均衡比较" class="headerlink" title="LVS、Ngnix、HAProxy 负载均衡比较"></a>LVS、Ngnix、HAProxy 负载均衡比较</h2><p>负载均衡（Load Balance）是应用于互联网后台系统架构设计中的各层，它将请求均匀分摊到多个操作单元上执行。</p>
+<p>目前，在线上环境中应用较多的负载均衡器硬件有F5 BIG-IP，但是硬件设备昂贵，不如软件适应互联网公司的快速发展。最常用的负载均衡软件有LVS、HAProxy和Nginx，结合高可用软件有Heartbeat、Keepalived，可以搭建出承载海量请求的成熟架构如LVS+Keepalived、HAProxy+keepalived等.</p>
+<p>三种负载均衡软件LVS、HAProxy和Nginx的优缺点说明如下：</p>
+<h3 id="LVS-负载均衡的特点"><a href="#LVS-负载均衡的特点" class="headerlink" title="LVS 负载均衡的特点"></a>LVS 负载均衡的特点</h3><ul>
+<li>抗负载能力强。抗负载能力强、性能高，能达到F5硬件的60%；对内存和cpu资源消耗比较低</li>
+<li>工作在网络4层，通过vrrp协议转发（仅作分发之用），具体的流量由linux内核处理，因此没有流量的产生。</li>
+<li>稳定性、可靠性好，自身有完美的热备方案；（如:LVS+Keepalived）</li>
+<li>应用范围比较广，可以对所有应用做负载均衡；</li>
+<li>不支持正则处理，不能做动静分离。</li>
+<li>支持负载均衡算法:rr（轮循）、wrr（带权轮循）、lc（最小连接）、wlc（权重最小连接）</li>
+<li>配置 复杂，对网络依赖比较大，稳定性很高。</li>
+</ul>
+<h3 id="HAProxy-负载均衡的特点"><a href="#HAProxy-负载均衡的特点" class="headerlink" title="HAProxy 负载均衡的特点"></a>HAProxy 负载均衡的特点</h3><ul>
+<li>支持两种代理模式: TCP（四层）和HTTP（七层），支持虚拟主机；</li>
+<li>能够补充Nginx的一些缺点比如Session的保持，Cookie的引导等工作</li>
+<li>支持url检测后端的服务器出问题的检测会有很好的帮助。</li>
+<li>更多负载均衡策略比如:动态加权轮循(Dynamic Round Robin)，加权源地址哈希(Weighted Source Hash)，加权URL哈希和加权参数哈希(Weighted Parameter Hash)已经实现</li>
+<li>单纯从效率上来讲HAProxy更会比Nginx有更出色的负载均衡速度。</li>
+<li>HAProxy可以对Mysql进行负载均衡，对后端的DB节点进行检测和负载均衡。</li>
+<li>支持负载均衡算法:Round-robin（轮循）、Weight-round-robin（带权轮循）、source（原地址保持）、RI（请求URL）、rdp-cookie（根据cookie）</li>
+<li>不能做Web服务器即Cache。</li>
+</ul>
+<h3 id="Ngnix-负载均衡的特点"><a href="#Ngnix-负载均衡的特点" class="headerlink" title="Ngnix 负载均衡的特点"></a>Ngnix 负载均衡的特点</h3><ul>
+<li>工作在网络的7层之上，可以针对http应用做一些分流的策略，比如针对域名、目录结构；</li>
+<li>Nginx对网络的依赖比较小，理论上能ping通就就能进行负载功能；</li>
+<li>Nginx安装和配置比较简单，测试起来比较方便；</li>
+<li>也可以承担高的负载压力且稳定，一般能支撑超过1万次的并发；</li>
+<li>对后端服务器的健康检查，只支持通过端口来检测，不支持通过url来检测。</li>
+<li>Nginx对请求的异步处理可以帮助节点服务器减轻负载；</li>
+<li>Nginx仅能支持http、https和Email协议，这样就在适用范围较小。</li>
+<li>不支持Session的直接保持，但能通过ip_hash来解决。、对Big request header的支持不是很好，</li>
+<li>支持负载均衡算法:Round-robin（轮循）、Weight-round-robin（带权轮循）、Ip-hash（Ip哈希）</li>
+<li>Nginx还能做Web服务器即Cache功能。</li>
+</ul>
+<h3 id="适用业务场景"><a href="#适用业务场景" class="headerlink" title="适用业务场景"></a>适用业务场景</h3><p>网站建设初期，可以选用Nigix/HAproxy作为反向代理负载均衡（或者流量不大都可以不选用负载均衡），因为其配置简单，性能也能满足一般的业务场景。如果考虑到负载均衡器是有单点问题，可以采用Nginx+Keepalived/HAproxy+Keepalived避免负载均衡器自身的单点问题。</p>
+<p>网站并发达到一定程度之后，为了提高稳定性和转发效率，可以使用LVS、毕竟LVS比Nginx/HAproxy要更稳定，转发效率也更高。不过维护LVS对维护人员的要求也会更高，投入成本也更大。</p>
+<p>Niginx与Haproxy比较: Niginx支持七层、用户量最大，稳定性比较可靠。Haproxy支持四层和七层，支持更多的负载均衡算法，支持session保存等。具体选型看使用场景，目前来说Haproxy由于弥补了一些Niginx的缺点致使其用户量也不断在提升。</p>
+<p><strong>衡量负载均衡器好坏的几个重要因素</strong></p>
+<ul>
+<li>会话率: 单位时间内的处理的请求数</li>
+<li>会话并发能力: 并发处理能力</li>
+<li>数据率: 处理数据能力</li>
+</ul>
+<p>经过官方测试统计，haproxy 单位时间处理的最大请求数为20000个，可以同时维护40000-50000个并发连接，最大数据处理能力为10Gbps。综合上述，haproxy是性能优越的负载均衡、反向代理服务器。</p>
+<p>简单地不负责任地说，性能上LVS&gt;HA&gt;Nginx，功能性和便利性上Nginx&gt;HA&gt;LVS。</p>
+<p>对于一个大型后台系统来说，LVS、HAProxy和Nginx常常可以配合使用在不同的层级，LVS用在接入层的最前端，承担最大规模的流量分发；HAProxy负责按域名分流；而Nginx只需要作为Web服务器负责单机内多实例的负载均衡，或负责目录结构分流和静态资源缓存等需求。</p>
+<h3 id="四层和七层负载"><a href="#四层和七层负载" class="headerlink" title="四层和七层负载"></a>四层和七层负载</h3><p>所谓的四层与七层负载均衡，就是在对后台服务器进行负载均衡时，依据OSI四层的信息或七层的信息来决定怎么样转发流量。比如四层负载均衡通过报文中的目标IP地址和端口，七层负载均衡通过报文中的应用层信息(URL、HTTP头部等信息)，选择到达目的的内部服务器。四层负载均衡在解包上的消耗更少，可以达到更高的性能。而七层负载算法可以通过更多的应用层信息分发请求，功能性上更强大。</p>
+<p>七层负载均衡软件可以通过URL、Cookie和HTTP head等信息，而不仅仅是IP端口分发流量，还可以修改客户端的请求和服务器的响应（例如HTTP请求中的Header的重写），极大提升了应用系统在网络层的灵活性。</p>
+<p>在网络中常见的SYN Flood攻击中，黑客会对同一目标大量发送SYN报文，耗尽服务器上的相关资源，以达到Denial of Service(DoS)的目的。四层模式下这些SYN攻击都会被转发到后端的服务器上；而在七层模式下这些SYN攻击在负载均衡设备上就截止，不会影响后台服务器的正常运营。另外负载均衡设备可以在七层层面设定多种策略，过滤SQL Injection等应用层面的特定攻击手段，进一步提高系统整体安全。</p>
+<h2 id="安装-Keepalived"><a href="#安装-Keepalived" class="headerlink" title="安装 Keepalived"></a>安装 Keepalived</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">yum -y install epel-release</span><br><span class="line">yum -y install keepalived</span><br><span class="line"></span><br><span class="line">systemctl <span class="built_in">enable</span> keepalived</span><br></pre></td></tr></table></figure>
+
+<h2 id="Keepalived-Nginx"><a href="#Keepalived-Nginx" class="headerlink" title="Keepalived + Nginx"></a>Keepalived + Nginx</h2><p>我们的目标是“在一台工作的Nginx崩溃的情况下，系统能够检测到，并自动将请求切换到另外一台备份的Nginx服务器上”。所以，之前安装的两台Nginx，一台是Master服务器是主要的工作服务器，另一台是备份服务器，在Master服务器出现问题后，由后者接替其工作。如下图所示（外网的请求使用一个由keepalived控制的虚拟的浮动IP进行访问）：</p>
+<p><img src="/images/linux/lb-ha/1.png" alt="1"></p>
+<p><strong>安装 Nginx</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum -y install nginx</span><br></pre></td></tr></table></figure>
+
+<p><strong>keepalived 配置</strong></p>
+<blockquote>
+<p>Master 节点</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/keepalived/keepalived.conf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">! Configuration File for keepalived</span><br><span class="line">global_defs &#123;</span><br><span class="line">  # 标识本节点ID，通常为 hostname</span><br><span class="line">  router_id master01</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># keepalived 会定时执行脚本并对脚本执行的结果进行分析，动态调整 vrrp_instance 的优先级。如果脚本执行结果为 0，并且 weight 配置的值大于 0，则优先级相应的增加。如果脚本执行结果非 0，并且 weight配置的值小于 0，则优先级相应的减少。其他情况，维持原本配置的优先级，即配置文件中 priority 对应的值。</span><br><span class="line"># 检测 nginx 运行状态的脚本</span><br><span class="line">vrrp_script chknginx &#123;</span><br><span class="line">  script &quot;&#x2F;etc&#x2F;keepalived&#x2F;nginx_check.sh&quot; # 检测 nginx 状态的脚本路径</span><br><span class="line">  interval 2 # 检测时间间隔</span><br><span class="line">  weight -2 # 如果条件成立，权重-2, 有多少个keepalived节点，就填写多少数量，这样保证这个节点的优先级比其他节点都低</span><br><span class="line"></span><br><span class="line">  # fall 表示多少次检查失败，就算节点失效。默认1</span><br><span class="line">  #fall 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 定义虚拟路由， VI_1 为虚拟路由的标示符，自己定义名称</span><br><span class="line">vrrp_instance VI_1 &#123;</span><br><span class="line">  # 节点角色,MASTER(一个) 和 BACKUP(多个),按角色选中填写</span><br><span class="line">  state MASTER # 主节点为 MASTER， 对应的备份节点为 BACKUP</span><br><span class="line">  interface eth0 # 绑定虚拟 IP 的网络接口，与本机 IP 地址所在的网络接口相同</span><br><span class="line">  virtual_router_id 33 # 虚拟路由的 ID 号，两个节点设置必须一样，可选 IP 最后一段使用, 相同的 VRID 为一个组，他将决定多播的 MAC 地址</span><br><span class="line">  mcast_src_ip 192.168.2.201 # 本机 IP 地址</span><br><span class="line">  priority 100 # 节点优先级， 值范围 0-254， MASTER 要比 BACKUP 高，每个节点的优先级一定要不一样</span><br><span class="line">  nopreempt # 优先级高的设置 nopreempt 解决异常恢复后再次抢占的问题</span><br><span class="line">  advert_int 1 ## 组播信息发送间隔，两个节点设置必须一样， 默认 1s</span><br><span class="line">  # 设置验证信息，两个节点必须一致</span><br><span class="line">  authentication &#123;</span><br><span class="line">    auth_type PASS</span><br><span class="line">    auth_pass 1111</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  # 将 track_script 块加入 instance 配置块</span><br><span class="line">  track_script &#123;</span><br><span class="line">    chknginx # 执行 Nginx 监控的服务</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  # 虚拟 IP 池, 两个节点设置必须一样,对外提供,客户端访问此ip即为访问 keepalived 中MASTER 所在主机</span><br><span class="line">  virtual_ipaddress &#123;</span><br><span class="line">    192.168.1.100</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>编写 Nginx 状态检测脚本</strong></p>
+<p>下面的脚本代码为检测 nginx 服务器是否正常运行,如果没有运行则尝试启动 nginx,休眠2s后再次检测nginx运行状态,如果还没有运行,则退出此主机上的 keepalived,由其他 keepalived 接管.</p>
+<p>/etc/keepalived/nginx_check.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="keyword">if</span> [ $(ps -C nginx --no-header | wc -l) -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    systecmctl start nginx</span><br><span class="line">    <span class="comment"># /usr/local/nginx/sbin/nginx</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">sleep 2</span><br><span class="line"><span class="keyword">if</span> [ $(ps -C nginx --no-header | wc -l) -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    systecmctl stop keepalived</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>保存后，给脚本赋执行权限：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x /etc/keepalived/nginx_check.sh</span><br></pre></td></tr></table></figure>
+
+<p>启动 keepalived</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start keepalived</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Slave 节点</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/keepalived/keepalived.conf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">! Configuration File for keepalived</span><br><span class="line">global_defs &#123;</span><br><span class="line">  # 标识本节点ID，通常为 hostname</span><br><span class="line">  router_id slave01</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">vrrp_script chknginx &#123;</span><br><span class="line">  script &quot;&#x2F;etc&#x2F;keepalived&#x2F;nginx_check.sh&quot;</span><br><span class="line">  interval 2</span><br><span class="line">  weight -20</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">vrrp_instance VI_1 &#123;</span><br><span class="line">  state BACKUP # 备份节点为 BACKUP</span><br><span class="line">  virtual_router_id 33 # 虚拟路由的 ID 号，两个节点设置必须一样，可选 IP 最后一段使用, 相同的 VRID 为一个组，他将决定多播的 MAC 地址</span><br><span class="line">  mcast_src_ip 192.168.2.202 # 本机 IP 地址</span><br><span class="line">  priority 90 # 节点优先级， 值范围 0-254， MASTER 要比 BACKUP 高</span><br><span class="line">  nopreempt</span><br><span class="line">  advert_int 1</span><br><span class="line">  authentication &#123;</span><br><span class="line">    auth_type PASS</span><br><span class="line">    auth_pass 1111</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  track_script &#123;</span><br><span class="line">    chknginx</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  virtual_ipaddress &#123;</span><br><span class="line">    192.168.1.100</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>测试</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看 服务器ip，vip 应该在 master01 上</span></span><br><span class="line">ip a</span><br><span class="line"></span><br><span class="line"><span class="comment"># [master01] 模拟宕机</span></span><br><span class="line">systemctl start keepalived</span><br><span class="line"></span><br><span class="line"><span class="comment"># [slave01] 此时查看 ip，vip 应该漂移到了 slave01 上</span></span><br><span class="line">ip a</span><br></pre></td></tr></table></figure>
+
+<h2 id="Keepalived-非抢占模式"><a href="#Keepalived-非抢占模式" class="headerlink" title="Keepalived 非抢占模式"></a>Keepalived 非抢占模式</h2><p>keepalived的切换可以是自动的，但是却做不到毫秒级别，他怎么都需要几秒钟的时间进行切换。这就有一个问题，虽然在主节点出现问题我们转向备份节点时，这个延时无可避免，但是在我们修复主节点后，实际上并没有必要再马上做一次切换，所以Keepalived提供了一种非抢占模式，来满足这个要求。</p>
+<p>通过修改配置 <code>state</code> 都为 <code>BACKUP</code>，并在 <code>vrrp_instance</code> 添加 <code>nopreempt</code> 表示不抢夺VIP。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Keepalived/" rel="tag"># Keepalived</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/java/maven/" rel="prev" title="Maven 简要说明">
+      <i class="fa fa-chevron-left"></i> Maven 简要说明
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/lb-4-7/" rel="next" title="四层负载均衡和七层负载均衡的区别">
+      四层负载均衡和七层负载均衡的区别 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Keepalived-介绍"><span class="nav-number">1.</span> <span class="nav-text">Keepalived 介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LVS、Ngnix、HAProxy-负载均衡比较"><span class="nav-number">2.</span> <span class="nav-text">LVS、Ngnix、HAProxy 负载均衡比较</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LVS-负载均衡的特点"><span class="nav-number">2.1.</span> <span class="nav-text">LVS 负载均衡的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HAProxy-负载均衡的特点"><span class="nav-number">2.2.</span> <span class="nav-text">HAProxy 负载均衡的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ngnix-负载均衡的特点"><span class="nav-number">2.3.</span> <span class="nav-text">Ngnix 负载均衡的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#适用业务场景"><span class="nav-number">2.4.</span> <span class="nav-text">适用业务场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四层和七层负载"><span class="nav-number">2.5.</span> <span class="nav-text">四层和七层负载</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-Keepalived"><span class="nav-number">3.</span> <span class="nav-text">安装 Keepalived</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Keepalived-Nginx"><span class="nav-number">4.</span> <span class="nav-text">Keepalived + Nginx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Keepalived-非抢占模式"><span class="nav-number">5.</span> <span class="nav-text">Keepalived 非抢占模式</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

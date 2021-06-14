@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="之前有用 Jenkins 做过 CI&#x2F;CD，但是太吃内存了，今天发现 GitLab 自带了 CI，并整合了 K8S 实现 Auto DevOps。今天尝试下用 GitLab CI 做持续集成。自己环境都是在 Docker 中运行，以下环境基于 CentOS 7.7、Docker CE 19.03.5、GitLab CE 12.4.3、GitLab Runner 12.5.0 搭建。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Docker 搭建 GitLab CE 实现 CI">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/docker/docker-gitlab/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="之前有用 Jenkins 做过 CI&#x2F;CD，但是太吃内存了，今天发现 GitLab 自带了 CI，并整合了 K8S 实现 Auto DevOps。今天尝试下用 GitLab CI 做持续集成。自己环境都是在 Docker 中运行，以下环境基于 CentOS 7.7、Docker CE 19.03.5、GitLab CE 12.4.3、GitLab Runner 12.5.0 搭建。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-11-27T10:33:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.383Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="gitlab">
+<meta property="article:tag" content="ci&#x2F;cd">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/docker/docker-gitlab/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用 Docker 搭建 GitLab CE 实现 CI | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/docker/docker-gitlab/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用 Docker 搭建 GitLab CE 实现 CI
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-27 10:33:00" itemprop="dateCreated datePublished" datetime="2019-11-27T10:33:00+00:00">2019-11-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>之前有用 Jenkins 做过 <code>CI/CD</code>，但是太吃内存了，今天发现 GitLab 自带了 CI，并整合了 <code>K8S</code> 实现 <code>Auto DevOps</code>。今天尝试下用 <code>GitLab CI</code> 做持续集成。自己环境都是在 Docker 中运行，以下环境基于 <code>CentOS 7.7</code>、<code>Docker CE 19.03.5</code>、<code>GitLab CE 12.4.3</code>、<code>GitLab Runner 12.5.0</code> 搭建。</p>
+<a id="more"></a>
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>GitLab 是一套基于 Ruby 开发的开源 Git 项目管理应用，其提供的功能和 Github 类似，不同的是 GitLab 提供一个 <code>GitLab CE</code> 社区版本，用户可以将其部署在自己的服务器上，这样就可以用于团队内部的项目代码托管仓库。</p>
+<h3 id="持续集成-CI-持续部署-CD"><a href="#持续集成-CI-持续部署-CD" class="headerlink" title="持续集成(CI)/持续部署(CD)"></a>持续集成(CI)/持续部署(CD)</h3><p>持续集成是程序开发人员在频繁的提交代码之后，能有相应的环境能对其提交的代码自动执行构建（Build）、测试（Test），然后根据测试结果判断新提交的代码能否合并加入主分支当中，而持续部署也就是在持续集成之后自动将代码部署（Deploy）到生产环境上。</p>
+<h3 id="GitLab-CI"><a href="#GitLab-CI" class="headerlink" title="GitLab CI"></a>GitLab CI</h3><p><code>GitLab CI</code> 是 GitLab 提供的持续集成服务(从 <code>8.0</code> 版本之后，<code>GitLab CI</code> 已经集成在 GitLab 中了)，只要在你的仓库根目录下创建一个<code>.gitlab-ci.yml</code> 文件，并为该项目指派一个 Runner，当有合并请求或者 Push 操作时，你写在 <code>.gitlab-ci.yml</code> 中的构建脚本就会开始执行。</p>
+<h4 id="Pipeline"><a href="#Pipeline" class="headerlink" title="Pipeline"></a>Pipeline</h4><p>Pipeline 相当于一个构建任务，里面可以包含多个流程，如依赖安装、编译、测试、部署等。任何提交或者 Merge Request 的合并都可以触发 Pipeline。</p>
+<h4 id="Stages"><a href="#Stages" class="headerlink" title="Stages"></a>Stages</h4><p>Stage 表示构建的阶段，即上面提到的流程。</p>
+<ul>
+<li>所有 Stages 按顺序执行，即当一个 Stage 完成后，下一个 Stage 才会开始；</li>
+<li>任一 Stage 失败，后面的 Stages 将永不会执行，Pipeline 失败；</li>
+<li>只有当所有 Stages 完成后，Pipeline 才会成功；</li>
+</ul>
+<h4 id="Jobs"><a href="#Jobs" class="headerlink" title="Jobs"></a>Jobs</h4><p>Job 是 Stage 中的任务。</p>
+<ul>
+<li>相同 Stage 中的 Jobs 会并行执行；</li>
+<li>任一 Job 失败，那么 Stage 失败，Pipeline 失败；</li>
+<li>相同 Stage 中的 Jobs 都执行成功时，该 Stage 成功；</li>
+</ul>
+<h3 id="GitLab-Runner"><a href="#GitLab-Runner" class="headerlink" title="GitLab Runner"></a>GitLab Runner</h3><p><code>GitLab Runner</code> 是配合 <code>GitLab CI</code> 进行构建任务的应用程序，<code>GitLab CI</code> 负责 <code>yml</code> 文件中各种阶段流程的执行，而 <code>GitLab Runner</code> 就是具体的负责执行每个阶段的脚本执行，一般来说 <code>GitLab Runner</code> 需要安装在单独的机器上通过其提供的注册操作跟 <code>GitLab CI</code> 进行绑定，当然，你也可以让其和 GitLab 安装在一起，只是有的情况下，你代码的构建过程对资源消耗十分严重的时候，会拖累 GitLab 给其他用户提供正常的 Git 服务。</p>
+<h4 id="Runner-类型"><a href="#Runner-类型" class="headerlink" title="Runner 类型"></a>Runner 类型</h4><p>GitLab-Runner可以分类两种类型：Shared Runner（共享型）和Specific Runner（指定型）。</p>
+<ul>
+<li><code>Shared Runner</code>：所有工程都能够用的，且只有系统管理员能够创建；</li>
+<li><code>Specific Runner</code>：只有特定的项目可以使用；</li>
+</ul>
+<h2 id="安装-GitLab-CE"><a href="#安装-GitLab-CE" class="headerlink" title="安装 GitLab CE"></a>安装 GitLab CE</h2><p>docker-compose.yml：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">gitlab:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">'gitlab/gitlab-ce:latest'</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span> <span class="comment">#1</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">'11080:80'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">'11443:443'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">'11022:22'</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span> <span class="comment">#2</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/timezone:/etc/timezone:ro</span> <span class="comment">#3</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">'/mnt/docker-data/gitlab/config:/etc/gitlab'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">'/mnt/docker-data/gitlab/logs:/var/log/gitlab'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">'/mnt/docker-data/gitlab/data:/var/opt/gitlab'</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li><code>#1</code>：unless-stopped 和 always 基本一样，如果容器正常 stopped，然后机器重启或 docker 服务重启，这种情况下容器将不会被 restart；</li>
+<li><code>#2</code>：挂载时间，保证主机时间和容器内时间一致（ro 代表容器内只读）；</li>
+<li><code>#3</code>：挂载时区；</li>
+</ul>
+<blockquote>
+<p>注意：生产环境要限制cpu和内存。</p>
+</blockquote>
+<h3 id="修改-external-url-带端口号"><a href="#修改-external-url-带端口号" class="headerlink" title="修改 external_url 带端口号"></a>修改 external_url 带端口号</h3><p>官方的 <code>docker-compose.yml</code> 配置，不能加端口号，否则不好用。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">environment:</span></span><br><span class="line">    <span class="attr">GITLAB_OMNIBUS_CONFIG:</span> <span class="string">|</span></span><br><span class="line">      <span class="string">external_url</span> <span class="string">'https://gitlab.example.com'</span></span><br></pre></td></tr></table></figure>
+
+<p>解决：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一种</span></span><br><span class="line"><span class="comment">## 修改 docker-compose.yml 为</span></span><br><span class="line">gitlab:</span><br><span class="line">  hostname: <span class="string">"192.168.0.80:11080"</span> <span class="comment"># 这里定义容器主机名，GitLab 默认使用了主机名作为 url</span></span><br><span class="line">  environment:</span><br><span class="line">    GITLAB_OMNIBUS_CONFIG: |</span><br><span class="line">      <span class="comment"># external_url 'http://192.168.0.80:11080'</span></span><br><span class="line">      gitlab_rails[<span class="string">"time_zone"</span>] = <span class="string">"Asia/Shanghai"</span></span><br><span class="line">      nginx[<span class="string">"listen_port"</span>] = 80</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种</span></span><br><span class="line"><span class="comment">## 1. 修改 /etc/gitlab/gitlab.rb 配置，修改 external_url 替换成自己的ip和端口或域名。</span></span><br><span class="line">vim /mnt/docker-data/gitlab/config/gitlab.rb</span><br><span class="line">external_url <span class="string">'http://192.168.0.80:11080'</span></span><br><span class="line">nginx[<span class="string">'listen_port'</span>] = 11080</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 修改 docker-compose.yml，ports: 11080:11080，重新运行容器</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三种</span></span><br><span class="line"><span class="comment">## 1. 进入容器修改配置，gitlab：host，port 等</span></span><br><span class="line">vi /opt/gitlab/embedded/service/gitlab-rails/config/gitlab.yml</span><br><span class="line"></span><br><span class="line"><span class="comment">## 2. 然后运行</span></span><br><span class="line">gitlab-ctl restart</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装-GitLab-Runner"><a href="#安装-GitLab-Runner" class="headerlink" title="安装 GitLab Runner"></a>安装 GitLab Runner</h2><p>docker-compose.yml：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">gitlab-runner:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">'gitlab/gitlab-runner:latest'</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/timezone:/etc/timezone:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">'/mnt/docker-data/gitlab-runner/config:/etc/gitlab-runner'</span></span><br><span class="line">    <span class="attr">logging:</span></span><br><span class="line">      <span class="attr">driver:</span> <span class="string">"json-file"</span></span><br><span class="line">      <span class="attr">options:</span></span><br><span class="line">        <span class="attr">max-size:</span> <span class="string">"20m"</span></span><br><span class="line">        <span class="attr">max-file:</span> <span class="string">"2"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="配置-Maven-项目-GitLab-Runner"><a href="#配置-Maven-项目-GitLab-Runner" class="headerlink" title="配置 Maven 项目 GitLab Runner"></a>配置 Maven 项目 GitLab Runner</h2><p>Java Maven 项目</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进入容器</span></span><br><span class="line">$ docker-compose <span class="built_in">exec</span> gitlab-runner bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注册 runner，相关参数可以从 GitLab项目 -&gt; Settings -&gt; CI/CD -&gt; Runners 中获取</span></span><br><span class="line">root@centos01:/<span class="comment"># gitlab-runner register</span></span><br><span class="line">Runtime platform                                    arch=amd64 os=linux pid=50 revision=577f813d version=12.5.0</span><br><span class="line">Running <span class="keyword">in</span> system-mode.</span><br><span class="line"></span><br><span class="line">Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):</span><br><span class="line">http://192.168.0.80:11080/</span><br><span class="line">Please enter the gitlab-ci token <span class="keyword">for</span> this runner:</span><br><span class="line">2y2F4cCSxF8rwJ4z8FY3</span><br><span class="line">Please enter the gitlab-ci description <span class="keyword">for</span> this runner:</span><br><span class="line">[742ec4ad6000]: <span class="built_in">test</span></span><br><span class="line">Please enter the gitlab-ci tags <span class="keyword">for</span> this runner (comma separated):</span><br><span class="line"><span class="built_in">test</span></span><br><span class="line">Registering runner... succeeded                     runner=2y2F4cCS</span><br><span class="line">Please enter the executor: parallels, shell, ssh, docker+machine, custom, docker, docker-ssh, virtualbox, docker-ssh+machine, kubernetes:</span><br><span class="line">docker</span><br><span class="line">Please enter the default Docker image (e.g. ruby:2.6):</span><br><span class="line">maven:3-jdk-8</span><br><span class="line">Runner registered successfully. Feel free to start it, but <span class="keyword">if</span> it<span class="string">'s running already the config should be automatically reloaded!</span></span><br></pre></td></tr></table></figure>
+
+<p>修改配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">vim /mnt/docker-data/gitlab-runner/config/config.toml</span><br><span class="line"></span><br><span class="line">concurrent = 1</span><br><span class="line">check_interval = 0</span><br><span class="line"></span><br><span class="line">[session_server]</span><br><span class="line">  session_timeout = 1800</span><br><span class="line"></span><br><span class="line">[[runners]]</span><br><span class="line">  name = <span class="string">"test"</span></span><br><span class="line">  url = <span class="string">"http://192.168.0.80:11080/"</span></span><br><span class="line">  token = <span class="string">"1Jmx4mYYDLKHiycq8zvx"</span></span><br><span class="line">  executor = <span class="string">"docker"</span></span><br><span class="line">  [runners.custom_build_dir]</span><br><span class="line">  [runners.docker]</span><br><span class="line">    tls_verify = <span class="literal">false</span></span><br><span class="line">    image = <span class="string">"maven:3-jdk-8"</span></span><br><span class="line">    privileged = <span class="literal">true</span> <span class="comment">#1</span></span><br><span class="line">    disable_entrypoint_overwrite = <span class="literal">false</span></span><br><span class="line">    oom_kill_disable = <span class="literal">false</span></span><br><span class="line">    disable_cache = <span class="literal">false</span></span><br><span class="line">    volumes = [<span class="string">"/cache"</span>, <span class="string">"/mnt/docker-data/.m2:/root/.m2"</span>] <span class="comment">#2</span></span><br><span class="line">    shm_size = 0</span><br><span class="line">  [runners.cache]</span><br><span class="line">    [runners.cache.s3]</span><br><span class="line">    [runners.cache.gcs]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启 docker 容器</span></span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li><code>#1</code>：docker:dind 需要提升权限，<a href="https://docs.gitlab.com/runner/executors/docker.html#use-docker-in-docker-with-privileged-mode" target="_blank" rel="noopener">use-docker-in-docker-with-privileged-mode</a>。</li>
+<li><code>#2</code>：挂载到本地 maven 仓库，可以配置镜像源等等。</li>
+</ul>
+<h2 id="配置-Maven-项目-GitLab-CI"><a href="#配置-Maven-项目-GitLab-CI" class="headerlink" title="配置 Maven 项目 GitLab CI"></a>配置 Maven 项目 GitLab CI</h2><p>在项目根目录下新建 <code>.gitlab-ci.yml</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">image:</span> <span class="string">maven:3-jdk-8</span>  <span class="comment">#1</span></span><br><span class="line"><span class="attr">variables:</span>  <span class="comment">#2</span></span><br><span class="line">  <span class="attr">DOCKER_HOST:</span> <span class="string">tcp://192.168.0.80:2375</span> <span class="comment"># 3</span></span><br><span class="line">  <span class="attr">DOCKER_DRIVER:</span> <span class="string">overlay2</span></span><br><span class="line">  <span class="attr">DOCKER_TLS_CERTDIR:</span> <span class="string">''</span></span><br><span class="line">  <span class="attr">MAVEN_CLI_OPTS:</span> <span class="string">"-s /root/.m2/settings.xml --batch-mode"</span></span><br><span class="line">  <span class="attr">MAVEN_OPTS:</span> <span class="string">"-Dmaven.repo.local=/root/.m2/repository"</span></span><br><span class="line">  <span class="attr">TAG:</span> <span class="string">test/test:v1</span></span><br><span class="line">  </span><br><span class="line"><span class="attr">cache:</span>  <span class="comment">#4</span></span><br><span class="line">  <span class="attr">paths:</span></span><br><span class="line">    <span class="comment"># - /root/.m2/repository/</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">demo/target/</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span>  <span class="comment">#5</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">docker:dind</span></span><br><span class="line">  </span><br><span class="line"><span class="attr">stages:</span>  <span class="comment">#6</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">package</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">build&amp;push-image</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">deploy</span></span><br><span class="line">  </span><br><span class="line"><span class="attr">maven_package_job:</span>  <span class="comment">#7</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">package</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">mvn</span> <span class="string">clean</span> <span class="string">package</span> <span class="string">-Dmaven.test.skip=true</span></span><br><span class="line">  <span class="attr">artifacts:</span></span><br><span class="line">    <span class="attr">paths:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">aid-supplier/target/*.jar</span> <span class="comment">#8</span></span><br><span class="line"></span><br><span class="line"><span class="attr">build_master_job:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">build&amp;push-image</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">docker:dind</span> <span class="comment">#9</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">login</span> <span class="string">-u</span> <span class="string">xxx</span> <span class="string">-p</span> <span class="string">xxx</span> <span class="string">xxx.com</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">build</span> <span class="string">-t</span> <span class="string">$TAG</span> <span class="string">-f</span> <span class="string">demo/Dockerfile</span> <span class="string">demo</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">push</span> <span class="string">demo/$TAG</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span></span><br><span class="line"></span><br><span class="line"><span class="attr">deploy_pord_job:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">deploy</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">ictu/sshpass:latest</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="comment"># - apt-get install -y sshpass # 10</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">sshpass</span> <span class="string">-p</span> <span class="string">"$DEPLOY_HOST_PASSWORD"</span> <span class="string">ssh</span> <span class="string">-o</span> <span class="string">StrictHostKeyChecking=no</span> <span class="string">-tt</span> <span class="string">root@$DEPLOY_HOST_IP</span> <span class="string">'bash /scripts/deploy-docker.sh'</span></span><br><span class="line">  <span class="attr">when:</span> <span class="string">manual</span> <span class="comment">#11</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span></span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li><code>#1</code>：默认全局镜像；</li>
+<li><code>#2</code>：配置的一些环境变量；</li>
+<li><code>#3</code>：这里我连接的是宿主机的 <code>docker daemon</code>，为了使用宿主机的镜像。如果想要连接 <code>dind</code> 自己，使用 <code>tcp://docker:2375</code>；</li>
+<li><code>#4</code>：配置缓存；</li>
+<li><code>#5</code>：配置需要依赖的额外的服务，如构建可能需要依赖 mysql，redis 等。 <code>docker:dind</code>，docker 打包需要依赖 dind。services 的本质其实是使用了 docker 的 <code>--link</code>；</li>
+<li><code>#6</code>：Stages 表示构建阶段，是一些按序执行的流程，具体执行是依赖于 Jobs；</li>
+<li><code>#7</code>：定义的 Jobs 之一，用于构建 jar 包；</li>
+<li><code>#8</code>：工件，就是在依赖项之间传递的东西，以便后面job使用。我这里是聚合项目，配置的是构建一个子项目；</li>
+<li><code>#9</code>：当前阶段用到的镜像，镜像提供阶段用到的环境；</li>
+<li><code>#10</code>：使用 sshpass 进行远程部署。<a href="https://docs.gitlab.com/ee/ci/ssh_keys/README.html" target="_blank" rel="noopener">推荐使用官方使用ssh免密的方法</a>；</li>
+<li><code>#11</code>：手动触发部署；</li>
+</ul>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><ol>
+<li>使用 <code>docker:dind</code> 报错</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">Cannot connect to the Docker daemon at tcp://docker:2375. Is the docker daemon running?</span><br><span class="line">ERROR: Job failed: <span class="built_in">exit</span> code 1</span><br></pre></td></tr></table></figure>
+
+<p>解决：</p>
+<p><code>gitlab-ci.yml</code> 加入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">variables:</span><br><span class="line">  <span class="comment"># DOCKER_HOST: tcp://docker:2375</span></span><br><span class="line">  DOCKER_HOST: tcp://192.168.0.80:2375</span><br><span class="line">  DOCKER_DRIVER: overlay2</span><br><span class="line">  DOCKER_TLS_CERTDIR: <span class="string">''</span></span><br></pre></td></tr></table></figure>
+
+<p>修改 <code>docker.service</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/lib/systemd/system/docker.service</span><br><span class="line"><span class="comment"># ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock</span></span><br><span class="line">ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载docker守护线程</span></span><br><span class="line">systemctl daemon-reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启docker</span></span><br><span class="line">systemctl restart docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># 防火墙开放端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=2375/tcp --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考：<a href="https://gitlab.com/charts/gitlab/issues/1477" target="_blank" rel="noopener">https://gitlab.com/charts/gitlab/issues/1477</a>，<a href="https://gitlab.com/gitlab-org/gitlab-runner/issues/4501#per-job" target="_blank" rel="noopener">https://gitlab.com/gitlab-org/gitlab-runner/issues/4501#per-job</a></p>
+</blockquote>
+<h2 id="配置-Vue-项目-GitLab-Runner"><a href="#配置-Vue-项目-GitLab-Runner" class="headerlink" title="配置 Vue 项目 GitLab Runner"></a>配置 Vue 项目 GitLab Runner</h2><p>Vue 项目</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进入容器</span></span><br><span class="line">$ docker-compose <span class="built_in">exec</span> gitlab-runner bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注册 runner，相关参数可以从 GitLab项目 -&gt; Settings -&gt; CI/CD -&gt; Runners 中获取</span></span><br><span class="line">root@centos01:/<span class="comment"># gitlab-runner register</span></span><br><span class="line">Runtime platform                                    arch=amd64 os=linux pid=54 revision=577f813d version=12.5.0</span><br><span class="line">Running <span class="keyword">in</span> system-mode.</span><br><span class="line"></span><br><span class="line">Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):</span><br><span class="line">http://192.168.0.80:11080/</span><br><span class="line">Please enter the gitlab-ci token <span class="keyword">for</span> this runner:</span><br><span class="line">TCTjaSpp8zA8ysgHMXQM</span><br><span class="line">Please enter the gitlab-ci description <span class="keyword">for</span> this runner:</span><br><span class="line">[92ecee27f3df]: <span class="built_in">test</span>-vue</span><br><span class="line">Please enter the gitlab-ci tags <span class="keyword">for</span> this runner (comma separated):</span><br><span class="line"><span class="built_in">test</span>-vue</span><br><span class="line">Registering runner... succeeded                     runner=TCTjaSpp</span><br><span class="line">Please enter the executor: docker, docker-ssh+machine, custom, docker-ssh, parallels, shell, ssh, virtualbox, docker+machine, kubernetes:</span><br><span class="line">docker</span><br><span class="line">Please enter the default Docker image (e.g. ruby:2.6):</span><br><span class="line">docker:stable</span><br><span class="line">Runner registered successfully. Feel free to start it, but <span class="keyword">if</span> it<span class="string">'s running already the config should be automatically reloaded!</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="配置-Vue-项目-GitLab-CI"><a href="#配置-Vue-项目-GitLab-CI" class="headerlink" title="配置 Vue 项目 GitLab CI"></a>配置 Vue 项目 GitLab CI</h2><p>在项目根目录下新建 <code>.gitlab-ci.yml</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">image:</span> <span class="string">docker:stable</span></span><br><span class="line"><span class="attr">variables:</span></span><br><span class="line">  <span class="attr">DOCKER_HOST:</span> <span class="string">tcp://192.168.0.80:2375</span></span><br><span class="line">  <span class="attr">DOCKER_DRIVER:</span> <span class="string">overlay2</span></span><br><span class="line">  <span class="attr">DOCKER_TLS_CERTDIR:</span> <span class="string">''</span></span><br><span class="line">  <span class="attr">TAG:</span> <span class="string">test/vue-test:v1</span></span><br><span class="line">  </span><br><span class="line"><span class="attr">cache:</span></span><br><span class="line">  <span class="attr">key:</span> <span class="string">$&#123;CI_BUILD_REF_NAME&#125;</span></span><br><span class="line">  <span class="attr">paths:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">node_modules/</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">dist/</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">docker:dind</span></span><br><span class="line">  </span><br><span class="line"><span class="attr">stages:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">install_deps</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">test</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">build_stage</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">build_production</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">build_image</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">deploy_stage</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">deploy_production</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line"><span class="attr">install_deps:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">install_deps</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">buhler/node-git:10</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test-vue</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">npm</span> <span class="string">install</span> <span class="string">--registry=https://registry.npm.taobao.org</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">develop</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行测试用例</span></span><br><span class="line"><span class="attr">test:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">buhler/node-git:10</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test-vue</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">develop</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译测试</span></span><br><span class="line"><span class="attr">build_stage:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">build_stage</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">buhler/node-git:10</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test-vue</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">clean</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">build:stage</span></span><br><span class="line">  <span class="attr">artifacts:</span></span><br><span class="line">    <span class="attr">paths:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">dist/</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">develop</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译生产</span></span><br><span class="line"><span class="attr">build_production:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">build_production</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">buhler/node-git:10</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test-vue</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">clean</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">build:prod</span></span><br><span class="line">  <span class="attr">artifacts:</span></span><br><span class="line">    <span class="attr">paths:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">dist/</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 构建 docker image</span></span><br><span class="line"><span class="attr">build_image:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">build_image</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">docker:dind</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test-vue</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">login</span> <span class="string">-u</span> <span class="string">xxx</span> <span class="string">-p</span> <span class="string">xxx</span> <span class="string">xxx.com</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">build</span> <span class="string">-t</span> <span class="string">$TAG</span> <span class="string">.</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">docker</span> <span class="string">push</span> <span class="string">$TAG</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">develop</span></span><br><span class="line"></span><br><span class="line"><span class="attr">deploy_stage:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">deploy_stage</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">ictu/sshpass:latest</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test-vue</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">sshpass</span> <span class="string">-p</span> <span class="string">"$DEPLOY_HOST_PASSWORD"</span> <span class="string">ssh</span> <span class="string">-o</span> <span class="string">StrictHostKeyChecking=no</span> <span class="string">-tt</span> <span class="string">root@$DEPLOY_HOST_IP</span> <span class="string">'bash /scripts/deploy-docker.sh'</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">develop</span></span><br><span class="line"></span><br><span class="line"><span class="attr">deploy_production:</span></span><br><span class="line">  <span class="attr">stage:</span> <span class="string">deploy_production</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">ictu/sshpass:latest</span></span><br><span class="line">  <span class="attr">tags:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">test-vue</span></span><br><span class="line">  <span class="attr">script:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">sshpass</span> <span class="string">-p</span> <span class="string">"$DEPLOY_HOST_PASSWORD"</span> <span class="string">ssh</span> <span class="string">-o</span> <span class="string">StrictHostKeyChecking=no</span> <span class="string">-tt</span> <span class="string">root@$DEPLOY_HOST_IP</span> <span class="string">'bash /scripts/deploy-docker.sh'</span></span><br><span class="line">  <span class="attr">when:</span> <span class="string">manual</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><h3 id="Docker-In-Docker-Docker-run-Docker"><a href="#Docker-In-Docker-Docker-run-Docker" class="headerlink" title="Docker In Docker / Docker run Docker"></a>Docker In Docker / Docker run Docker</h3><p><code>Docker In Docker</code> 简称 dind，在 GitLab CI 的使用中，可能会常被用于 service 的部分。 dind 表示在 Docker 中实际运行了一个 Docker 容器, 或 Docker daemon。</p>
+<p>其实如果只是在 Docker 中执行 docker 命令， 那装个二进制文件即可。 但是如果想要运行 Docker daemon (比如需要执行 docker info)或者访问任意的设备都是不允许的。</p>
+<p>在 2013年 左右，<code>--privileged</code> 选项被加入 docker， 这让我们在容器内启动容器变成了可能。 虽然 –privileged 的初始想法是为了能让容器开发更加便利，不过有些人在使用的时候，其实可能有些误解。</p>
+<p>有时候，我们可能只是想要能够在容器内正常的 build 镜像，或者是与 <code>Docker daemon</code> 进行交互，例如 <code>docker images</code> 等命令。 那么，我们其实不需要 dind， 我们需要的是 <code>Docker Out Of Docker</code>，即 dood，在使用的时候，其实是将 docker.sock 挂载入容器内。</p>
+<p>例如，使用如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run --rm -ti -v /var/run/docker.sock:/var/run/docker.sock docker:stable /bin/sh</span><br></pre></td></tr></table></figure>
+
+<p>在容器内可进行正常的 <code>docker images</code> 等操作， 同时需要注意，在容器内的动作，将影响到宿主机上的 docker daemon。容器内没有 docker 客户端命令需要挂载 <code>-v /usr/bin/docker:/usr/bin/docker</code>。</p>
+<h4 id="如何实现"><a href="#如何实现" class="headerlink" title="如何实现"></a>如何实现</h4><ul>
+<li>创建组和用户，并将用户加入该组。 使用 <code>groupadd</code> 和 <code>useradd</code> 命令；</li>
+<li>更新 subuid 和 subgid 文件， 将新用户和组配置到 <code>/etc/subgid</code> 和 <code>/etc/subuid</code> 文件中。<code>subuid</code> 和 <code>subgid</code> 规定了允许用户使用的从属id；</li>
+<li>接下来需要挂载 <code>/sys/kernel/security</code> 为 securityfs 类型可以使用 mountpoint 命令进行测试 <code>mountpoint /sys/kernel/security</code> 如果不是一个挂载点，那么使用 <code>mount -t securityfs none /sys/kernel/security</code> 进行挂载。如果没有挂载成功的话， 可以检查是否是 SELinux 或者 AppArmor 阻止了这个行为。这里详细的安全问题，可以参考 Linux Security Modules (LSM)；</li>
+<li>接下来允许 dockerd 命令启动 daemon 即可，<code>dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375</code> 即可将docker daemon 监听至 2375 端口；</li>
+</ul>
+<h4 id="简单做法"><a href="#简单做法" class="headerlink" title="简单做法"></a>简单做法</h4><p>可以直接使用 Docker 官方镜像仓库中的 docker:dind 镜像, 但是在运行时， 需要指定 <code>--privileged</code> 选项</p>
+<h3 id="Drone"><a href="#Drone" class="headerlink" title="Drone"></a><a href="https://github.com/drone/drone" target="_blank" rel="noopener">Drone</a></h3><p><code>GitLab CI</code> 相比 Jenkins 已经简化了很多。这里介绍另一个持续集成系统，<a href="https://github.com/drone/drone" target="_blank" rel="noopener">Drone</a> 是一个基于 Docker 的持续部署系统，用 Go 语言编写。<code>Drone</code> 本身和所有插件都是镜像，易于使用。<a href="https://drone.io/" target="_blank" rel="noopener">https://drone.io/</a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.redhat.com/zh/topics/devops/what-is-ci-cd" target="_blank" rel="noopener">什么是 CI/CD？</a></li>
+<li><a href="https://docs.gitlab.com/omnibus/docker/" target="_blank" rel="noopener">gitlab docker</a></li>
+<li><a href="https://docs.gitlab.com/ce/ci/README.html" target="_blank" rel="noopener">gitlab ci</a></li>
+<li><a href="https://docs.gitlab.com/ce/ci/yaml/README.html" target="_blank" rel="noopener">gitlab cit yaml</a></li>
+<li><a href="https://docs.gitlab.com/runner/" target="_blank" rel="noopener">gitlab runner</a></li>
+<li><a href="https://www.jianshu.com/p/bfb342624db2" target="_blank" rel="noopener">基于 GitLab 的 CI 实践</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/docker/" rel="tag"># docker</a>
+              <a href="/tags/gitlab/" rel="tag"># gitlab</a>
+              <a href="/tags/ci-cd/" rel="tag"># ci/cd</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-swarm/" rel="prev" title="Docker 三剑客之 Docker Swarm">
+      <i class="fa fa-chevron-left"></i> Docker 三剑客之 Docker Swarm
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/java/java8/" rel="next" title="Java8 新特性汇总">
+      Java8 新特性汇总 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#持续集成-CI-持续部署-CD"><span class="nav-number">1.1.</span> <span class="nav-text">持续集成(CI)&#x2F;持续部署(CD)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GitLab-CI"><span class="nav-number">1.2.</span> <span class="nav-text">GitLab CI</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Pipeline"><span class="nav-number">1.2.1.</span> <span class="nav-text">Pipeline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Stages"><span class="nav-number">1.2.2.</span> <span class="nav-text">Stages</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Jobs"><span class="nav-number">1.2.3.</span> <span class="nav-text">Jobs</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GitLab-Runner"><span class="nav-number">1.3.</span> <span class="nav-text">GitLab Runner</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Runner-类型"><span class="nav-number">1.3.1.</span> <span class="nav-text">Runner 类型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-GitLab-CE"><span class="nav-number">2.</span> <span class="nav-text">安装 GitLab CE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#修改-external-url-带端口号"><span class="nav-number">2.1.</span> <span class="nav-text">修改 external_url 带端口号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-GitLab-Runner"><span class="nav-number">3.</span> <span class="nav-text">安装 GitLab Runner</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置-Maven-项目-GitLab-Runner"><span class="nav-number">4.</span> <span class="nav-text">配置 Maven 项目 GitLab Runner</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置-Maven-项目-GitLab-CI"><span class="nav-number">5.</span> <span class="nav-text">配置 Maven 项目 GitLab CI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题"><span class="nav-number">5.1.</span> <span class="nav-text">问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置-Vue-项目-GitLab-Runner"><span class="nav-number">6.</span> <span class="nav-text">配置 Vue 项目 GitLab Runner</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置-Vue-项目-GitLab-CI"><span class="nav-number">7.</span> <span class="nav-text">配置 Vue 项目 GitLab CI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展"><span class="nav-number">8.</span> <span class="nav-text">扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-In-Docker-Docker-run-Docker"><span class="nav-number">8.1.</span> <span class="nav-text">Docker In Docker &#x2F; Docker run Docker</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#如何实现"><span class="nav-number">8.1.1.</span> <span class="nav-text">如何实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#简单做法"><span class="nav-number">8.1.2.</span> <span class="nav-text">简单做法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Drone"><span class="nav-number">8.2.</span> <span class="nav-text">Drone</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

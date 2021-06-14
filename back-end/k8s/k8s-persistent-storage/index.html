@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="默认情况下容器中的磁盘文件是非持久化的，对于运行在容器中的应用来说面临两个问题，第一：当容器挂掉kubelet将重启启动它时，文件将会丢失；第二：当Pod中同时运行多个容器，容器之间需要共享文件时。Kubernetes的Volume解决了这两个问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes 持久化存储">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/k8s/k8s-persistent-storage/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="默认情况下容器中的磁盘文件是非持久化的，对于运行在容器中的应用来说面临两个问题，第一：当容器挂掉kubelet将重启启动它时，文件将会丢失；第二：当Pod中同时运行多个容器，容器之间需要共享文件时。Kubernetes的Volume解决了这两个问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-persistent-storage/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-persistent-storage/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-persistent-storage/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-persistent-storage/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-persistent-storage/5.jpg">
+<meta property="article:published_time" content="2020-06-14T15:25:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/k8s/k8s-persistent-storage/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/k8s/k8s-persistent-storage/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kubernetes 持久化存储 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/k8s/k8s-persistent-storage/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes 持久化存储
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-14 15:25:00" itemprop="dateCreated datePublished" datetime="2020-06-14T15:25:00+00:00">2020-06-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>默认情况下容器中的磁盘文件是非持久化的，对于运行在容器中的应用来说面临两个问题，第一：当容器挂掉kubelet将重启启动它时，文件将会丢失；第二：当Pod中同时运行多个容器，容器之间需要共享文件时。Kubernetes的Volume解决了这两个问题。</p>
+<a id="more"></a>
+
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在Docker中也有一个docker Volume的概念 ，Docker的Volume只是磁盘中的一个目录，生命周期不受管理。当然Docker现在也提供Volume将数据持久化存储，但支持功能比较少（例如，对于Docker，每个容器只允许挂载一个Volume，并且不能将参数传递给Volume）。</p>
+<p>另一方面，Kubernetes Volume具有明确的生命周期 - 与pod相同。因此，Volume的生命周期比Pod中运行的任何容器要持久，在容器重新启动时能可以保留数据，当然，当Pod被删除不存在时，Volume也将消失。注意，Kubernetes支持许多类型的Volume，Pod可以同时使用任意类型/数量的Volume。</p>
+<p>内部实现中，一个Volume只是一个目录，目录中可能有一些数据，pod的容器可以访问这些数据。至于这个目录是如何产生的、支持它的介质、其中的数据内容是什么，这些都由使用的特定Volume类型来决定。</p>
+<p>要使用Volume，pod需要指定Volume的类型和内容（spec.volumes字段），和映射到容器的位置（spec.containers.volumeMounts字段）。</p>
+<h2 id="数据卷Volume"><a href="#数据卷Volume" class="headerlink" title="数据卷Volume"></a>数据卷Volume</h2><h3 id="数据卷概述"><a href="#数据卷概述" class="headerlink" title="数据卷概述"></a>数据卷概述</h3><p>Kubernetes Volume（数据卷）主要解决了如下两方面问题：</p>
+<ul>
+<li>数据持久性：通常情况下，容器运行起来之后，写入到其文件系统的文件暂时性的。当容器崩溃后，kubelet 将会重启该容器，此时原容器运行后写入的文件将丢失，因为容器将重新从镜像创建。</li>
+<li>数据共享：同一个 Pod（容器组）中运行的容器之间，经常会存在共享文件/文件夹的需求</li>
+</ul>
+<p>Docker 里同样也存在一个 volume（数据卷）的概念，但是 docker 对数据卷的管理相对 kubernetes 而言要更少一些。在 Docker 里，一个 Volume（数据卷）仅仅是宿主机（或另一个容器）文件系统上的一个文件夹。Docker 并不管理 Volume（数据卷）的生命周期。</p>
+<p>在 Kubernetes 里，Volume（数据卷）存在明确的生命周期（与包含该数据卷的容器组相同）。因此，Volume（数据卷）的生命周期比同一容器组中任意容器的生命周期要更长，不管容器重启了多少次，数据都能被保留下来。当然，如果容器组退出了，数据卷也就自然退出了。此时，根据容器组所使用的 Volume（数据卷）类型不同，数据可能随数据卷的退出而删除，也可能被真正持久化，并在下次容器组重启时仍然可以使用。</p>
+<p>从根本上来说，一个 Volume（数据卷）仅仅是一个可被容器组中的容器访问的文件目录（也许其中包含一些数据文件）。这个目录是怎么来的，取决于该数据卷的类型（不同类型的数据卷使用不同的存储介质）。</p>
+<p>使用 Volume（数据卷）时，我们需要先在容器组中定义一个数据卷，并将其挂载到容器的挂载点上。容器中的一个进程所看到（可访问）的文件系统是由容器的 docker 镜像和容器所挂载的数据卷共同组成的。Docker 镜像将被首先加载到该容器的文件系统，任何数据卷都被在此之后挂载到指定的路径上。Volume（数据卷）不能被挂载到其他数据卷上，或者通过引用其他数据卷。同一个容器组中的不同容器各自独立地挂载数据卷，即同一个容器组中的两个容器可以将同一个数据卷挂载到各自不同的路径上。</p>
+<p>我们现在通过下图来理解 容器组、容器、挂载点、数据卷、存储介质（nfs、PVC、ConfigMap）等几个概念之间的关系：</p>
+<ul>
+<li>一个容器组可以包含多个数据卷、多个容器</li>
+<li>一个容器通过挂载点决定某一个数据卷被挂载到容器中的什么路径</li>
+<li>不同类型的数据卷对应不同的存储介质（图中列出了 nfs、PVC、ConfigMap 三种存储介质，接下来将介绍更多）</li>
+</ul>
+<p><img src="/images/k8s/k8s-persistent-storage/1.jpg" alt="1"></p>
+<h3 id="数据卷的类型"><a href="#数据卷的类型" class="headerlink" title="数据卷的类型"></a>数据卷的类型</h3><p>Kubernetes 目前支持多达 28 种数据卷类型（其中大部分特定于具体的云环境如 GCE/AWS/Azure 等），如需查阅所有的数据卷类型，请查阅 Kubernetes 官方文档 <a href="https://kubernetes.io/docs/concepts/storage/volumes/" target="_blank" rel="noopener">Volumes</a></p>
+<p>本文针对自建 Kubernetes 时，经常使用的数据卷的类型描述如下：</p>
+<h4 id="emptyDir"><a href="#emptyDir" class="headerlink" title="emptyDir"></a>emptyDir</h4><ul>
+<li><p><strong>描述</strong><br>emptyDir类型的数据卷在容器组被创建时分配给该容器组，并且直到容器组被移除，该数据卷才被释放。该数据卷初始分配时，始终是一个空目录。同一容器组中的不同容器都可以对该目录执行读写操作，并且共享其中的数据，（尽管不同的容器可能将该数据卷挂载到容器中的不同路径）。当容器组被移除时，emptyDir数据卷中的数据将被永久删除</p>
+<blockquote>
+<p>容器崩溃时，kubelet 并不会删除容器组，而仅仅是将容器重启，因此 emptyDir 中的数据在容器崩溃并重启后，仍然是存在的。</p>
+</blockquote>
+</li>
+<li><p><strong>适用场景</strong></p>
+<ul>
+<li>空白的初始空间，例如合并/排序算法中，临时将数据存在磁盘上</li>
+<li>长时间计算中存储检查点（中间结果），以便容器崩溃时，可以从上一次存储的检查点（中间结果）继续进行，而不是从头开始</li>
+<li>作为两个容器的共享存储，使得第一个内容管理的容器可以将生成的页面存入其中，同时由一个 webserver 容器对外提供这些页面</li>
+<li>默认情况下，emptyDir 数据卷被存储在 node（节点）的存储介质（机械硬盘、SSD、或者网络存储）上。此外，您可以设置 emptyDir.medium 字段为 “Memory”，此时 Kubernetes 将挂载一个 tmpfs（基于 RAM 的文件系统）。tmpfs 的读写速度非常快，但是与磁盘不一样，tmpfs 在节点重启后将被清空，且您向该 emptyDir 写入文件时，将消耗对应容器的内存限制。</li>
+</ul>
+</li>
+<li><p><strong>Pod 示例</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">test-pd</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">k8s.gcr.io/test-webserver</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">test-container</span></span><br><span class="line">    <span class="attr">volumeMounts:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/cache</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">cache-volume</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">cache-volume</span></span><br><span class="line">    <span class="attr">emptyDir:</span> <span class="string">&#123;&#125;</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="nfs"><a href="#nfs" class="headerlink" title="nfs"></a>nfs</h4><ul>
+<li><p><strong>描述</strong></p>
+<p>nfs 类型的数据卷可以加载 NFS（Network File System）到您的容器组/容器。容器组被移除时，将仅仅 umount（卸载）NFS 数据卷，NFS 中的数据仍将被保留。</p>
+<ul>
+<li>可以在加载 NFS 数据卷前就在其中准备好数据；</li>
+<li>可以在不同容器组之间共享数据；</li>
+<li>可以被多个容器组加载并同时读写；</li>
+</ul>
+</li>
+<li><p><strong>适用场景</strong></p>
+<ul>
+<li>存储日志文件</li>
+<li>MySQL的data目录（建议只在测试环境中）</li>
+<li>用户上传的临时文件</li>
+</ul>
+</li>
+<li><p><a href="https://github.com/kubernetes/examples/tree/master/staging/volumes/nfs" target="_blank" rel="noopener">详细信息，请参阅NFS示例</a></p>
+</li>
+</ul>
+<h4 id="cephfs"><a href="#cephfs" class="headerlink" title="cephfs"></a>cephfs</h4><ul>
+<li><p><strong>描述</strong></p>
+<p>cephfs 数据卷使得您可以挂载一个外部 CephFS 卷到您的容器组中。对于 kubernetes 而言，cephfs 与 nfs 的管理方式和行为完全相似，适用场景也相同。不同的仅仅是背后的存储介质。</p>
+</li>
+<li><p><strong>适用场景</strong></p>
+<p>同 nfs 数据卷</p>
+</li>
+<li><p><a href="https://github.com/kubernetes/examples/tree/master/volumes/cephfs/" target="_blank" rel="noopener">详细信息，请参阅CephFS示例</a></p>
+</li>
+</ul>
+<h4 id="hostPath"><a href="#hostPath" class="headerlink" title="hostPath"></a>hostPath</h4><ul>
+<li><p><strong>描述</strong></p>
+<p>hostPath 类型的数据卷将 Pod（容器组）所在节点的文件系统上某一个文件或文件夹挂载进容器组（容器）。</p>
+<p>除了为 hostPath 指定 path 字段以外，您还可以为其指定 type 字段，可选的 type 字段描述如下：</p>
+<table>
+<thead>
+<tr>
+<th>Type字段取值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td>空字符串（default）用于向后兼容，此时，kubernetes 在挂载 hostPath 数据卷前不会执行任何检查</td>
+</tr>
+<tr>
+<td><strong>DirectoryOrCreate</strong></td>
+<td>如果指定的 hostPath 路径不存在，kubernetes 将在节点的该路径上创建一个空文件夹，权限设置为 0755，与 kubelet 进程具备相同的 group 和 ownership</td>
+</tr>
+<tr>
+<td><strong>Directory</strong></td>
+<td>指定 hostPath 路径必须存在，且是一个文件夹</td>
+</tr>
+<tr>
+<td><strong>FileOrCreate</strong></td>
+<td>如果指定的 hostPath 路径不存在，kubernetes 将在节点的该路径上创建一个空的文件，权限设置为 0644，与 kubelet 进程具备相同的 group 和 ownership</td>
+</tr>
+<tr>
+<td><strong>File</strong></td>
+<td>指定 hostPath 路径必须存在，且是一个文件</td>
+</tr>
+<tr>
+<td><strong>Socket</strong></td>
+<td>指定 hostPath 路径必须存在，且是一个 Unix Socket</td>
+</tr>
+<tr>
+<td><strong>CharDevice</strong></td>
+<td>指定 hostPath 路径必须存在，且是一个 character device</td>
+</tr>
+<tr>
+<td><strong>BlockDevice</strong></td>
+<td>指定 hostPath 路径必须存在，且是一个 block device</td>
+</tr>
+</tbody></table>
+<p>::: danger 警告</p>
+<p>使用 hostPath 数据卷时，必须十分小心，因为：</p>
+<ul>
+<li>不同节点上配置完全相同的容器组（例如同一个Deployment的容器组）可能执行结果不一样，因为不同节点上 hostPath 所对应的文件内容不同；</li>
+<li>Kubernetes 计划增加基于资源的调度，但这个特性将不会考虑对 hostPath 的支持</li>
+<li>hostPath 对应的文件/文件夹只有 root 可以写入。您要么在  <a href="https://kubernetes.io/docs/user-guide/security-context" target="_blank" rel="noopener">privileged Container</a> 以 root 身份运行您的进程，要么修改与 hostPath 数据卷对应的节点上的文件/文件夹的权限，</li>
+</ul>
+<p>:::</p>
+</li>
+<li><p><strong>适用场景</strong></p>
+<p>绝大多数容器组并不需要使用 hostPath 数据卷，但是少数情况下，hostPath 数据卷非常有用：</p>
+<ul>
+<li>某容器需要访问 Docker，可使用 hostPath 挂载宿主节点的 /var/lib/docker</li>
+<li>在容器中运行 cAdvisor，使用 hostPath 挂载宿主节点的 /sys</li>
+</ul>
+</li>
+<li><p><strong>Pod 示例</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">test-pd</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">k8s.gcr.io/test-webserver</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">test-container</span></span><br><span class="line">    <span class="attr">volumeMounts:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/test-pd</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">test-volume</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">test-volume</span></span><br><span class="line">    <span class="attr">hostPath:</span></span><br><span class="line">      <span class="comment"># directory location on host</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/data</span></span><br><span class="line">      <span class="comment"># this field is optional</span></span><br><span class="line">      <span class="attr">type:</span> <span class="string">Directory</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="configMap"><a href="#configMap" class="headerlink" title="configMap"></a>configMap</h4><ul>
+<li><p><strong>描述</strong></p>
+<p>ConfigMap 提供了一种向容器组注入配置信息的途径。ConfigMap 中的数据可以被 Pod（容器组）中的容器作为一个数据卷挂载。</p>
+<p>在数据卷中引用 ConfigMap 时：</p>
+<ul>
+<li>您可以直接引用整个 ConfigMap 到数据卷，此时 ConfigMap 中的每一个 key 对应一个文件名，value 对应该文件的内容</li>
+<li>您也可以只引用 ConfigMap 中的某一个名值对，此时可以将 key 映射成一个新的文件名</li>
+</ul>
+<p>::: tip<br>将 ConfigMap 数据卷挂载到容器时，如果该挂载点指定了 <strong><em>数据卷内子路径</em></strong> （subPath），则该 ConfigMap 被改变后，该容器挂载的内容仍然不变。<br>:::</p>
+</li>
+<li><p><strong>适用场景</strong></p>
+<ul>
+<li>使用 ConfigMap 中的某一 key 作为文件名，对应 value 作为文件内容，替换 nginx 容器中的 /etc/nginx/conf.d/default.conf 配置文件。</li>
+</ul>
+</li>
+<li><p><strong>Pod 示例</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">configmap-pod</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">test</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">config-vol</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/etc/config</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">config-vol</span></span><br><span class="line">      <span class="attr">configMap:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">log-config</span></span><br><span class="line">        <span class="attr">items:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">log_level</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">log_level</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="secret"><a href="#secret" class="headerlink" title="secret"></a>secret</h4><ul>
+<li><p><strong>描述</strong></p>
+<p>secret 数据卷可以用来注入敏感信息（例如密码）到容器组。您可以将敏感信息存入 kubernetes secret 对象，并通过 Volume（数据卷）以文件的形式挂载到容器组（或容器）。secret 数据卷使用 tmpfs（基于 RAM 的文件系统）挂载。</p>
+<p>::: tip<br>将 Secret 数据卷挂载到容器时，如果该挂载点指定了 <strong><em>数据卷内子路径</em></strong> （subPath），则该 Secret 被改变后，该容器挂载的内容仍然不变。<br>:::</p>
+</li>
+<li><p><strong>适用场景</strong></p>
+<ul>
+<li>将 <code>HTTPS</code> 证书存入 <code>kubernets secret</code>，并挂载到 <code>/etc/nginx/conf.d/myhost.crt</code>、<code>/etc/nginx/conf.d/myhost.pem</code> 路径，用来配置 nginx 的 HTTPS 证书</li>
+</ul>
+</li>
+<li><p><a href="https://kubernetes.io/docs/concepts/configuration/secret/" target="_blank" rel="noopener">Secret 的更多详情请参考这里</a></p>
+</li>
+</ul>
+<h4 id="persistentVolumeClaim"><a href="#persistentVolumeClaim" class="headerlink" title="persistentVolumeClaim"></a>persistentVolumeClaim</h4><ul>
+<li><p><strong>描述</strong></p>
+<p>persistentVolumeClaim 数据卷用来挂载 PersistentVolume 存储卷。PersistentVolume 存储卷为用户提供了一种在无需关心具体所在云环境的情况下”声明“ 所需持久化存储的方式。</p>
+</li>
+<li><p><a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/" target="_blank" rel="noopener">更多详细信息，请参阅PersistentVolumes示例</a></p>
+</li>
+</ul>
+<h4 id="downwardAPI"><a href="#downwardAPI" class="headerlink" title="downwardAPI"></a>downwardAPI</h4><p>通过环境变量的方式告诉容器Pod的信息</p>
+<p><a href="https://kubernetes.io/docs/tasks/inject-data-application/downward-api-volume-expose-pod-information/" target="_blank" rel="noopener">更多详细信息，请参见downwardAPI卷示例</a></p>
+<h2 id="数据卷-挂载"><a href="#数据卷-挂载" class="headerlink" title="数据卷-挂载"></a>数据卷-挂载</h2><p>挂载是指将定义在 Pod 中的数据卷关联到容器，同一个 Pod 中的同一个数据卷可以被挂载到该 Pod 中的多个容器上。</p>
+<h3 id="数据卷内子路径"><a href="#数据卷内子路径" class="headerlink" title="数据卷内子路径"></a>数据卷内子路径</h3><p>有时候我们需要在同一个 Pod 的不同容器间共享数据卷。使用 <code>volumeMounts.subPath</code> 属性，可以使容器在挂载数据卷时指向数据卷内部的一个子路径，而不是直接指向数据卷的根路径。</p>
+<p>下面的例子中，一个 LAMP（Linux Apache Mysql PHP）应用的 Pod 使用了一个共享数据卷，HTML 内容映射到数据卷的 <code>html</code> 目录，数据库的内容映射到了 <code>mysql</code> 目录：</p>
+<figure class="highlight yaml"><figcaption><span>&#123;15,22&#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-lamp-site</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">    <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">mysql</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">mysql</span></span><br><span class="line">      <span class="attr">env:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MYSQL_ROOT_PASSWORD</span></span><br><span class="line">        <span class="attr">value:</span> <span class="string">"rootpasswd"</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/var/lib/mysql</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">site-data</span></span><br><span class="line">        <span class="attr">subPath:</span> <span class="string">mysql</span></span><br><span class="line">        <span class="attr">readOnly:</span> <span class="literal">false</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">php</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">php:7.0-apache</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/var/www/html</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">site-data</span></span><br><span class="line">        <span class="attr">subPath:</span> <span class="string">html</span></span><br><span class="line">        <span class="attr">readOnly:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">site-data</span></span><br><span class="line">      <span class="attr">persistentVolumeClaim:</span></span><br><span class="line">        <span class="attr">claimName:</span> <span class="string">my-lamp-site-data</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="通过环境变量指定数据卷内子路径"><a href="#通过环境变量指定数据卷内子路径" class="headerlink" title="通过环境变量指定数据卷内子路径"></a>通过环境变量指定数据卷内子路径</h4><p>使用 <code>volumeMounts.subPathExpr</code> 字段，可以通过容器的环境变量指定容器内路径。使用此特性时，必须启用 <code>VolumeSubpathEnvExpansion</code> <a href="https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/" target="_blank" rel="noopener">feature gate</a> （自 Kubernetes v1.15 开始，是默认启用的。）</p>
+<p>同一个 volumeMounts 中 <code>subPath</code> 字段和 <code>subPathExpr</code> 字段不能同时使用。</p>
+<p>如下面的例子，该 Pod 使用 <code>subPathExpr</code> 在 hostPath 数据卷 <code>/var/log/pods</code> 中创建了一个目录 <code>pod1</code>（该参数来自于Pod的名字）。此时，宿主机目录 <code>/var/log/pods/pod1</code> 挂载到了容器的 <code>/logs</code> 路径：</p>
+<figure class="highlight yaml"><figcaption><span>&#123;9,19&#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">pod1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">container1</span></span><br><span class="line">    <span class="attr">env:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">POD_NAME</span></span><br><span class="line">      <span class="attr">valueFrom:</span></span><br><span class="line">        <span class="attr">fieldRef:</span></span><br><span class="line">          <span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line">          <span class="attr">fieldPath:</span> <span class="string">metadata.name</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">[</span> <span class="string">"sh"</span><span class="string">,</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"while [ true ]; do echo 'Hello'; sleep 10; done | tee -a /logs/hello.txt"</span> <span class="string">]</span></span><br><span class="line">    <span class="attr">volumeMounts:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">workdir1</span></span><br><span class="line">      <span class="attr">mountPath:</span> <span class="string">/logs</span></span><br><span class="line">      <span class="attr">subPathExpr:</span> <span class="string">$(POD_NAME)</span></span><br><span class="line">      <span class="attr">readOnly:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">restartPolicy:</span> <span class="string">Never</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">workdir1</span></span><br><span class="line">    <span class="attr">hostPath:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">/var/log/pods</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="容器内路径"><a href="#容器内路径" class="headerlink" title="容器内路径"></a>容器内路径</h3><p><code>mountPath</code> 数据卷被挂载到容器的路径，不能包含 <code>:</code></p>
+<h3 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h3><p>容器对挂载的数据卷是否具备读写权限，如果 <code>readOnly</code> 为 <code>true</code>，则只读，否则可以读写（为 <code>false</code> 或者不指定）。默认为 <code>false</code></p>
+<h3 id="挂载传播"><a href="#挂载传播" class="headerlink" title="挂载传播"></a>挂载传播</h3><p>数据卷的挂载传播（Mount Propagation）由 Pod 的 <code>spec.containers[*].volumeMounts.mountPropagation</code> 字段控制。可选的取值有：</p>
+<ul>
+<li><p><strong>None</strong>： 默认值。在数据卷被挂载到容器之后，此数据卷不会再接受任何后续宿主机或其他容器挂载到该数据卷对应目录下的子目录的挂载。同样的，在容器中向该数据卷对应目录挂载新目录时，宿主机也不能看到。对应 Linux 的 <code>private</code> mount propagation 选项 <a href="https://www.kernel.org/doc/Documentation/filesystems/sharedsubtree.txt" target="_blank" rel="noopener">Linux内核文档</a></p>
+</li>
+<li><p><strong>HostToContainer</strong>：在数据卷被挂载到容器之后，宿主机向该数据卷对应目录添加挂载时，对容器是可见的。对应 Linux 的 <code>rslave</code> mount propagation 选项 <a href="https://www.kernel.org/doc/Documentation/filesystems/sharedsubtree.txt" target="_blank" rel="noopener">Linux内核文档</a></p>
+</li>
+<li><p><strong>Bidirectional</strong>：在数据卷被挂载到容器之后，宿主机向该数据卷对应目录添加挂载时，对容器是可见的；同时，从容器中向该数据卷创建挂载，同样也对宿主机可见。对应 Linux 的 <code>rshared</code> mount propagation 选项 <a href="https://www.kernel.org/doc/Documentation/filesystems/sharedsubtree.txt" target="_blank" rel="noopener">Linux内核文档</a></p>
+</li>
+</ul>
+<p>::: danger<br><strong>Bidirectional</strong> mount propagation 选项隐藏风险。如果在容器内进行不合适的挂载，可能影响宿主机的操作系统正常执行，因此，只有 privileged 容器才可以使用该选项。使用此选项时，建议对 Linux 内核的行为有所熟悉。此外，使用 Bidirectional 选项时，任何由 Pod 中容器在对应数据卷目录创建的挂载必须在容器终止时销毁（umounted）。<br>:::</p>
+<h4 id="额外配置"><a href="#额外配置" class="headerlink" title="额外配置"></a>额外配置</h4><p>在部分系统中（CoreOS、RedHat/Centos、Ubuntu），Docker 的 mount share 选项必须事先配置好，步骤如下：</p>
+<ul>
+<li><p><strong>编辑 Docker 的 <code>systemd</code> service 文件</strong>，将 <code>MountFlags</code> 设定如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MountFlags&#x3D;shared</span><br></pre></td></tr></table></figure>
+
+<p><strong>或者移除 <code>MountFlags=slave</code></strong></p>
+</li>
+<li><p>重启 Docker 守护进程：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="存储卷PersistentVolume"><a href="#存储卷PersistentVolume" class="headerlink" title="存储卷PersistentVolume"></a>存储卷PersistentVolume</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>与管理计算资源相比，管理存储资源是一个完全不同的问题。为了更好的管理存储，Kubernetes 引入了 PersistentVolume 和 PersistentVolumeClaim 两个概念，将存储管理抽象成如何提供存储以及如何使用存储两个关注点。</p>
+<p>::: tip 关注点分离</p>
+<p>通过 PersistentVolume 和 PersistentVolumeClaim，Kubernetes 分离了提供存储和使用存储着两个关注点：</p>
+<ul>
+<li>PersistentVolumeClaim 必须定义在与应用程序相同的名称空间中，关注应用程序如何使用存储，通常由应用程序管理员或开发人员负责</li>
+<li>PersistentVolume 只能定义在集群层面，关注集群如何提供存储，通常由集群管理员或者运维人员负责</li>
+</ul>
+<p>:::</p>
+<p>PersistentVolume（PV 存储卷）是集群中的一块存储空间，由集群管理员管理、或者由 Storage Class（存储类）自动管理。PV（存储卷）和 node（节点）一样，是集群中的资源（kubernetes 集群由存储资源和计算资源组成）。PersistentVolumeClaim（存储卷声明）是一种类型的 Volume（数据卷），PersistentVolumeClaim（存储卷声明）引用的 PersistentVolume（存储卷）有自己的生命周期，该生命周期独立于任何使用它的容器组。PersistentVolume（存储卷）描述了如何提供存储的细节信息（NFS、cephfs等存储的具体参数）。</p>
+<p>PersistentVolumeClaim（PVC 存储卷声明）代表用户使用存储的请求。Pod 容器组消耗 node 计算资源，PVC 存储卷声明消耗 PersistentVolume 存储资源。Pod 容器组可以请求特定数量的计算资源（CPU / 内存）；PersistentVolumeClaim 可以请求特定大小/特定访问模式（只能被单节点读写/可被多节点只读/可被多节点读写）的存储资源。</p>
+<p>根据应用程序的特点不同，其所需要的存储资源也存在不同的要求，例如读写性能等。集群管理员必须能够提供关于 PersistentVolume（存储卷）的更多选择，无需用户关心存储卷背后的实现细节。为了解决这个问题，Kubernetes 引入了 StorageClass（存储类）的概念</p>
+<h3 id="存储卷和存储卷声明的关系"><a href="#存储卷和存储卷声明的关系" class="headerlink" title="存储卷和存储卷声明的关系"></a>存储卷和存储卷声明的关系</h3><p>存储卷和存储卷声明的关系如下图所示：</p>
+<ul>
+<li>PersistentVolume 是集群中的存储资源，通常由集群管理员创建和管理</li>
+<li>StorageClass 用于对 PersistentVolume 进行分类，如果正确配置，StorageClass 也可以根据 PersistentVolumeClaim 的请求动态创建 Persistent Volume</li>
+<li>PersistentVolumeClaim 是使用该资源的请求，通常由应用程序提出请求，并指定对应的 StorageClass 和需求的空间大小</li>
+<li>PersistentVolumeClaim 可以做为数据卷的一种，被挂载到容器组/容器中使用</li>
+</ul>
+<p><img src="/images/k8s/k8s-persistent-storage/2.jpg" alt="2"></p>
+<h3 id="存储卷声明的管理过程"><a href="#存储卷声明的管理过程" class="headerlink" title="存储卷声明的管理过程"></a>存储卷声明的管理过程</h3><p>PersistantVolume 和 PersistantVolumeClaim 的管理过程描述如下：</p>
+<blockquote>
+<p>下图主要描述的是 PV 和 PVC 的管理过程，因为绘制空间的问题，将挂载点与Pod关联了，实际结构应该如上图所示：</p>
+<ul>
+<li>Pod 中添加数据卷，数据卷关联PVC</li>
+<li>Pod 中包含容器，容器挂载数据卷</li>
+</ul>
+</blockquote>
+<p><img src="/images/k8s/k8s-persistent-storage/3.jpg" alt="3"></p>
+<h4 id="提供-Provisioning"><a href="#提供-Provisioning" class="headerlink" title="提供 Provisioning"></a>提供 Provisioning</h4><p>有两种方式为 PersistentVolumeClaim 提供 PersistentVolume : 静态、动态</p>
+<ul>
+<li><p><strong>静态提供 Static</strong></p>
+<p>集群管理员实现创建好一系列 PersistentVolume，它们包含了可供集群中应用程序使用的关于实际存储的具体信息。</p>
+<p><img src="/images/k8s/k8s-persistent-storage/4.jpg" alt="4"></p>
+</li>
+<li><p><strong>动态提供 Dynamic</strong></p>
+<p>在配置有合适的 StorageClass（存储类）且 PersistentVolumeClaim 关联了该 StorageClass 的情况下，kubernetes 集群可以为应用程序动态创建 PersistentVolume。</p>
+<p><img src="/images/k8s/k8s-persistent-storage/5.jpg" alt="5"></p>
+</li>
+</ul>
+<h4 id="绑定-Binding"><a href="#绑定-Binding" class="headerlink" title="绑定 Binding"></a>绑定 Binding</h4><p>假设用户创建了一个 PersistentVolumeClaim 存储卷声明，并指定了需求的存储空间大小以及访问模式。Kubernets master 将立刻为其匹配一个 PersistentVolume 存储卷，并将存储卷声明和存储卷绑定到一起。如果一个 PersistentVolume 是动态提供给一个新的 PersistentVolumeClaim，Kubernetes master 会始终将其绑定到该 PersistentVolumeClaim。除此之外，应用程序将被绑定一个不小于（可能大于）其 PersistentVolumeClaim 中请求的存储空间大小的 PersistentVolume。一旦绑定，PersistentVolumeClaim 将拒绝其他 PersistentVolume 的绑定关系。PVC 与 PV 之间的绑定关系是一对一的映射。</p>
+<p>PersistentVolumeClaim 将始终停留在 <strong><em>未绑定 unbound</em></strong> 状态，直到有合适的 PersistentVolume 可用。举个例子：集群中已经存在一个 50Gi 的 PersistentVolume，同时有一个 100Gi 的 PersistentVolumeClaim，在这种情况下，该 PVC 将一直处于 <strong><em>未绑定 unbound</em></strong> 状态，直到管理员向集群中添加了一个 100Gi 的 PersistentVolume。</p>
+<h4 id="使用-Using"><a href="#使用-Using" class="headerlink" title="使用 Using"></a>使用 Using</h4><p>对于 Pod 容器组来说，PersistentVolumeClaim 存储卷声明是一种类型的 Volume 数据卷。Kubernetes 集群将 PersistentVolumeClaim 所绑定的 PersistentVolume 挂载到容器组供其使用。</p>
+<h4 id="使用中保护-Storage-Object-in-Use-Protection"><a href="#使用中保护-Storage-Object-in-Use-Protection" class="headerlink" title="使用中保护 Storage Object in Use Protection"></a>使用中保护 Storage Object in Use Protection</h4><ul>
+<li>使用中保护（Storage Object in Use Protection）的目的是确保正在被容器组使用的 PersistentVolumeClaim 以及其绑定的 PersistentVolume 不能被系统删除，以避免可能的数据丢失。</li>
+<li>如果用户删除一个正在使用中的 PersistentVolumeClaim，则该 PVC 不会立即被移除掉，而是推迟到该 PVC 不在被任何容器组使用时才移除；同样的如果管理员删除了一个已经绑定到 PVC 的 PersistentVolume，则该 PV 也不会立刻被移除掉，而是推迟到其绑定的 PVC 被删除后才移除掉。</li>
+</ul>
+<h4 id="回收-Reclaiming"><a href="#回收-Reclaiming" class="headerlink" title="回收 Reclaiming"></a>回收 Reclaiming</h4><p>当用户不在需要其数据卷时，可以删除掉其 PersistentVolumeClaim，此时其对应的 PersistentVolume 将被集群回收并再利用。Kubernetes 集群根据 PersistentVolume 中的 reclaim policy（回收策略）决定在其被回收时做对应的处理。当前支持的回收策略有：Retained（保留）、Recycled（重复利用）、Deleted（删除）</p>
+<ul>
+<li><p><strong>保留 Retain</strong></p>
+<p>保留策略需要集群管理员手工回收该资源。当绑定的 PersistentVolumeClaim 被删除后，PersistentVolume 仍然存在，并被认为是”已释放“。但是此时该存储卷仍然不能被其他 PersistentVolumeClaim 绑定，因为前一个绑定的 PersistentVolumeClaim 对应容器组的数据还在其中。集群管理员可以通过如下步骤回收该 PersistentVolume：</p>
+<ul>
+<li>删除该 PersistentVolume。PV 删除后，其数据仍然存在于对应的外部存储介质中（nfs、cefpfs、glusterfs 等）</li>
+<li>手工删除对应存储介质上的数据</li>
+<li>手工删除对应的存储介质，您也可以创建一个新的 PersistentVolume 并再次使用该存储介质</li>
+</ul>
+</li>
+<li><p><strong>删除 Delete</strong></p>
+<p>删除策略将从 kubernete 集群移除 PersistentVolume 以及其关联的外部存储介质（云环境中的 AWA EBS、GCE PD、Azure Disk 或 Cinder volume）。</p>
+</li>
+<li><p><strong>再利用 Recycle</strong></p>
+<ul>
+<li>再利用策略将在 PersistentVolume 回收时，执行一个基本的清除操作（rm -rf /thevolume/*），并使其可以再次被新的 PersistentVolumeClaim 绑定。</li>
+<li>集群管理员也可以自定义一个 recycler pod template，用于执行清除操作。请参考 <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/#recycle" target="_blank" rel="noopener">Recycle</a></li>
+</ul>
+</li>
+</ul>
+<p>::: tip<br>动态提供的 PersistentVolume 将从其对应的 StorageClass 继承回收策略的属性。<br>:::</p>
+<h4 id="扩展-Expanding-Persistent-Volumes-Claims"><a href="#扩展-Expanding-Persistent-Volumes-Claims" class="headerlink" title="扩展 Expanding Persistent Volumes Claims"></a>扩展 Expanding Persistent Volumes Claims</h4><p>  Kubernetes 中，该特性处于 beta 状态<br>  该特性只针对极少数的 PersistentVolume 类型有效。请参考 <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/#expanding-persistent-volumes-claims" target="_blank" rel="noopener">Expanding Persistent Volumes Claims</a></p>
+<h3 id="存储卷类型"><a href="#存储卷类型" class="headerlink" title="存储卷类型"></a>存储卷类型</h3><p>Kubernetes 支持 20 种存储卷类型（可参考 <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes" target="_blank" rel="noopener">Types of Persistent Volumes</a>），如下所示：</p>
+<ul>
+<li>非持久性存储<ul>
+<li>emptyDir</li>
+<li>HostPath (只在单节点集群上用做测试目的)</li>
+</ul>
+</li>
+<li>网络连接性存储<ul>
+<li>SAN：iSCSI、ScaleIO Volumes、FC (Fibre Channel)</li>
+<li>NFS：nfs，cfs</li>
+</ul>
+</li>
+<li>分布式存储<ul>
+<li>Glusterfs</li>
+<li>RBD (Ceph Block Device)</li>
+<li>CephFS</li>
+<li>Portworx Volumes</li>
+<li>Quobyte Volumes</li>
+</ul>
+</li>
+<li>云端存储<ul>
+<li>GCEPersistentDisk</li>
+<li>AWSElasticBlockStore</li>
+<li>AzureFile</li>
+<li>AzureDisk</li>
+<li>Cinder (OpenStack block storage)</li>
+<li>VsphereVolume</li>
+<li>StorageOS</li>
+</ul>
+</li>
+<li>自定义存储<ul>
+<li>FlexVolume</li>
+</ul>
+</li>
+<li>不推荐<ul>
+<li>Flocker (最近更新2016年 <a href="https://github.com/ClusterHQ/flocker/" target="_blank" rel="noopener">https://github.com/ClusterHQ/flocker/</a>)</li>
+</ul>
+</li>
+</ul>
+<p>针对自建 Kubernetes 集群的情况，建议使用如下几种存储卷类型：</p>
+<ul>
+<li>NFS</li>
+<li>CephFS</li>
+</ul>
+<h2 id="存储类StorageClass"><a href="#存储类StorageClass" class="headerlink" title="存储类StorageClass"></a>存储类StorageClass</h2><h3 id="存储类概述"><a href="#存储类概述" class="headerlink" title="存储类概述"></a>存储类概述</h3><p>StorageClass 存储类用于描述集群中可以提供的存储的类型。不同的存储类可能对应着不同的：</p>
+<ul>
+<li>服务等级（quality-of-service level）</li>
+<li>备份策略</li>
+<li>集群管理员自定义的策略</li>
+</ul>
+<p>Kubernetes 自身对存储类所代表的含义并无感知，由集群管理员自行约定。</p>
+<h3 id="存储类的种类"><a href="#存储类的种类" class="headerlink" title="存储类的种类"></a>存储类的种类</h3><p>参考 <a href="https://kubernetes.io/docs/concepts/storage/storage-classes/" target="_blank" rel="noopener">Storage Classes</a>，Kubernetes 提供 19 种存储类 Provisioner，但是绝大多数与具体的云环境相关，如 AWSElasticBlockStore / AzureFile / AzureDisk / GCEPersistentDisk 等。</p>
+<h2 id="搭建NFS-Server"><a href="#搭建NFS-Server" class="headerlink" title="搭建NFS Server"></a>搭建NFS Server</h2><h3 id="背景-1"><a href="#背景-1" class="headerlink" title="背景"></a>背景</h3><p>Kubernetes 对 Pod 进行调度时，以当时集群中各节点的可用资源作为主要依据，自动选择某一个可用的节点，并将 Pod 分配到该节点上。在这种情况下，Pod 中容器数据的持久化如果存储在所在节点的磁盘上，就会产生不可预知的问题，例如，当 Pod 出现故障，Kubernetes 重新调度之后，Pod 所在的新节点上，并不存在上一次 Pod 运行时所在节点上的数据。</p>
+<p>为了使 Pod 在任何节点上都能够使用同一份持久化存储数据，我们需要使用网络存储的解决方案为 Pod 提供数据卷。常用的网络存储方案有：NFS/cephfs/glusterfs。</p>
+<p>本文介绍一种使用 centos 搭建 nfs 服务器的方法。此方法<font color="red">仅用于测试目的</font>，请根据您生产环境的实际情况，选择合适的 NFS 服务。</p>
+<h3 id="配置要求"><a href="#配置要求" class="headerlink" title="配置要求"></a>配置要求</h3><ul>
+<li>两台 linux 服务器，centos 7<ul>
+<li>一台用作 nfs server</li>
+<li>另一台用作 nfs 客户端</li>
+</ul>
+</li>
+</ul>
+<h3 id="配置NFS服务器"><a href="#配置NFS服务器" class="headerlink" title="配置NFS服务器"></a>配置NFS服务器</h3><blockquote>
+<p>本章节中所有命令都以 root 身份执行</p>
+</blockquote>
+<ul>
+<li>执行以下命令安装 nfs 服务器所需的软件包<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y nfs-utils</span><br></pre></td></tr></table></figure></li>
+<li>执行命令 <code>vim /etc/exports</code>，创建 exports 文件，文件内容如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;root&#x2F;nfs_root&#x2F; *(insecure,rw,sync,no_root_squash)</span><br></pre></td></tr></table></figure></li>
+<li>执行以下命令，启动 nfs 服务<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建共享目录，如果要使用自己的目录，请替换本文档中所有的 /root/nfs_root/</span></span><br><span class="line">mkdir /root/nfs_root</span><br><span class="line"></span><br><span class="line">systemctl <span class="built_in">enable</span> rpcbind</span><br><span class="line">systemctl <span class="built_in">enable</span> nfs-server</span><br><span class="line"></span><br><span class="line">systemctl start rpcbind</span><br><span class="line">systemctl start nfs-server</span><br><span class="line">exportfs -r</span><br></pre></td></tr></table></figure></li>
+<li>检查配置是否生效<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">exportfs</span><br><span class="line"><span class="comment"># 输出结果如下所示</span></span><br><span class="line">/root/nfs_root /root/nfs_root</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="在客户端测试nfs"><a href="#在客户端测试nfs" class="headerlink" title="在客户端测试nfs"></a>在客户端测试nfs</h3><blockquote>
+<ul>
+<li>本章节中所有命令都以 root 身份执行</li>
+<li>服务器端防火墙开放111、662、875、892、2049的 tcp / udp 允许，否则远端客户无法连接。</li>
+</ul>
+</blockquote>
+<ul>
+<li><p>执行以下命令安装 nfs 客户端所需的软件包</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y nfs-utils</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行以下命令检查 nfs 服务器端是否有设置共享目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># showmount -e $(nfs服务器的IP)</span></span><br><span class="line">showmount -e 172.17.216.82</span><br><span class="line"><span class="comment"># 输出结果如下所示</span></span><br><span class="line">Export list <span class="keyword">for</span> 172.17.216.82:</span><br><span class="line">/root/nfs_root *</span><br></pre></td></tr></table></figure></li>
+<li><p>执行以下命令挂载 nfs 服务器上的共享目录到本机路径 <code>/root/nfsmount</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mkdir /root/nfsmount</span><br><span class="line"><span class="comment"># mount -t nfs $(nfs服务器的IP):/root/nfs_root /root/nfsmount</span></span><br><span class="line">mount -t nfs 172.17.216.82:/root/nfs_root /root/nfsmount</span><br><span class="line"><span class="comment"># 写入一个测试文件</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"hello nfs server"</span> &gt; /root/nfsmount/test.txt</span><br></pre></td></tr></table></figure></li>
+<li><p>在 nfs 服务器上执行以下命令，验证文件写入成功</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /root/nfs_root/test.txt</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://kubernetes.io/docs/concepts/storage/" target="_blank" rel="noopener">https://kubernetes.io/docs/concepts/storage/</a></li>
+<li><a href="https://kuboard.cn/" target="_blank" rel="noopener">https://kuboard.cn/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-core-concepts/" rel="prev" title="Kubernetes 核心概念">
+      <i class="fa fa-chevron-left"></i> Kubernetes 核心概念
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-configuration/" rel="next" title="Kubernetes 配置">
+      Kubernetes 配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据卷Volume"><span class="nav-number">2.</span> <span class="nav-text">数据卷Volume</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据卷概述"><span class="nav-number">2.1.</span> <span class="nav-text">数据卷概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据卷的类型"><span class="nav-number">2.2.</span> <span class="nav-text">数据卷的类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#emptyDir"><span class="nav-number">2.2.1.</span> <span class="nav-text">emptyDir</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#nfs"><span class="nav-number">2.2.2.</span> <span class="nav-text">nfs</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cephfs"><span class="nav-number">2.2.3.</span> <span class="nav-text">cephfs</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hostPath"><span class="nav-number">2.2.4.</span> <span class="nav-text">hostPath</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#configMap"><span class="nav-number">2.2.5.</span> <span class="nav-text">configMap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#secret"><span class="nav-number">2.2.6.</span> <span class="nav-text">secret</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#persistentVolumeClaim"><span class="nav-number">2.2.7.</span> <span class="nav-text">persistentVolumeClaim</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#downwardAPI"><span class="nav-number">2.2.8.</span> <span class="nav-text">downwardAPI</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据卷-挂载"><span class="nav-number">3.</span> <span class="nav-text">数据卷-挂载</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据卷内子路径"><span class="nav-number">3.1.</span> <span class="nav-text">数据卷内子路径</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#通过环境变量指定数据卷内子路径"><span class="nav-number">3.1.1.</span> <span class="nav-text">通过环境变量指定数据卷内子路径</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容器内路径"><span class="nav-number">3.2.</span> <span class="nav-text">容器内路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权限"><span class="nav-number">3.3.</span> <span class="nav-text">权限</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#挂载传播"><span class="nav-number">3.4.</span> <span class="nav-text">挂载传播</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#额外配置"><span class="nav-number">3.4.1.</span> <span class="nav-text">额外配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#存储卷PersistentVolume"><span class="nav-number">4.</span> <span class="nav-text">存储卷PersistentVolume</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">4.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存储卷和存储卷声明的关系"><span class="nav-number">4.2.</span> <span class="nav-text">存储卷和存储卷声明的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存储卷声明的管理过程"><span class="nav-number">4.3.</span> <span class="nav-text">存储卷声明的管理过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#提供-Provisioning"><span class="nav-number">4.3.1.</span> <span class="nav-text">提供 Provisioning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#绑定-Binding"><span class="nav-number">4.3.2.</span> <span class="nav-text">绑定 Binding</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用-Using"><span class="nav-number">4.3.3.</span> <span class="nav-text">使用 Using</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用中保护-Storage-Object-in-Use-Protection"><span class="nav-number">4.3.4.</span> <span class="nav-text">使用中保护 Storage Object in Use Protection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#回收-Reclaiming"><span class="nav-number">4.3.5.</span> <span class="nav-text">回收 Reclaiming</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#扩展-Expanding-Persistent-Volumes-Claims"><span class="nav-number">4.3.6.</span> <span class="nav-text">扩展 Expanding Persistent Volumes Claims</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存储卷类型"><span class="nav-number">4.4.</span> <span class="nav-text">存储卷类型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#存储类StorageClass"><span class="nav-number">5.</span> <span class="nav-text">存储类StorageClass</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#存储类概述"><span class="nav-number">5.1.</span> <span class="nav-text">存储类概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存储类的种类"><span class="nav-number">5.2.</span> <span class="nav-text">存储类的种类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搭建NFS-Server"><span class="nav-number">6.</span> <span class="nav-text">搭建NFS Server</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#背景-1"><span class="nav-number">6.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置要求"><span class="nav-number">6.2.</span> <span class="nav-text">配置要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置NFS服务器"><span class="nav-number">6.3.</span> <span class="nav-text">配置NFS服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在客户端测试nfs"><span class="nav-number">6.4.</span> <span class="nav-text">在客户端测试nfs</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

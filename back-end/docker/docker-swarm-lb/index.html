@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文将介绍基于 DNS 的负载均衡、基于 VIP 的负载均衡和路由网格（Routing Mesh）。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker Swarm 之 服务发现和负载均衡原理">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/docker/docker-swarm-lb/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="本文将介绍基于 DNS 的负载均衡、基于 VIP 的负载均衡和路由网格（Routing Mesh）。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/6.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/7.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/8.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/9.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/10.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/11.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/12.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/13.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/14.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/15.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/16.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/17.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/18.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/19.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/20.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/21.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/22.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/23.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/24.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/25.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/26.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/27.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/28.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/29.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/30.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/31.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/32.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/33.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/35.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/36.png">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/34.png">
+<meta property="article:published_time" content="2019-11-16T19:30:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.387Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/docker/docker-swarm-lb/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/docker/docker-swarm-lb/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Docker Swarm 之 服务发现和负载均衡原理 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/docker/docker-swarm-lb/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Docker Swarm 之 服务发现和负载均衡原理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-16 19:30:00" itemprop="dateCreated datePublished" datetime="2019-11-16T19:30:00+00:00">2019-11-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文将介绍基于 DNS 的负载均衡、基于 VIP 的负载均衡和路由网格（Routing Mesh）。</p>
+<a id="more"></a>
+
+<h2 id="使用的技术"><a href="#使用的技术" class="headerlink" title="使用的技术"></a>使用的技术</h2><p>Docker 使用了 Linux 内核 iptables 和 IPVS 的功能来实现服务发现和负载均衡。</p>
+<ul>
+<li>iptables 是 Linux 内核中可用的包过滤技术，它可用于根据数据包的内容进行分类、修改和转发决策。</li>
+<li>IPVS 是 Linux 内核中可用的传输级负载均衡器。</li>
+</ul>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
+<li>环境： Centos 7.4 * 2 ，Docker 版本 18.03.1-ce</li>
+<li>swarm 集群：【Manager】node1、【Worker】node2</li>
+<li>客户端镜像： registry.cn-hangzhou.aliyuncs.com/anoy/ubuntu</li>
+<li>服务端镜像： registry.cn-hangzhou.aliyuncs.com/anoy/vote</li>
+</ul>
+<p><img src="/images/docker/docker-swarm-lb/1.jpg" alt="1"></p>
+<p>如图所示，我们将在 swarm 集群中部署 “client” 服务 和 “vote” 服务，其中 “vote” 服务部署多个副本。客户端请求 “vote” 服务时，输出结果中包含服务端的容器 ID，这样就更方便演示网络请求。</p>
+<p>使用如下命令，创建 overlay 网络：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create --driver overlay overlay1</span><br></pre></td></tr></table></figure>
+
+<h2 id="基于-DNS-的负载均衡"><a href="#基于-DNS-的负载均衡" class="headerlink" title="基于 DNS 的负载均衡"></a>基于 DNS 的负载均衡</h2><p>下图描述了基于 DNS 的负载均衡是如何工作的：</p>
+<p><img src="/images/docker/docker-swarm-lb/2.jpg" alt="2"></p>
+<p>DNS server 内嵌于 Docker 引擎。Docker DNS 解析服务名 “vote” 并返回容器 ID 地址列表（随机排序）。客户端通常会挑第一个 IP 访问，因此负载均衡可能发生在服务器的不同实例之间。</p>
+<p>使用如下命令创建 2 个基于 DNS 负载均衡的服务 “client” 、 “vote”：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker service create --endpoint-mode dnsrr --replicas 1 --name client --network overlay1 registry.cn-hangzhou.aliyuncs.com/anoy/ubuntu ping anoyi.com</span><br><span class="line"></span><br><span class="line">docker service create --endpoint-mode dnsrr --name vote --network overlay1 --replicas 2 registry.cn-hangzhou.aliyuncs.com/anoy/vote</span><br></pre></td></tr></table></figure>
+
+<p>查看服务信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 ~]<span class="comment"># docker service ls</span></span><br><span class="line">ID                  NAME                MODE                REPLICAS            IMAGE                                                  PORTS</span><br><span class="line">2mrj3pqyioc3        client              replicated          1/1                 registry.cn-hangzhou.aliyuncs.com/anoy/ubuntu:latest</span><br><span class="line">826s79tsixuh        vote                replicated          2/2                 registry.cn-hangzhou.aliyuncs.com/anoy/vote:latest</span><br><span class="line"></span><br><span class="line">[root@node1 ~]<span class="comment"># docker service ps client</span></span><br><span class="line">ID                  NAME                IMAGE                                                  NODE                DESIRED STATE       CURRENT STATE           ERROR               PORTS</span><br><span class="line">f74i688vbh12        client.1            registry.cn-hangzhou.aliyuncs.com/anoy/ubuntu:latest   node2               Running             Running 2 minutes ago</span><br><span class="line"></span><br><span class="line">[root@node1 ~]<span class="comment"># docker service ps vote</span></span><br><span class="line">ID                  NAME                IMAGE                                                NODE                DESIRED STATE       CURRENT STATE                ERROR               PORTS</span><br><span class="line">7iiuzl2a63hy        vote.1              registry.cn-hangzhou.aliyuncs.com/anoy/vote:latest   node1               Running             Running 47 seconds ago</span><br><span class="line">uyhxxqfdima7        vote.2              registry.cn-hangzhou.aliyuncs.com/anoy/vote:latest   node2               Running             Running about a minute ago</span><br></pre></td></tr></table></figure>
+
+<p>可以看出 “client” 运行于 node2，在 node2 上进入 client 容器，使用 dig 来解析服务名 “vote”，如下所示，”vote” 解析到 10.0.0.6 和 10.0.0.5</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@node2 ~]<span class="comment"># docker ps</span></span><br><span class="line">CONTAINER ID        IMAGE                                                  COMMAND                  CREATED              STATUS              PORTS               NAMES</span><br><span class="line">1eed67d37cbb        registry.cn-hangzhou.aliyuncs.com/anoy/vote:latest     <span class="string">"gunicorn app:app -b…"</span>   About a minute ago   Up About a minute   80/tcp              vote.2.uyhxxqfdima7smos5pki84wul</span><br><span class="line">436702b21a1c        registry.cn-hangzhou.aliyuncs.com/anoy/ubuntu:latest   <span class="string">"ping anoyi.com"</span>         3 minutes ago        Up 3 minutes                            client.1.f74i688vbh12on8oniufht633</span><br><span class="line"></span><br><span class="line">[root@node2 ~]<span class="comment"># docker exec -it 436702b21a1c /bin/bash</span></span><br><span class="line"></span><br><span class="line">root@436702b21a1c:/<span class="comment"># dig vote</span></span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">vote.           600 IN  A   10.0.0.5</span><br><span class="line">vote.           600 IN  A   10.0.0.6</span><br></pre></td></tr></table></figure>
+
+<p>使用 ping 解析 “vote” 服务，如下所示，交替解析到 10.0.0.6 和 10.0.0.5</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@436702b21a1c:/<span class="comment"># ping -c1 vote</span></span><br><span class="line">PING vote (10.0.0.6) 56(84) bytes of data.</span><br><span class="line">64 bytes from vote.2.uyhxxqfdima7smos5pki84wul.overlay1 (10.0.0.6): icmp_seq=1 ttl=64 time=0.087 ms</span><br><span class="line"></span><br><span class="line">root@436702b21a1c:/<span class="comment"># ping -c1 vote</span></span><br><span class="line">PING vote (10.0.0.5) 56(84) bytes of data.</span><br><span class="line">64 bytes from vote.1.7iiuzl2a63hyj084qgufc175v.overlay1 (10.0.0.5): icmp_seq=1 ttl=64 time=0.767 ms</span><br></pre></td></tr></table></figure>
+
+<p>如果使用 curl，如下所示，请求也能解析到不同的容器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">root@436702b21a1c:/<span class="comment"># curl vote  | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0   7542      0 --:--:-- --:--:-- --:--:--  7546</span><br><span class="line">          Processed by container ID 9b42319d4f13</span><br><span class="line"></span><br><span class="line">root@436702b21a1c:/<span class="comment"># curl vote  | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0   452k      0 --:--:-- --:--:-- --:--:--  514k</span><br><span class="line">          Processed by container ID 1eed67d37cbb</span><br></pre></td></tr></table></figure>
+
+<p>基于 DNS 负载均衡存在如下问题：</p>
+<ul>
+<li>某些应用程序将 DNS 主机名缓存到 IP 地址映射，这会导致应用程序在映射更改时超时</li>
+<li>具有非零 DNS ttl 值会导致 DNS 条目反映最新的详细信息时发生延迟</li>
+</ul>
+<h2 id="基于-VIP-的负载均衡"><a href="#基于-VIP-的负载均衡" class="headerlink" title="基于 VIP 的负载均衡"></a>基于 VIP 的负载均衡</h2><p>基于 VIP 的负载均衡克服了基于 DNS 负载均衡的一些问题。在这种方法中，每个服务都有一个 IP 地址，并且该 IP 地址映射到与该服务关联的多个容器的 IP 地址。在这种情况下，与服务关联的服务 IP 不会改变，即使与该服务关联的容器死亡并重新启动。</p>
+<p>下图描述了基于 VIP 的负载均衡是如何工作的：</p>
+<p><img src="/images/docker/docker-swarm-lb/3.jpg" alt="3"></p>
+<p>DNS server 会将服务名 “vote” 解析到 VIP，使用 iptables 和 ipvs，VIP 实现 2 个服务端 “vote” 容器的负载均衡。</p>
+<p>使用如下命令创建 2 个 VIP 模式的服务 “client” 、 “vote”：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker service create --replicas 1 --name client --network overlay1 registry.cn-hangzhou.aliyuncs.com/anoy/ubuntu ping anoyi.com</span><br><span class="line"></span><br><span class="line">docker service create --name vote --network overlay1 --replicas 2 registry.cn-hangzhou.aliyuncs.com/anoy/vote</span><br></pre></td></tr></table></figure>
+
+<p>查看这 2 个服务和它们的服务 IP：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 ~]<span class="comment"># docker service inspect --format &#123;&#123;.Endpoint.VirtualIPs&#125;&#125;  vote</span></span><br><span class="line">[&#123;tetug0isdx1gri62g7cfm889i 10.0.0.9/24&#125;]</span><br><span class="line"></span><br><span class="line">[root@node1 ~]<span class="comment"># docker service inspect --format &#123;&#123;.Endpoint.VirtualIPs&#125;&#125;  client</span></span><br><span class="line">[&#123;tetug0isdx1gri62g7cfm889i 10.0.0.7/24&#125;]</span><br></pre></td></tr></table></figure>
+
+<p>在 “client” 的容器中使用如下命令，可以看到服务名 “vote” 映射到 VIP “10.0.0.9”</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node2 ~]<span class="comment"># docker exec -it f3d1c4ef53f8 /bin/bash</span></span><br><span class="line"></span><br><span class="line">root@f3d1c4ef53f8:/<span class="comment"># dig vote</span></span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">vote.           600 IN  A   10.0.0.9</span><br></pre></td></tr></table></figure>
+
+<p>Service IP “10.0.0.9” 使用 Linux 内核的 iptables 和 IPVS 负载均衡到 2 个容器。iptables 实现防火墙规则，IPVS 实现负载均衡。为了证明这一点，我们需要使用 nsenter 进入容器的网络空间 (namespace)。为此，我们需要找到网络的命名空间。</p>
+<p>如下是 node2 上的网络命名空间：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@node2 ~]<span class="comment"># cd /var/run/docker/netns/</span></span><br><span class="line"></span><br><span class="line">[root@node2 netns]<span class="comment"># ls</span></span><br><span class="line">1-tetug0isdx  1-vyy22w04t6  be7330b99a27  d67fa9efb59e  ingress_sbox</span><br></pre></td></tr></table></figure>
+
+<p>前 2 个命名空间是用于 overlay 网络，后面的用于容器。下面的命令用于找到 “client” 容器的网络命名空间：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@node2 netns]<span class="comment"># docker ps</span></span><br><span class="line">CONTAINER ID        IMAGE                                                  COMMAND                  CREATED             STATUS              PORTS               NAMES</span><br><span class="line">43a789312e70        registry.cn-hangzhou.aliyuncs.com/anoy/vote:latest     <span class="string">"gunicorn app:app -b…"</span>   3 minutes ago       Up 3 minutes        80/tcp              vote.1.u46ms31e8zjdxtwrxvaec8zub</span><br><span class="line">f3d1c4ef53f8        registry.cn-hangzhou.aliyuncs.com/anoy/ubuntu:latest   <span class="string">"ping anoyi.com"</span>         4 minutes ago       Up 4 minutes                            client.1.ycox088aek5ajejezubwsjqf2</span><br><span class="line"></span><br><span class="line">[root@node2 netns]<span class="comment"># docker inspect f3d1c4ef53f8 | grep -i sandbox</span></span><br><span class="line">            <span class="string">"SandboxID"</span>: <span class="string">"be7330b99a274a03a7f58e9e991346dc6f048836a1682c7244a6068acbfb664c"</span>,</span><br><span class="line">            <span class="string">"SandboxKey"</span>: <span class="string">"/var/run/docker/netns/be7330b99a27"</span>,</span><br></pre></td></tr></table></figure>
+
+<p>SandboxID 即为 “client” 容器的网络命名空间。</p>
+<p>使用如下命令，我们就能够进入到 “client” 容器的网络命令空间：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># nsenter --net=f3d1c4ef53f8 sh</span></span><br><span class="line">nsenter --net=be7330b99a27 sh</span><br></pre></td></tr></table></figure>
+
+<p>下面，我们可以看到 iptables 的转发规则和 IPVS 输出：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">sh-4.2<span class="comment"># iptables -nvL -t mangle</span></span><br><span class="line"></span><br><span class="line">Chain OUTPUT (policy ACCEPT 606 packets, 50867 bytes)</span><br><span class="line"> pkts bytes target     prot opt <span class="keyword">in</span>     out     <span class="built_in">source</span>               destination</span><br><span class="line">    0     0 MARK       all  --  *      *       0.0.0.0/0            10.0.0.7             MARK <span class="built_in">set</span> 0x102</span><br><span class="line">    0     0 MARK       all  --  *      *       0.0.0.0/0            10.0.0.9             MARK <span class="built_in">set</span> 0x103</span><br><span class="line"></span><br><span class="line">sh-4.2<span class="comment"># ipvsadm</span></span><br><span class="line">IP Virtual Server version 1.2.1 (size=4096)</span><br><span class="line">Prot LocalAddress:Port Scheduler Flags</span><br><span class="line">  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn</span><br><span class="line">FWM  258 rr</span><br><span class="line">  -&gt; node2:0                      Masq    1      0          0</span><br><span class="line">FWM  259 rr</span><br><span class="line">  -&gt; 10.0.0.10:0                  Masq    1      0          0</span><br><span class="line">  -&gt; 10.0.0.11:0                  Masq    1      0          0</span><br></pre></td></tr></table></figure>
+
+<p>Service IP “10.0.0.9” 使用 iptables OUTPUT 链获得标记 0x103 (十六进制 -&gt; 十进制：259)，然后 IPVS 使用此标记并将它负载均衡到 “10.0.0.10” 和 “10.0.0.11” 。</p>
+<p>查看 vote 服务的 2 个容器的 IP 如下所示，即 VIP “10.0.0.9” 负载均衡到不同的容器实例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node2 netns]<span class="comment"># docker inspect vote.1.u46ms31e8zjdxtwrxvaec8zub | grep IPv4</span></span><br><span class="line">                        <span class="string">"IPv4Address"</span>: <span class="string">"10.0.0.10"</span></span><br><span class="line"></span><br><span class="line">[root@node1 ~]<span class="comment"># docker inspect vote.2.tutj19i4iwu1xn7arsaq815cu | grep IPv4</span></span><br><span class="line">                        <span class="string">"IPv4Address"</span>: <span class="string">"10.0.0.11"</span></span><br></pre></td></tr></table></figure>
+
+<p>进入 client 服务的容器，使用 curl 请求 vote 服务，输出结果如下，即请求分发到不同的容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">root@f3d1c4ef53f8:/<span class="comment"># curl vote | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0  14409      0 --:--:-- --:--:-- --:--:-- 14438</span><br><span class="line">          Processed by container ID c2af209c4e90</span><br><span class="line"></span><br><span class="line">root@f3d1c4ef53f8:/<span class="comment"># curl vote | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0   165k      0 --:--:-- --:--:-- --:--:--  171k</span><br><span class="line">          Processed by container ID 43a789312e70</span><br></pre></td></tr></table></figure>
+
+<h2 id="路由网格-（Routing-mesh）"><a href="#路由网格-（Routing-mesh）" class="headerlink" title="路由网格 （Routing mesh）"></a>路由网格 （Routing mesh）</h2><p>使用路由网格，服务暴露的端口会暴露在 Swarm 集群中的所有工作节点。Docker 是通过创建 “ingress” overlay 网络来实现这一点的，所有节点默认使用内在的 sandbox 网络命名空间成为 “ingress” overlay 网络的一部分。</p>
+<p>下图描述了 Routing mesh 如何实现负载均衡的：</p>
+<p><img src="/images/docker/docker-swarm-lb/4.jpg" alt="4"></p>
+<p>首先，会将 Hostname 或 IP 映射到 Sandbox IP，Sandbox 中的 iptables 和 IPVS 负责将请求负载均衡到 2 个 vote 容器。Ingress sandbox 网络命名空间驻留在 swarm 集群中的所有工作节点，它通过将主机映射的端口负载均衡到后端容器来协助路由网格功能。</p>
+<p>使用如下命令创建 vote 服务，使用路由网格暴露端口到所有节点：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service create --name vote --network overlay1 --replicas 2 -p 8080:80 registry.cn-hangzhou.aliyuncs.com/anoy/vote</span><br></pre></td></tr></table></figure>
+
+<p>下图显示了 Sandbox、容器和每个节点的网络之间的映射关系：</p>
+<p><img src="/images/docker/docker-swarm-lb/5.jpg" alt="5"></p>
+<p>如图所示，Sandbox 和 vote 容器是 “ingress” 网络的一部分，它有助于路由网格。client 容器和 vote 容器是 “overlay1” 网络的一部分，它有助于内部负载均衡。所有容器都是默认 “docker_gwbridge” 网络的一部分。</p>
+<p>遵循 iptables 中的 NAT 规则显示，端口 8080 上的主机流量发送到 node1 里的 Sandbox：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 ~]<span class="comment"># iptables -nvL -t nat</span></span><br><span class="line"></span><br><span class="line">Chain DOCKER-INGRESS (2 references)</span><br><span class="line"> pkts bytes target     prot opt <span class="keyword">in</span>     out     <span class="built_in">source</span>               destination</span><br><span class="line">    0     0 DNAT       tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8080 to:172.18.0.2:8080</span><br><span class="line">  315 18876 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0</span><br></pre></td></tr></table></figure>
+
+<p>进入 node1 上的 Sandbox 网络命名空间 (ingress_sbox)，查看 iptables 的转发规则和 IPVS 输出：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 netns]<span class="comment"># nsenter --net=ingress_sbox sh</span></span><br><span class="line"></span><br><span class="line">sh-4.2<span class="comment"># iptables -nvL -t mangle</span></span><br><span class="line">Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)</span><br><span class="line"> pkts bytes target     prot opt <span class="keyword">in</span>     out     <span class="built_in">source</span>               destination</span><br><span class="line">    0     0 MARK       tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8080 MARK <span class="built_in">set</span> 0x105</span><br><span class="line"></span><br><span class="line">sh-4.2<span class="comment"># ipvsadm</span></span><br><span class="line">IP Virtual Server version 1.2.1 (size=4096)</span><br><span class="line">Prot LocalAddress:Port Scheduler Flags</span><br><span class="line">  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn</span><br><span class="line">FWM  261 rr</span><br><span class="line">  -&gt; 10.255.0.5:0                 Masq    1      0          0</span><br><span class="line">  -&gt; 10.255.0.6:0                 Masq    1      0          0</span><br></pre></td></tr></table></figure>
+
+<p>端口 8080 标记为 0x105 (十六进制 -&gt; 十进制：261)，IPVS 使用此标记将它负载均衡到 “10.255.0.5” 和 “10.255.0.6” 。</p>
+<p>查看 vote 服务的 2 个容器的 IP 如下所示，即主机端口 8080 的流量会负载均衡到不同的容器实例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 netns]<span class="comment"># docker inspect 6173afd5fab8 | grep IPv4</span></span><br><span class="line">                        <span class="string">"IPv4Address"</span>: <span class="string">"10.255.0.6"</span></span><br><span class="line">                        <span class="string">"IPv4Address"</span>: <span class="string">"10.0.0.14"</span></span><br><span class="line"></span><br><span class="line">[root@node2 ~]<span class="comment"># docker inspect b07e95c5c681 | grep IPv4</span></span><br><span class="line">                        <span class="string">"IPv4Address"</span>: <span class="string">"10.255.0.5"</span></span><br><span class="line">                        <span class="string">"IPv4Address"</span>: <span class="string">"10.0.0.13"</span></span><br></pre></td></tr></table></figure>
+
+<p>验证负载均衡，在 node1 上通过 node2 的 IP 和 8080 端口请求 vote 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@node1 netns]<span class="comment"># curl node2:8080 | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0   199k      0 --:--:-- --:--:-- --:--:--  192k</span><br><span class="line">          Processed by container ID 6173afd5fab8</span><br><span class="line"></span><br><span class="line">[root@node1 netns]<span class="comment"># curl node2:8080 | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0   7551      0 --:--:-- --:--:-- --:--:--  7546</span><br><span class="line">          Processed by container ID b07e95c5c681</span><br></pre></td></tr></table></figure>
+
+<p>在 node2 上通过 node1 的 IP 和 8080 端口请求 vote 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@node2 ~]<span class="comment"># curl node1:8080 | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0   7531      0 --:--:-- --:--:-- --:--:--  7546</span><br><span class="line">          Processed by container ID 6173afd5fab8</span><br><span class="line"></span><br><span class="line">[root@node2 ~]<span class="comment"># curl node1:8080 | grep -i "container id"</span></span><br><span class="line">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</span><br><span class="line">                                 Dload  Upload   Total   Spent    Left  Speed</span><br><span class="line">100  3162  100  3162    0     0   169k      0 --:--:-- --:--:-- --:--:--  171k</span><br><span class="line">          Processed by container ID b07e95c5c681</span><br></pre></td></tr></table></figure>
+
+<h2 id="服务发现详解"><a href="#服务发现详解" class="headerlink" title="服务发现详解"></a>服务发现详解</h2><p>Docker 提供了 overlay driver，使用户可以创建基于 VxLAN 的 overlay 网络。VxLAN 可将二层数据封装到 UDP 进行传输，VxLAN 提供与 VLAN 相同的以太网二层服务，但是拥有更强的扩展性和灵活性。linux下是使用了net namespace来隔离docker创建的overlay网络。</p>
+<p>Docker 网络模型如下：</p>
+<p><img src="/images/docker/docker-swarm-lb/6.png" alt="6"></p>
+<p><strong>Sandbox：</strong></p>
+<p>一个Sandbox包含了一个容器网络栈的配置。其中包括了对容器的网卡，路由表以及对DNS设置的管理。通常，一个Sandbox的实现可以是一个Linux Network Namespace，一个FreeBSD Jail或者其他类似的东西。一个Sandbox可以包含多个处于不同Network的Endpoint。</p>
+<p><strong>Endpoint：</strong></p>
+<p>Endpoint将一个Sandbox加入一个Network。Endpoint的实现可以是一个veth对，一个Open vSwitch internal port或者其他类似的东西。一个Endpoint只能属于一个Network和一个Sandbox。</p>
+<p><strong>Network：</strong></p>
+<p>Network是一个能够互相通信的Endpoint的集合。Network的实现可以是一个Linux网桥，一个VLAN等等。</p>
+<h3 id="Docker-Swarm-中的服务发现"><a href="#Docker-Swarm-中的服务发现" class="headerlink" title="Docker Swarm 中的服务发现"></a>Docker Swarm 中的服务发现</h3><p>服务发现组件用来注册一个服务，并发布此服务的连接信息从而使其他服务知道如何连接到它。当应用转向微服务结构或者是面向服务的架构时，服务发现已经变成分布式系统必不可少的一部分，也增加了操作这些环境的复杂性。</p>
+<p>DockerEE、DockerCS 引擎通过直接包含服务发现和负载均衡机制来提升使用它的组织执行devops的积极性，并且使开发能动态的发现其他服务的应用变得简单，通过操作引擎也使得应用扩容变得简单。</p>
+<p>Docker利用service来发布应用。一个service包含了一组从同一个镜像创建的容器，每个service由执行在工作节点的任务和定义好的应用的状态两部分组成。当发布一个service，这个service的定义也包含在了service的创建中，在定义中包括组成service的容器，发布的端口，使用的网络，复制的个数等信息，所有的这些属性组成了service的预期状态。当一个节点的健康检查失败或者是一个service中某个特定的任务检查失败时，集群会自动维护service的一致状态，把失败的任务转发到其他健康的节点上。</p>
+<p>docker利用内嵌的DNS服务为单个docker引擎中的容器以及swarm 模式下的task提供服务发现能力。</p>
+<p>docker引擎有一个内部的DNS服务来为运行在该宿主机上的所有容器提供名称解析的功能，无论容器是运行在用户自定义的bridge, overlay, 和 MACVLAN 网络。每一个docker容器（或者是docker swarm中的一个任务，也是以容器运行）都有一个域名解析器，可以把域名查询请求转发到宿主机上的docker引擎上的域名服务，docker 引擎收到请求后就会在发出请求的容器所在的所有网络中检查域名对应的是不是一个容器或者是服务，如果是，docker引擎就会从存储的key-value建值对中查找这个容器名、任务名、或者服务名对应的IP地址，并把这个IP地址或者是服务的虚拟IP地址返回给发起请求的域名解析器。</p>
+<p>由上可知，docker的服务发现的作用范围是网络级别，也就意味着只有在同一个网络上的容器或任务才能利用内嵌的DNS服务来相互发现，不在同一个网络里面的服务是不能解析名称的，另外，为了安全和性能只有当一个节点上有容器或任务在某个网络里面时，这个节点才会存储那个网络里面的DNS记录。</p>
+<p>如果目的容器或服务和源容器不在同一个网络里面，Docker引擎会把这个DNS查询转发到配置的默认DNS服务。</p>
+<p><img src="/images/docker/docker-swarm-lb/7.png" alt="7"></p>
+<p>在上图的例子中，总共有两个服务myservice和client，其中myservice有两个容器，这两个服务在同一个网里面。在client里针对docker.com和myservice各执行了一个curl操作，下面时执行的流程：</p>
+<ul>
+<li>为了client解析docker.com和myservice，DNS查询进行初始化</li>
+<li>容器内建的解析器在127.0.0.11:53拦截到这个DNS查询请求，并把请求转发到docker引擎的DNS服务</li>
+<li>myservice被解析成服务对应的虚拟IP，在接下来的内部负载均衡阶段再被解析成一个具体任务的IP地址。如果是容器名称这一步直接解析成容器对应的IP地址。</li>
+<li>docker.com在mynet网络上不能被解析成服务，所以这个请求被转发到配置好的默认DNS服务器上</li>
+</ul>
+<p><strong>Docker swarm 中的LB分为两种情况：</strong></p>
+<ol>
+<li>Ingress Load Balancing</li>
+<li>Internal Load Balancing</li>
+</ol>
+<p><strong>简要介绍测试环境下docker swarm中的网络分布情况：</strong></p>
+<p>环境：</p>
+<ul>
+<li>swarm-a(manager node)：10.10.8.92</li>
+<li>swarm-b(work node)：10.10.8.93</li>
+<li>swarm-c(work node)：10.10.8.94</li>
+</ul>
+<p>在docker swarm集群创建的开始，docker 会给每台host创建除了docker0以外的两个网络，分是bridge类型(docker_gwbridge网桥)和overlay类型(ingress)的网络，以及一个过度的命名空间ingress_sbox，我们可以使用如下命令自建overlay网络，结果如下：</p>
+<p>docker network create –driver overlay mynet （后续会有用到）</p>
+<p><img src="/images/docker/docker-swarm-lb/8.png" alt="8"></p>
+<p>ingress网络的IPAM( IP Address Management)分配如下：</p>
+<p><img src="/images/docker/docker-swarm-lb/9.png" alt="9"></p>
+<p>mynet自建的overlay会使用docker自动分配的IPAM：</p>
+<p><img src="/images/docker/docker-swarm-lb/10.png" alt="10"></p>
+<p>建完的overlay网络的同时会在host本地创建对应的Net Namespace如下：</p>
+<p><img src="/images/docker/docker-swarm-lb/11.png" alt="11"></p>
+<p>注意1：要是想看到容器创建的两个Net Namespace需要执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -s /var/run/docker/netns /var/run/netns</span><br></pre></td></tr></table></figure>
+
+<h3 id="Ingress-Load-Balancing"><a href="#Ingress-Load-Balancing" class="headerlink" title="Ingress Load Balancing"></a>Ingress Load Balancing</h3><p>部署一个service使用默认的ingress网络：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service create --name web_ingress_lb --replicas=2 --publish 8090:80 httpd</span><br></pre></td></tr></table></figure>
+
+<p>部署的两个容器分别处在a和b节点上：</p>
+<p><img src="/images/docker/docker-swarm-lb/12.png" alt="12"></p>
+<p>service：web_ingress_lb的网络连接结构图如下：</p>
+<p><img src="/images/docker/docker-swarm-lb/13.png" alt="13"></p>
+<p>Swarm mode下，docker会创建一个默认的overlay网络—ingress network。Docker也会为每个worker节点创建一个特殊的net namespace（sandbox）– ingress_sbox。ingress_sbox有两个endpoint，一个用于连接ingress network，另一个用于连接local bridge network docker_gwbridge。Ingress network的IP空间为10.255.0.0/16，所有router mesh的service都共用此空间。</p>
+<p><strong>Ingress Load Balancing实现方式：</strong></p>
+<p><img src="/images/docker/docker-swarm-lb/14.jpg" alt="14"></p>
+<ol>
+<li>宿主机网络通过worker节点IP和service published port来访问服务。比如：上面服务定义-p 8090:80，可以通过workerIP:8090 访问服务</li>
+<li>每个节点iptables中NAT表定义规则，对于匹配published的宿主机端口（8090）的数据，将其dst IP转换成ingress_sbox中的ip：172.18.0.2。使数据包转发到ingress_sbox的ns中交给该ns处理做下一步的转发。</li>
+</ol>
+<p><img src="/images/docker/docker-swarm-lb/15.png" alt="15"></p>
+<ol start="3">
+<li>Ingress_sbox是swarm为每个节点默认创建的net namespace，用于连接ingress overlay network。此处会设置mangle表，将dst port为8090的数据做标记(fwmark)。同时做DNAT转换成vip地址使数据包能正常转发到ingress的ns中，该vip由ingress_sbox的ipvs做负载转发。</li>
+</ol>
+<p><img src="/images/docker/docker-swarm-lb/16.png" alt="16"></p>
+<ol start="4">
+<li>Ingress_sbox会设置kernel中的LVS模块，将标记fwmark的包LB到各个实际IP中，默认round-robin算法，forware为VS/NAT方式。容器底层间通过overlay网络互连通信。</li>
+</ol>
+<p><img src="/images/docker/docker-swarm-lb/17.png" alt="17"></p>
+<ul>
+<li>数据包在这一步进入ingress的ns后怎么实现到后端真实容器上呢？我们猜想下ingress想要转发就需要有各个节点容器对应的ingress veth pair网卡的mac地址才能做转发是吧，好的那我们来看下ingress的ns空间中的fdb(linux bridge forward db)信息。</li>
+</ul>
+<p><img src="/images/docker/docker-swarm-lb/18.png" alt="18"></p>
+<ul>
+<li>查看b节点上web_ingress_lb.1容器的mac地址信息</li>
+</ul>
+<p><img src="/images/docker/docker-swarm-lb/19.png" alt="19"></p>
+<ul>
+<li>这样一来即使容器的副本没有落到host上我们仍可以通过这种转发方式来访问到服务。这应该就是routing mesh吧！</li>
+</ul>
+<ol start="5">
+<li>Service的各个容器会将dst port为8080的数据的dst port转换成80，从而访问到真实的服务。</li>
+</ol>
+<p><img src="/images/docker/docker-swarm-lb/20.png" alt="20"></p>
+<p>可以看到一个请求到主机端口8090之后， 数据包的流向如下所示：</p>
+<p>主机端口8090 =&gt; Ingress-sbox-VIP:8090 =&gt; 容器Ingress-sbox =&gt; IPVS分发到containers。</p>
+<p>可以看到访问主机之后数据包流到了一个特殊的Sandbox容器里， 这个容器和我们的容器共享一个Ingress网络，通过Iptables和IPVS等重定向到了最终容器之上。 达到了服务在任何一台主机的8090端口都可达的目的。</p>
+<h3 id="Internal-Load-Balancing"><a href="#Internal-Load-Balancing" class="headerlink" title="Internal Load Balancing"></a>Internal Load Balancing</h3><p>部署一个service使用我们自己创建的mynet网络：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service create --name web_mynet --replicas=2 --network=mynet --publish 8080:80 httpd</span><br></pre></td></tr></table></figure>
+
+<p>部署的两个容器分别处在a和c节点上：</p>
+<p><img src="/images/docker/docker-swarm-lb/21.png" alt="21"></p>
+<p><strong>–publish #–在这里的用意是将容器内部的服务暴露到host上这样我们就可以访问这个services，一般情况下我们在swarm中部署service后容器中的网络只有一张网卡使用的是docker0网络，当我们将服务发布出去后，swarm会做如下操作：</strong></p>
+<ul>
+<li>给容器添加三块网卡eth0和eth1，eth2，eth0连接overlay类型网络名为ingress用于在不同主机间通信，eth1连接bridge类网络名为docker_gwbridge，用于让容器能访问外网。eth2连接到我们自己创建的mynet网络<br>上，同样的作用也是用于容器之间的访问(区别于eth2网络存在dns解析即服务发现功能)。</li>
+<li>swarm各节点会利用ingress overlay网络负载均衡将服务发布到集群之外。</li>
+</ul>
+<p>查看web_mynet.1容器和mynet网络命名空间的网卡情况：</p>
+<p><img src="/images/docker/docker-swarm-lb/22.png" alt="22"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$docker</span> <span class="built_in">exec</span> web_mynet.1.kammwchnoeend86w3e5pho88i ip add</span><br><span class="line">上面的命令可以查看a节点上的容器的网络有四张网卡eth0和eth1，eth2和lo，eth2网卡可以看出其</span><br><span class="line">对应的veth pair为mynet网络中的veth0，eth1的网卡比较容易找到在host上对应的veth pair</span><br><span class="line"></span><br><span class="line"><span class="variable">$ip</span> netns <span class="built_in">exec</span> 1-j6s2r8ahdh ip add</span><br><span class="line">查看mynet网络命名空间下的网卡情况。</span><br><span class="line"></span><br><span class="line"><span class="variable">$ip</span> netns <span class="built_in">exec</span> 1-j6s2r8ahdh brctl show</span><br><span class="line">查看mynet网络空间下网桥挂载情况可以看出veth0挂到了br0网桥上。</span><br></pre></td></tr></table></figure>
+
+<p>查看web_mynet.1容器和ingress\ingress_sbox网络命名空间的网卡对应情况：</p>
+<p><img src="/images/docker/docker-swarm-lb/23.png" alt="23"></p>
+<p>获取mynet和ingress网络的vxlan-id：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 执行如下命令查看mynet空间下vxlan0网卡所带的vlan-id：</span></span><br><span class="line"><span class="variable">$ip</span> netns <span class="built_in">exec</span> 1-j6s2r8ahdh ip -d l show vxlan0</span><br></pre></td></tr></table></figure>
+
+<p>可以看mynet网络下vlan-id 为4097，ingress网络空间同样操作可以得到vlan-id为4096</p>
+<p><img src="/images/docker/docker-swarm-lb/24.png" alt="24"></p>
+<p>swarm-c节点上的情况也是差不多就不操作了，好了我们来画下网络连接的大致图：</p>
+<p><img src="/images/docker/docker-swarm-lb/25.png" alt="25"></p>
+<p>可以看到这里ingress_sbox和创建容器的ns共用一个ingress网络空间。</p>
+<p><strong>Internal Load Balancing实现方式：</strong></p>
+<p>有两种实现方式dns rr和vip形式，在dns rr 的情况下可能会存在一定是的问题，当容器重启后dns的解析会存在一定时间的延迟。vip则是由vip+内核ipvs来实现。docker swarm默认使用的是vip，这里就以vip的形式来解析。</p>
+<p>VIP形式下的流量路径：</p>
+<p><img src="/images/docker/docker-swarm-lb/26.jpg" alt="26"></p>
+<ol>
+<li>同处于网络mynet中的容器可以通过service域名或者VIP来访问service；通过域名访问时，容器会访问docker engine中内置的DNS服务，从而获取VIP。</li>
+<li>CNM网络模型中一个容器对应一个sandbox，也即容器的net namespace。我们查web_mynet.1容器的sandbox中iptables的mangle表的配置情况：mangle表中OUTPUT链，将destIP==VIP的包标记fwmark。</li>
+</ol>
+<p>操作流程如下：</p>
+<p>通过busybox服务做dns解析，可以发现该服务后端挂载的容器和该服务对应的VIP地址。web_mynet服务对应的VIP为10.0.0.6。</p>
+<p><img src="/images/docker/docker-swarm-lb/27.png" alt="27"></p>
+<ul>
+<li>进入web_mynet.1容器的ns:</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$docker</span> inspect container_id/container_name | grep -i sandbox</span><br><span class="line"><span class="variable">$nsenter</span> --net=SandboxKey(/var/run/docker/netns/xxxx) sh</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/docker/docker-swarm-lb/28.png" alt="28"></p>
+<ol start="3">
+<li>web_mynet.1的 Sandbox中会设置kernel中的LVS模块，将标记fwmark的包LB到各个实际IP中，默认round-robin算法，VS/NAT方式。容器底层间通过overlay网络互连通信。在web_mynet.1的ns中执行如下获取LB信息：<code>$ipvsadm -L</code></li>
+</ol>
+<p><img src="/images/docker/docker-swarm-lb/29.png" alt="29"></p>
+<ul>
+<li>简单的来说就是在web_mynet.1容器中定义好了web_mynet服务的vip数据包的标签和LB，然后数据包通过容器本地路由从eth2接口出去，进入到mynet的ns中：</li>
+</ul>
+<p><img src="/images/docker/docker-swarm-lb/30.png" alt="30"></p>
+<ul>
+<li>带有具体目容器的MAC数据包进入mynet的ns后，由mynet网络中的fdb来进行转发：</li>
+</ul>
+<p><img src="/images/docker/docker-swarm-lb/31.png" alt="31"></p>
+<p><img src="/images/docker/docker-swarm-lb/32.png" alt="32"></p>
+<p><strong>总结：</strong></p>
+<p>在Internal Load Balancing也就是文中我们自建的mynet overlay网络中，我们会看到创建的service会同时应用到两个网络环境里面去，为何要这样呢？</p>
+<p>原因是swarm自带ingress不具备有服务发现的功能，而容器的生命周期又是不固定的，service每次的消亡和启用都会改变容器内部的ip地址以及vip地址，那么集群中服务之间的通信势必会造成问题，这里有人会说，要使多个service之间能够互相通信可以将所有的service都publish出去，然后通过routing mesh 访问，这样是没错也能行得通，但是存在一个缺点，那就是不安全，我们仅仅只需要的是将最终提供服务的端口publish即可。那么不publish所有的service需要做到以下几点：</p>
+<ul>
+<li>让service通过简单的方法访问其他service</li>
+<li>当service副本的ip发生变化时，不会影响访问该service的其他service</li>
+<li>当service的副本数发生变化时，不会影响访问该service的其他service这其实就是服务发现，docker swarm提供了这些功能将LB和服务发现集成在一起，通过服务发现service，使用者不需要知道service运行在哪里，ip是多少有多少个副本，就能实现集群内service与service的通信以及LB。</li>
+</ul>
+<p>这里我理解的是ingress是单单提供LB实现routing mesh，而mynet是服务发现和LB的结合。</p>
+<p><strong>所以上文中Internal Load Balancing中的数据流应该分成两种情景如下：</strong></p>
+<ol>
+<li><p>当一个外部请求到主机端口8080之后， 数据包的流向如下所示：<br>主机端口8080 =&gt; Ingress-sbox-VIP:8080 =&gt; 容器Ingress-sbox =&gt; IPVS分发到containers。</p>
+</li>
+<li><p>处于 同mynet网络的service内部通信时：<br>处于 同mynet网络的test service(busybox容器)发起访问web_mynet域名的请求=&gt;请求转发到docker engine内置的DNS解析web_mynet的vip=&gt;web_mynet(容器)在其ns中将VIP数据包打上标签，并通过ipvs来负载到后端对应的容器=&gt;数据包通过vip地址路由到 mynet的ns，由mynet中的fdb来做转发走tunnel出去。</p>
+</li>
+</ol>
+<h2 id="负载均衡详解"><a href="#负载均衡详解" class="headerlink" title="负载均衡详解"></a>负载均衡详解</h2><ul>
+<li>Swarm模式内置DNS组件，可以自动为集群中的每个服务分配DNS记录。</li>
+<li>Swarm manager使用内部负载均衡，根据服务的DNS名称在集群内的服务之间分发请求。</li>
+<li>Swarm manager使用 ingress load blancing暴露你想从外部访问集群提供的服务。</li>
+<li>Swarm manager自动为服务分配一个范围30000-32767端口的Published Port,也可以为该服务指定一个Published Port。</li>
+</ul>
+<p>ingress network是一个特殊的overlay网络，便于服务的节点直接负载均衡。当任何swarm节点在已发布的端口上接收到请求时，它将该请求转发给调用的IPVS模块，IPVS跟踪参与该服务的所有容器IP地址，选择其中一个，并通过ingress network将请求路由给它。</p>
+<p><img src="/images/docker/docker-swarm-lb/33.png" alt="33"></p>
+<h3 id="内部负载均衡"><a href="#内部负载均衡" class="headerlink" title="内部负载均衡"></a>内部负载均衡</h3><p>当在docker swarm集群模式下创建一个服务时，会自动在服务所属的网络上给服务额外的分配一个虚拟IP，当解析服务名字时就会返回这个虚拟IP。对虚拟IP的请求会通过overlay网络自动的负载到这个服务所有的健康任务上。这个方式也避免了客户端的负载均衡，因为只有单独的一个虚拟IP会返回到客户端，docker会处理虚拟IP到具体任务的路由，并把请求平均的分配给所有的健康任务。</p>
+<p><img src="/images/docker/docker-swarm-lb/35.png" alt="35"></p>
+<p>如果想观察一个服务对应的虚拟IP，执行<code>docker service inspect myservice</code> 命令，会看到类似于下面的结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建overlay网络：mynet  </span></span><br><span class="line">$ docker network create -d overlay mynet  </span><br><span class="line">a59umzkdj2r0ua7x8jxd84dhr  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># 利用mynet网络创建myservice服务，并复制两份  </span></span><br><span class="line">$ docker service create --network mynet --name myservice --replicas 2 busybox ping localhost  </span><br><span class="line">8t5r8cr0f0h6k2c3k7ih4l6f5  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># 通过下面的命令查看myservice对应的虚拟IP  </span></span><br><span class="line">$ docker service inspect myservice  </span><br><span class="line">...  </span><br><span class="line">  </span><br><span class="line"><span class="string">"VirtualIPs"</span>: [  </span><br><span class="line">                &#123;  </span><br><span class="line">                    <span class="string">"NetworkID"</span>: <span class="string">"a59umzkdj2r0ua7x8jxd84dhr"</span>,  </span><br><span class="line">                    <span class="string">"Addr"</span>: <span class="string">"10.0.0.3/24"</span>  </span><br><span class="line">                &#125;,  </span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>swarm中服务还有另外一种负载均衡技术可选DNS round robin (DNS RR) （在创建服务时通过–endpoint-mode配置项指定），在DNSRR模式下，docker不再为服务创建VIP，docker DNS服务直接利用轮询的策略把服务名称直接解析成一个容器的IP地址。</p>
+</blockquote>
+<h3 id="外部负载均衡"><a href="#外部负载均衡" class="headerlink" title="外部负载均衡"></a>外部负载均衡</h3><p>当创建或更新一个服务时，你可以利用–publish选项把一个服务暴露到外部，在docker swarm模式下发布一个端口意味着在集群中的所有节点都会监听这个端口，这时当访问一个监听了端口但是并没有对应服务运行在其上的节点会发生什么呢？</p>
+<p>接下来就该我们的路由网（routing mesh）出场了，路由网时docker1.12引入的一个新特性，它结合了IPVS和iptables创建了一个强大的集群范围的L4层负载均衡，它使所有节点接收服务暴露端口的请求成为可能。当任意节点接收到针对某个服务暴露的TCP/UDP端口的请求时，这个节点会利用预先定义过的Ingress overlay网络，把请求转发给服务对应的虚拟IP。ingress网络和其他的overlay网络一样，只是它的目的是为了转换来自客户端到集群的请求，它也是利用我们前一小节介绍过的基于VIP的负载均衡技术。</p>
+<p>当启动服务时，你可以为你的应用创建一个外部的DNS服务，并把它映射到你集群的任意节点或者是所有节点，你无需担心你的容器具体运行在那个节点上，因为有了路由网这个特性后，你的集群看起来就像是单独的一个节点一样。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#在集群中创建一个复制两份的服务，并暴露在8000端口  </span></span><br><span class="line">$ docker service create --name app --replicas 2 --network appnet --publish 8000:80 nginx</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/docker/docker-swarm-lb/36.png" alt="36"></p>
+<p>上面这个图表明了路由网是怎么工作的：</p>
+<ul>
+<li>服务（app）拥有两份复制，并把端口映射到外部端口的8000</li>
+<li>路由网在集群中的所有节点上都暴露出8000</li>
+<li>外部对服务app的请求可以是任意节点，在本例子中外部的负载均衡器将请求转发到了没有app服务的主机上</li>
+<li>docker swarm的IPVS利用ingress overlay网路将请求重新转发到运行着app服务的节点的容器中</li>
+</ul>
+<h3 id="负载均衡试验测试"><a href="#负载均衡试验测试" class="headerlink" title="负载均衡试验测试"></a>负载均衡试验测试</h3><p>管理节点：创建一个测试容器my_web</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service create --replicas 3 --network my-network --name my_web nginx</span><br></pre></td></tr></table></figure>
+
+<p>管理节点：添加暴露端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service update --publish-add 8080:80 my_web</span><br></pre></td></tr></table></figure>
+
+<p>管理节点：获取虚拟IP</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service inspect -f <span class="string">'&#123;&#123;json .Endpoint.VirtualIPs&#125;&#125;'</span> my_web</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注：可用虚拟VIP或者服务名称去访问。</p>
+</blockquote>
+<p>测试负载均衡：192.168.1.10:8080</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://192.168.1.10:8080</span><br></pre></td></tr></table></figure>
+
+<h3 id="负载均衡模式选择"><a href="#负载均衡模式选择" class="headerlink" title="负载均衡模式选择"></a>负载均衡模式选择</h3><p>负载均衡有两种模式：VIP、DNSRR</p>
+<ul>
+<li>VIP：分配独立的虚拟IP，DNS记录解析到服务名中作为代理IP。（默认为该模式）</li>
+<li>dnsrr：DNS记录不解析VIP，而去解析每个容器内的IP。dnsrr模式不支持端口对外暴露。</li>
+</ul>
+<p>管理节点：通过查看服务详细信息筛选当前模式负载均衡模式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">docker service inspect my_web</span><br><span class="line">[</span><br><span class="line">            <span class="string">"EndpointSpec"</span>: &#123;</span><br><span class="line">                <span class="string">"Mode"</span>: <span class="string">"vip"</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">"Endpoint"</span>: &#123;</span><br><span class="line">            <span class="string">"Spec"</span>: &#123;</span><br><span class="line">                <span class="string">"Mode"</span>: <span class="string">"vip"</span>,</span><br><span class="line">                <span class="string">"Ports"</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="string">"Protocol"</span>: <span class="string">"tcp"</span>,</span><br><span class="line">                        <span class="string">"TargetPort"</span>: 80,</span><br><span class="line">                        <span class="string">"PublishedPort"</span>: 8080,</span><br><span class="line">                        <span class="string">"PublishMode"</span>: <span class="string">"ingress"</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ]</span><br><span class="line">            &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注：当前模式为VIP模式。</p>
+</blockquote>
+<p>管理节点：设置DNS轮询模式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建服务</span></span><br><span class="line">docker service create \</span><br><span class="line"><span class="comment"># 创建副本数</span></span><br><span class="line">--replicas 3 \</span><br><span class="line"><span class="comment"># 服务名</span></span><br><span class="line">--name my-web \</span><br><span class="line"><span class="comment"># 添加网络</span></span><br><span class="line">--network my-network \</span><br><span class="line"><span class="comment"># 添加负载均衡模式</span></span><br><span class="line">--endpoint-mode dnsrr \</span><br><span class="line"><span class="comment"># 镜像</span></span><br><span class="line">nginx</span><br></pre></td></tr></table></figure>
+
+<p>管理节点：创建一个测试容器my_web2</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service create --replicas 3 --network my-network --name my_web2 nginx</span><br></pre></td></tr></table></figure>
+
+<p>管理节点：添加dnsrr模式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service update --endpoint-mode dnsrr my_web2</span><br></pre></td></tr></table></figure>
+
+<p>工作节点：进入容器测试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it 11b5a7ca675a sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试进入容器查看解析记录</span></span><br><span class="line">/ <span class="comment"># nslookup my_web2</span></span><br><span class="line">Server: 127.0.0.11</span><br><span class="line">Address: 127.0.0.11:53</span><br><span class="line">Non-authoritative answer:</span><br><span class="line">Name: my_web2</span><br><span class="line">Address: 10.0.0.13</span><br><span class="line">Name: my_web2</span><br><span class="line">Address: 10.0.0.4</span><br><span class="line">Name: my_web2</span><br><span class="line">Address: 10.0.0.12</span><br><span class="line"></span><br><span class="line"><span class="comment"># 工作节点：测试进入容器多次ping服务名</span></span><br><span class="line">/ <span class="comment"># ping my_web2</span></span><br><span class="line">PING my_web2 (10.0.0.4): 56 data bytes</span><br><span class="line">64 bytes from 10.0.0.4: seq=0 ttl=64 time=0.116 ms</span><br><span class="line">/ <span class="comment"># ping my_web2</span></span><br><span class="line">PING my_web2 (10.0.0.12): 56 data bytes</span><br><span class="line">64 bytes from 10.0.0.12: seq=0 ttl=64 time=0.745 ms</span><br><span class="line">/ <span class="comment"># ping my_web2</span></span><br><span class="line">PING my_web2 (10.0.0.13): 56 data bytes</span><br><span class="line">64 bytes from 10.0.0.13: seq=0 ttl=64 time=0.546 ms</span><br></pre></td></tr></table></figure>
+
+<h3 id="负载均衡模扩展知识"><a href="#负载均衡模扩展知识" class="headerlink" title="负载均衡模扩展知识"></a>负载均衡模扩展知识</h3><p>可在容器Swarm负载均衡之上在建立一层负载均衡。HAProxy可代理工作节点端暴露的端口进行再次代理，做到双层负载均衡的作用。保证高可用与大规模的应用。</p>
+<p><img src="/images/docker/docker-swarm-lb/34.png" alt="34"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.docker.com/engine/swarm/" target="_blank" rel="noopener">https://docs.docker.com/engine/swarm/</a></li>
+<li><a href="https://success.docker.com/article/ucp-service-discovery-swarm" target="_blank" rel="noopener">https://success.docker.com/article/ucp-service-discovery-swarm</a></li>
+<li><a href="https://www.jianshu.com/p/dba9342071d8" target="_blank" rel="noopener">Docker Swarm - 服务发现和负载均衡原理</a></li>
+<li><a href="https://www.jianshu.com/p/c83a9173459f/" target="_blank" rel="noopener">Docker Swarm中的LB和服务发现详解</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/docker/" rel="tag"># docker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-network/" rel="prev" title="Docker 之 网络配置">
+      <i class="fa fa-chevron-left"></i> Docker 之 网络配置
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-swarm-real-client-ip/" rel="next" title="Docker Swarm 中获得真实的客户IP">
+      Docker Swarm 中获得真实的客户IP <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用的技术"><span class="nav-number">1.</span> <span class="nav-text">使用的技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备工作"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-DNS-的负载均衡"><span class="nav-number">3.</span> <span class="nav-text">基于 DNS 的负载均衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-VIP-的负载均衡"><span class="nav-number">4.</span> <span class="nav-text">基于 VIP 的负载均衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由网格-（Routing-mesh）"><span class="nav-number">5.</span> <span class="nav-text">路由网格 （Routing mesh）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务发现详解"><span class="nav-number">6.</span> <span class="nav-text">服务发现详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-Swarm-中的服务发现"><span class="nav-number">6.1.</span> <span class="nav-text">Docker Swarm 中的服务发现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ingress-Load-Balancing"><span class="nav-number">6.2.</span> <span class="nav-text">Ingress Load Balancing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Internal-Load-Balancing"><span class="nav-number">6.3.</span> <span class="nav-text">Internal Load Balancing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#负载均衡详解"><span class="nav-number">7.</span> <span class="nav-text">负载均衡详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内部负载均衡"><span class="nav-number">7.1.</span> <span class="nav-text">内部负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#外部负载均衡"><span class="nav-number">7.2.</span> <span class="nav-text">外部负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡试验测试"><span class="nav-number">7.3.</span> <span class="nav-text">负载均衡试验测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡模式选择"><span class="nav-number">7.4.</span> <span class="nav-text">负载均衡模式选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡模扩展知识"><span class="nav-number">7.5.</span> <span class="nav-text">负载均衡模扩展知识</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="WSL 安装 Ubuntu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows10 安装 Ubuntu 子系统">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/wsl-ubuntu/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="WSL 安装 Ubuntu">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-01-15T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="WSL">
+<meta property="article:tag" content="Ubuntu">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/wsl-ubuntu/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Windows10 安装 Ubuntu 子系统 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/wsl-ubuntu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Windows10 安装 Ubuntu 子系统
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-15 16:00:00" itemprop="dateCreated datePublished" datetime="2021-01-15T16:00:00+00:00">2021-01-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>WSL 安装 Ubuntu</p>
+<a id="more"></a>
+
+<h2 id="启动-WSL"><a href="#启动-WSL" class="headerlink" title="启动 WSL"></a>启动 WSL</h2><ol>
+<li>启动开发者模式:</li>
+</ol>
+<p>设置——&gt;更新和安全——&gt;开发者选项——&gt;开发人员模式</p>
+<ol start="2">
+<li>打开windows下的Linux子系统</li>
+</ol>
+<p>控制面板——&gt;程序和功能——&gt;启用或关闭Windows功能——&gt;适用于Linux的Windows子系统——&gt;确定——&gt;重启(开机可能需要长时间，耐心等待即可）</p>
+<ol start="3">
+<li>下载并安装Ubuntu</li>
+</ol>
+<p>在应用商店中搜索Ubuntu，选择Ubuntu 18.04 LTS长期支持版，点击获取进行下载及安装，安装完毕点击启动会打开bash命令行提示我们设置用户名（常用的不具有root权限的用户）和密码。这样我们就拥有了Ubuntu子系统。<br>子系统所在目录为：<code>C:\Users\【你的windows用户名】\AppData\Local\Packages\CanonicalGroupLimited.Ubuntu18.04onWindows_79rhkp1fndgsc\LocalState\rootfs</code></p>
+<h2 id="Ubuntu-安装后的一些配置"><a href="#Ubuntu-安装后的一些配置" class="headerlink" title="Ubuntu 安装后的一些配置"></a>Ubuntu 安装后的一些配置</h2><h3 id="查看基本的信息"><a href="#查看基本的信息" class="headerlink" title="查看基本的信息"></a>查看基本的信息</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看linux内核版本</span></span><br><span class="line">uname -r</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看系统版本</span></span><br><span class="line">cat /etc/lsb-release</span><br><span class="line"></span><br><span class="line"><span class="comment"># Win10下其他硬盘分区会在Linux安装过程自动加载到Linux中，具体可进入/mnt中查看。</span></span><br><span class="line">df -h</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在 windows 中打开当前文件夹</span></span><br><span class="line">explorer.exe .</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 root 权限登录，后续输入密码</span></span><br><span class="line">sudo -i</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改软件源"><a href="#修改软件源" class="headerlink" title="修改软件源"></a>修改软件源</h3><p>Ubuntu 软件源的源列表文件位于 <code>/etc/apt/sources.list</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 备份原来的数据源配置文件：</span></span><br><span class="line">sudo cp /etc/apt/sources.list /etc/apt/sources.list_backup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改数据源配置文件：</span></span><br><span class="line">sudo vim /etc/apt/sources.list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更改为阿里镜像源：</span></span><br><span class="line"><span class="comment"># 用 vim 编辑/etc/apt/sources.list 文件，可以用下面命令快捷的修改字符：</span></span><br><span class="line">:%s/http:\/\/archive.ubuntu.com/https:\/\/mirrors.aliyun.com/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新软件源</span></span><br><span class="line">sudo apt update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新软件包</span></span><br><span class="line">sudo apt upgrade</span><br></pre></td></tr></table></figure>
+
+<h3 id="启用SSH所需设置"><a href="#启用SSH所需设置" class="headerlink" title="启用SSH所需设置"></a>启用SSH所需设置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置root的口令（密码），用作后续登陆使用</span></span><br><span class="line">sudo passwd root</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装openssh-server（似乎ubuntu自带已安装）</span></span><br><span class="line">sudo apt install openssh-server</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份很重要</span></span><br><span class="line">sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用vim进行编辑，按i进入insert模式</span></span><br><span class="line">sudo vim /etc/ssh/sshd_config</span><br><span class="line"></span><br><span class="line">service ssh start             <span class="comment">#启动SSH服务</span></span><br><span class="line">service ssh status            <span class="comment">#检查状态</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在vim中分别找到并对应修改四处，修改后ESC，输入wq保存退出，具体如下：</span></span><br><span class="line">Port = 8022</span><br><span class="line">ListenAddress 0.0.0.0        <span class="comment"># 如果需要指定监听的IP则去除最左侧的井号，并配置对应IP，默认即监听PC所有IP</span></span><br><span class="line">PermitRootLogin yes           <span class="comment"># 如果你需要用 root 直接登录系统则此处改为 yes</span></span><br><span class="line">PasswordAuthentication yes    <span class="comment"># 将 no 改为 yes 表示使用帐号密码方式登录</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动SSH并检查状态，输出running即正确。</span></span><br><span class="line">sudo service ssh start             <span class="comment"># 启动SSH服务</span></span><br><span class="line">sudo service ssh status            <span class="comment"># 检查状态</span></span><br><span class="line">sudo systemctl <span class="built_in">enable</span> ssh          <span class="comment"># 开机自动启动ssh命令</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置Ubuntu子系统图形桌面"><a href="#配置Ubuntu子系统图形桌面" class="headerlink" title="配置Ubuntu子系统图形桌面"></a>配置Ubuntu子系统图形桌面</h3><p>安装WSL之后，Linux是没有形界面的。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 xrdp、xfce4</span></span><br><span class="line">sudo apt install xorg</span><br><span class="line"></span><br><span class="line">sudo apt-get install xfce4</span><br><span class="line"></span><br><span class="line">sudo apt-get install xrdp</span><br><span class="line"></span><br><span class="line"><span class="comment"># 说明，xrdp是一个轻量级ubuntu桌面，里面的应用只能满足基本需求，但够用了。</span></span><br></pre></td></tr></table></figure>
+
+<p>配置xrdp </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置使用3390端口，</span></span><br><span class="line">sudo sed -i <span class="string">'s/port=3389/port=3390/g'</span> /etc/xrdp/xrdp.ini</span><br><span class="line"></span><br><span class="line"><span class="comment"># 向xsession中写入xfce4-session</span></span><br><span class="line">sudo <span class="built_in">echo</span> xfce4-session &gt;~/.xsession</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启xrdp服务：</span></span><br><span class="line">sudo service xrdp restart</span><br></pre></td></tr></table></figure>
+
+<p>连接远程桌面</p>
+<p>在windows10，启动远程桌面连接(运行命令：<code>mstsc</code>。点击显示选项，填入本机IP（本地IP默认是127.0.0.1），输入登录用户，点击连接。输入密码，确定即可连接。</p>
+<blockquote>
+<p>注意，如果WSL的Ubuntu系统关闭，如关机重启，会导致远程连接不上，此时需要先在Win10中打开Ubuntu的命令行界面，输入：<code>sudo service xrdp restart</code> 此时再远程连接，即可连接上。</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装常用软件</span></span><br><span class="line"></span><br><span class="line">sudo apt install make g++</span><br><span class="line"></span><br><span class="line">sudo apt install perl-doc</span><br><span class="line"></span><br><span class="line">sudo apt install tree</span><br><span class="line"> </span><br><span class="line"><span class="comment"># 清理无用的软件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理旧版本的软件缓存</span></span><br><span class="line">sudo apt-get autoclean</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理所有软件缓存</span></span><br><span class="line">sudo apt-get clean</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除系统不再使用的孤立软件</span></span><br><span class="line">sudo apt-get autoremove</span><br></pre></td></tr></table></figure>
+
+<h3 id="解决WSL的中文乱码问题"><a href="#解决WSL的中文乱码问题" class="headerlink" title="解决WSL的中文乱码问题"></a>解决WSL的中文乱码问题</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 先安装以下软件包：</span></span><br><span class="line">sudo apt-get install language-pack-zh-hans</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打开以下文件</span></span><br><span class="line">sudo vim /etc/environment</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在最后写入以下内容，保存</span></span><br><span class="line">LANG=<span class="string">"zh_CN.UTF-8"</span></span><br><span class="line">LANGUAGE=<span class="string">"zh_CN:zh:en_US:en"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在/var/lib/locales/supported.d/，新建local文件</span></span><br><span class="line">sudo vim /var/lib/locales/supported.d/<span class="built_in">local</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 写入以下，并保存：</span></span><br><span class="line">en_US.UTF-8 UTF-8</span><br><span class="line">zh_CN.UTF-8 UTF-8</span><br><span class="line">zh_CN.GBK GBK</span><br><span class="line">zh_CN GB2312</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行以下命令, 关闭WSL界面再开启即可，不用关机</span></span><br><span class="line">sudo locale-gen</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解决中文空格乱码问题</span></span><br><span class="line">sudo apt-get install fonts-droid-fallback ttf-wqy-zenhei ttf-wqy-microhei fonts-arphic-ukai fonts-arphic-uming</span><br></pre></td></tr></table></figure>
+
+<h2 id="Docker-配置与安装"><a href="#Docker-配置与安装" class="headerlink" title="Docker 配置与安装"></a>Docker 配置与安装</h2><p>先卸载旧版本的docker</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get remove docker docker-engine docker.io</span><br></pre></td></tr></table></figure>
+
+<p>安装必要的一些系统工具</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install \</span><br><span class="line">      apt-transport-https \</span><br><span class="line">      ca-certificates \</span><br><span class="line">      curl \</span><br><span class="line">      software-properties-common</span><br></pre></td></tr></table></figure>
+
+<p>安装GPG证书</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 别忘了最后的“-”</span></span><br><span class="line">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -</span><br></pre></td></tr></table></figure>
+
+<p>写入软件源信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo add-apt-repository <span class="string">"deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu <span class="variable">$(lsb_release -cs)</span> stable"</span></span><br></pre></td></tr></table></figure>
+
+<p>列出可用版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-cache madison docker-ce</span><br></pre></td></tr></table></figure>
+
+<p>更新并安装 Docker-CE</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install docker-ce=18.06.3~ce-0~ubuntu-xenial</span><br></pre></td></tr></table></figure>
+
+<p>开启docker服务，查看docker状态</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo service docker start</span><br><span class="line">sudo service docker status</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">sudo systemctl status docker</span><br><span class="line">sudo systemctl start docker</span><br><span class="line">sudo systemctl <span class="built_in">enable</span> docker</span><br></pre></td></tr></table></figure>
+
+<p>加载阿里云加速器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /etc/docker </span><br><span class="line">sudo tee /etc/docker/daemon.json &lt;&lt;-<span class="string">'EOF'</span></span><br><span class="line">&#123; </span><br><span class="line"><span class="string">"registry-mirrors"</span>: [<span class="string">"https://你自己的加速地址.mirror.aliyuncs.com"</span>]</span><br><span class="line">&#125; </span><br><span class="line">EOF </span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">wslconfig 在适用于 Linux 的 Windows 子系统上执行管理操作</span><br><span class="line"></span><br><span class="line">用法:</span><br><span class="line">    /l, /list [Option]</span><br><span class="line">        列出已注册的分发。</span><br><span class="line">        /all - 可选择列出所有分发，包括当前正在</span><br><span class="line">               安装或卸载的分发。</span><br><span class="line"></span><br><span class="line">        /running - 只列出当前正在运行的分发。</span><br><span class="line"></span><br><span class="line">    /s, /setdefault &lt;DistributionName&gt;</span><br><span class="line">        将分发设置为默认值。</span><br><span class="line"></span><br><span class="line">    /t, /terminate &lt;DistributionName&gt;</span><br><span class="line">        终止分发。</span><br><span class="line"></span><br><span class="line">    /u, /unregister &lt;DistributionName&gt;</span><br><span class="line">        注销分发。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">当我们运行WSL时，它会用第一次运行时输入的用户名登陆，如果想改为其他用户，可以（以ubuntu为例）：</span><br><span class="line">ubuntu config --default-user root</span><br><span class="line"></span><br><span class="line">这样，以后再运行ubuntu它就会默认以root登陆。此外还可以“ubuntu /?”查看其更多使用方法。</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.microsoft.com/zh-cn/windows/wsl/install-win10" target="_blank" rel="noopener">适用于 Linux 的 Windows 子系统安装指南 (Windows 10)</a></li>
+<li><a href="https://docs.microsoft.com/zh-cn/windows/wsl/install-manual" target="_blank" rel="noopener">手动下载适用于 Linux 的 Windows 子系统发行版包</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/61542198/" target="_blank" rel="noopener">【WSL+Docker】新手Win10下的WSL Ubuntu18并使用Docker（两种方式）</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/WSL/" rel="tag"># WSL</a>
+              <a href="/tags/Ubuntu/" rel="tag"># Ubuntu</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/life/2020-summary/" rel="prev" title="2020年总结">
+      <i class="fa fa-chevron-left"></i> 2020年总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/big-data/es-01/" rel="next" title="重学 Elastic Stack 之 Elasticsearch 简介">
+      重学 Elastic Stack 之 Elasticsearch 简介 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动-WSL"><span class="nav-number">1.</span> <span class="nav-text">启动 WSL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ubuntu-安装后的一些配置"><span class="nav-number">2.</span> <span class="nav-text">Ubuntu 安装后的一些配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查看基本的信息"><span class="nav-number">2.1.</span> <span class="nav-text">查看基本的信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改软件源"><span class="nav-number">2.2.</span> <span class="nav-text">修改软件源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启用SSH所需设置"><span class="nav-number">2.3.</span> <span class="nav-text">启用SSH所需设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置Ubuntu子系统图形桌面"><span class="nav-number">2.4.</span> <span class="nav-text">配置Ubuntu子系统图形桌面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解决WSL的中文乱码问题"><span class="nav-number">2.5.</span> <span class="nav-text">解决WSL的中文乱码问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-配置与安装"><span class="nav-number">3.</span> <span class="nav-text">Docker 配置与安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令"><span class="nav-number">4.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

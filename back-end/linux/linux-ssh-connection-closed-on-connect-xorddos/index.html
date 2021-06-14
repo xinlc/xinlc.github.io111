@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记录一次，排查 SSH 登录 CentOS7 闪断情况，很是奇葩！局域网服务器竟然中毒了！！！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="恶意程序导致 SSH 登录 CentOS7 成功后闪断">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/linux-ssh-connection-closed-on-connect-xorddos/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="记录一次，排查 SSH 登录 CentOS7 闪断情况，很是奇葩！局域网服务器竟然中毒了！！！">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/8.jpg">
+<meta property="article:published_time" content="2019-11-08T21:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="error">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/linux/linux-ssh-connection-closed-on-connect-xorddos/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/linux-ssh-connection-closed-on-connect-xorddos/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>恶意程序导致 SSH 登录 CentOS7 成功后闪断 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/linux-ssh-connection-closed-on-connect-xorddos/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          恶意程序导致 SSH 登录 CentOS7 成功后闪断
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-08 21:00:00" itemprop="dateCreated datePublished" datetime="2019-11-08T21:00:00+00:00">2019-11-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一次，排查 SSH 登录 CentOS7 闪断情况，很是奇葩！局域网服务器竟然中毒了！！！</p>
+<a id="more"></a>
+
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>登录成功后马上退出。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ssh root@192.168.2.201</span><br><span class="line">root@192.168.2.201&#39;s password:</span><br><span class="line">Last login: Fri Nov  8 23:28:09 2019 from 192.168.2.2</span><br><span class="line">Connection to 192.168.2.201 closed.</span><br></pre></td></tr></table></figure>
+
+<p>详细 log</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">$ ssh -v root@192.168.2.201</span><br><span class="line">OpenSSH_7.9p1, LibreSSL 2.7.3</span><br><span class="line">debug1: Reading configuration data &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;config</span><br><span class="line">debug1: &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;config line 5: Applying options for 192.168.2.201</span><br><span class="line">debug1: Reading configuration data &#x2F;etc&#x2F;ssh&#x2F;ssh_config</span><br><span class="line">debug1: &#x2F;etc&#x2F;ssh&#x2F;ssh_config line 48: Applying options for *</span><br><span class="line">debug1: Connecting to 192.168.2.201 [192.168.2.201] port 22.</span><br><span class="line">debug1: Connection established.</span><br><span class="line">debug1: identity file &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201 type 0</span><br><span class="line">debug1: identity file &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201-cert type -1</span><br><span class="line">debug1: Local version string SSH-2.0-OpenSSH_7.9</span><br><span class="line">debug1: Remote protocol version 2.0, remote software version OpenSSH_7.4</span><br><span class="line">debug1: match: OpenSSH_7.4 pat OpenSSH_7.0*,OpenSSH_7.1*,OpenSSH_7.2*,OpenSSH_7.3*,OpenSSH_7.4*,OpenSSH_7.5*,OpenSSH_7.6*,OpenSSH_7.7* compat 0x04000002</span><br><span class="line">debug1: Authenticating to 192.168.2.201:22 as &#39;root&#39;</span><br><span class="line">debug1: SSH2_MSG_KEXINIT sent</span><br><span class="line">debug1: SSH2_MSG_KEXINIT received</span><br><span class="line">debug1: kex: algorithm: curve25519-sha256</span><br><span class="line">debug1: kex: host key algorithm: ecdsa-sha2-nistp256</span><br><span class="line">debug1: kex: server-&gt;client cipher: chacha20-poly1305@openssh.com MAC: &lt;implicit&gt; compression: none</span><br><span class="line">debug1: kex: client-&gt;server cipher: chacha20-poly1305@openssh.com MAC: &lt;implicit&gt; compression: none</span><br><span class="line">debug1: expecting SSH2_MSG_KEX_ECDH_REPLY</span><br><span class="line">debug1: Server host key: ecdsa-sha2-nistp256 SHA256:B65HccHM+Jn&#x2F;biQHtyepoOO0z+IT6UkumhfWOZOKVfc</span><br><span class="line">debug1: Host &#39;192.168.2.201&#39; is known and matches the ECDSA host key.</span><br><span class="line">debug1: Found key in &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;known_hosts:15</span><br><span class="line">debug1: rekey after 134217728 blocks</span><br><span class="line">debug1: SSH2_MSG_NEWKEYS sent</span><br><span class="line">debug1: expecting SSH2_MSG_NEWKEYS</span><br><span class="line">debug1: SSH2_MSG_NEWKEYS received</span><br><span class="line">debug1: rekey after 134217728 blocks</span><br><span class="line">debug1: Will attempt key: &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201 RSA SHA256:1mROBcyDSdkam0yuvqonpViVkJjR&#x2F;O+f0Ge1cWIJNgk explicit</span><br><span class="line">debug1: SSH2_MSG_EXT_INFO received</span><br><span class="line">debug1: kex_input_ext_info: server-sig-algs&#x3D;&lt;rsa-sha2-256,rsa-sha2-512&gt;</span><br><span class="line">debug1: SSH2_MSG_SERVICE_ACCEPT received</span><br><span class="line">debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug1: Next authentication method: publickey</span><br><span class="line">debug1: Offering public key: &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201 RSA SHA256:1mROBcyDSdkam0yuvqonpViVkJjR&#x2F;O+f0Ge1cWIJNgk explicit</span><br><span class="line">debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug1: Next authentication method: password</span><br><span class="line">root@192.168.2.201&#39;s password:</span><br><span class="line">debug1: Authentication succeeded (password).</span><br><span class="line">Authenticated to 192.168.2.201 ([192.168.2.201]:22).</span><br><span class="line">debug1: channel 0: new [client-session]</span><br><span class="line">debug1: Requesting no-more-sessions@openssh.com</span><br><span class="line">debug1: Entering interactive session.</span><br><span class="line">debug1: pledge: network</span><br><span class="line">debug1: client_input_global_request: rtype hostkeys-00@openssh.com want_reply 0</span><br><span class="line">debug1: Sending environment.</span><br><span class="line">debug1: Sending env LC_TERMINAL_VERSION &#x3D; 3.3.6</span><br><span class="line">debug1: Sending env LANG &#x3D; zh_CN.UTF-8</span><br><span class="line">debug1: Sending env LC_TERMINAL &#x3D; iTerm2</span><br><span class="line">Last login: Fri Nov  8 23:25:30 2019 from 192.168.2.2</span><br><span class="line">debug1: client_input_channel_req: channel 0 rtype exit-status reply 0</span><br><span class="line">debug1: client_input_channel_req: channel 0 rtype eow@openssh.com reply 0</span><br><span class="line">debug1: channel 0: free: client-session, nchannels 1</span><br><span class="line">Connection to 192.168.2.201 closed.</span><br><span class="line">Transferred: sent 2676, received 2564 bytes, in 0.3 seconds</span><br><span class="line">Bytes per second: sent 8132.9, received 7792.5</span><br><span class="line">debug1: Exit status 0</span><br></pre></td></tr></table></figure>
+
+<p>再详细一点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br></pre></td><td class="code"><pre><span class="line">$ ssh -vvv root@192.168.2.201</span><br><span class="line">OpenSSH_7.9p1, LibreSSL 2.7.3</span><br><span class="line">debug1: Reading configuration data &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;config</span><br><span class="line">debug1: &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;config line 5: Applying options for 192.168.2.201</span><br><span class="line">debug1: Reading configuration data &#x2F;etc&#x2F;ssh&#x2F;ssh_config</span><br><span class="line">debug1: &#x2F;etc&#x2F;ssh&#x2F;ssh_config line 48: Applying options for *</span><br><span class="line">debug2: resolve_canonicalize: hostname 192.168.2.201 is address</span><br><span class="line">debug2: ssh_connect_direct</span><br><span class="line">debug1: Connecting to 192.168.2.201 [192.168.2.201] port 22.</span><br><span class="line">debug1: Connection established.</span><br><span class="line">debug1: identity file &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201 type 0</span><br><span class="line">debug1: identity file &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201-cert type -1</span><br><span class="line">debug1: Local version string SSH-2.0-OpenSSH_7.9</span><br><span class="line">debug1: Remote protocol version 2.0, remote software version OpenSSH_7.4</span><br><span class="line">debug1: match: OpenSSH_7.4 pat OpenSSH_7.0*,OpenSSH_7.1*,OpenSSH_7.2*,OpenSSH_7.3*,OpenSSH_7.4*,OpenSSH_7.5*,OpenSSH_7.6*,OpenSSH_7.7* compat 0x04000002</span><br><span class="line">debug2: fd 3 setting O_NONBLOCK</span><br><span class="line">debug1: Authenticating to 192.168.2.201:22 as &#39;root&#39;</span><br><span class="line">debug3: hostkeys_foreach: reading file &quot;&#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;known_hosts&quot;</span><br><span class="line">debug3: record_hostkey: found key type ECDSA in file &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;known_hosts:15</span><br><span class="line">debug3: load_hostkeys: loaded 1 keys from 192.168.2.201</span><br><span class="line">debug3: order_hostkeyalgs: prefer hostkeyalgs: ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384-cert-v01@openssh.com,ecdsa-sha2-nistp521-cert-v01@openssh.com,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521</span><br><span class="line">debug3: send packet: type 20</span><br><span class="line">debug1: SSH2_MSG_KEXINIT sent</span><br><span class="line">debug3: receive packet: type 20</span><br><span class="line">debug1: SSH2_MSG_KEXINIT received</span><br><span class="line">debug2: local client KEXINIT proposal</span><br><span class="line">debug2: KEX algorithms: curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256,diffie-hellman-group14-sha1,ext-info-c</span><br><span class="line">debug2: host key algorithms: ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384-cert-v01@openssh.com,ecdsa-sha2-nistp521-cert-v01@openssh.com,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,ssh-rsa-cert-v01@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa</span><br><span class="line">debug2: ciphers ctos: chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com</span><br><span class="line">debug2: ciphers stoc: chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com</span><br><span class="line">debug2: MACs ctos: umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1</span><br><span class="line">debug2: MACs stoc: umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1</span><br><span class="line">debug2: compression ctos: none,zlib@openssh.com,zlib</span><br><span class="line">debug2: compression stoc: none,zlib@openssh.com,zlib</span><br><span class="line">debug2: languages ctos:</span><br><span class="line">debug2: languages stoc:</span><br><span class="line">debug2: first_kex_follows 0</span><br><span class="line">debug2: reserved 0</span><br><span class="line">debug2: peer server KEXINIT proposal</span><br><span class="line">debug2: KEX algorithms: curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha256,diffie-hellman-group14-sha1,diffie-hellman-group1-sha1</span><br><span class="line">debug2: host key algorithms: ssh-rsa,rsa-sha2-512,rsa-sha2-256,ecdsa-sha2-nistp256,ssh-ed25519</span><br><span class="line">debug2: ciphers ctos: chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com,aes128-cbc,aes192-cbc,aes256-cbc,blowfish-cbc,cast128-cbc,3des-cbc</span><br><span class="line">debug2: ciphers stoc: chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com,aes128-cbc,aes192-cbc,aes256-cbc,blowfish-cbc,cast128-cbc,3des-cbc</span><br><span class="line">debug2: MACs ctos: umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1</span><br><span class="line">debug2: MACs stoc: umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1</span><br><span class="line">debug2: compression ctos: none,zlib@openssh.com</span><br><span class="line">debug2: compression stoc: none,zlib@openssh.com</span><br><span class="line">debug2: languages ctos:</span><br><span class="line">debug2: languages stoc:</span><br><span class="line">debug2: first_kex_follows 0</span><br><span class="line">debug2: reserved 0</span><br><span class="line">debug1: kex: algorithm: curve25519-sha256</span><br><span class="line">debug1: kex: host key algorithm: ecdsa-sha2-nistp256</span><br><span class="line">debug1: kex: server-&gt;client cipher: chacha20-poly1305@openssh.com MAC: &lt;implicit&gt; compression: none</span><br><span class="line">debug1: kex: client-&gt;server cipher: chacha20-poly1305@openssh.com MAC: &lt;implicit&gt; compression: none</span><br><span class="line">debug3: send packet: type 30</span><br><span class="line">debug1: expecting SSH2_MSG_KEX_ECDH_REPLY</span><br><span class="line">debug3: receive packet: type 31</span><br><span class="line">debug1: Server host key: ecdsa-sha2-nistp256 SHA256:B65HccHM+Jn&#x2F;biQHtyepoOO0z+IT6UkumhfWOZOKVfc</span><br><span class="line">debug3: hostkeys_foreach: reading file &quot;&#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;known_hosts&quot;</span><br><span class="line">debug3: record_hostkey: found key type ECDSA in file &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;known_hosts:15</span><br><span class="line">debug3: load_hostkeys: loaded 1 keys from 192.168.2.201</span><br><span class="line">debug1: Host &#39;192.168.2.201&#39; is known and matches the ECDSA host key.</span><br><span class="line">debug1: Found key in &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;known_hosts:15</span><br><span class="line">debug3: send packet: type 21</span><br><span class="line">debug2: set_newkeys: mode 1</span><br><span class="line">debug1: rekey after 134217728 blocks</span><br><span class="line">debug1: SSH2_MSG_NEWKEYS sent</span><br><span class="line">debug1: expecting SSH2_MSG_NEWKEYS</span><br><span class="line">debug3: receive packet: type 21</span><br><span class="line">debug1: SSH2_MSG_NEWKEYS received</span><br><span class="line">debug2: set_newkeys: mode 0</span><br><span class="line">debug1: rekey after 134217728 blocks</span><br><span class="line">debug1: Will attempt key: &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201 RSA SHA256:1mROBcyDSdkam0yuvqonpViVkJjR&#x2F;O+f0Ge1cWIJNgk explicit</span><br><span class="line">debug2: pubkey_prepare: done</span><br><span class="line">debug3: send packet: type 5</span><br><span class="line">debug3: receive packet: type 7</span><br><span class="line">debug1: SSH2_MSG_EXT_INFO received</span><br><span class="line">debug1: kex_input_ext_info: server-sig-algs&#x3D;&lt;rsa-sha2-256,rsa-sha2-512&gt;</span><br><span class="line">debug3: receive packet: type 6</span><br><span class="line">debug2: service_accept: ssh-userauth</span><br><span class="line">debug1: SSH2_MSG_SERVICE_ACCEPT received</span><br><span class="line">debug3: send packet: type 50</span><br><span class="line">debug3: receive packet: type 51</span><br><span class="line">debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug3: start over, passed a different list publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug3: preferred publickey,keyboard-interactive,password</span><br><span class="line">debug3: authmethod_lookup publickey</span><br><span class="line">debug3: remaining preferred: keyboard-interactive,password</span><br><span class="line">debug3: authmethod_is_enabled publickey</span><br><span class="line">debug1: Next authentication method: publickey</span><br><span class="line">debug1: Offering public key: &#x2F;Users&#x2F;leo&#x2F;.ssh&#x2F;lan_201 RSA SHA256:1mROBcyDSdkam0yuvqonpViVkJjR&#x2F;O+f0Ge1cWIJNgk explicit</span><br><span class="line">debug3: send packet: type 50</span><br><span class="line">debug2: we sent a publickey packet, wait for reply</span><br><span class="line">debug3: receive packet: type 51</span><br><span class="line">debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug2: we did not send a packet, disable method</span><br><span class="line">debug3: authmethod_lookup password</span><br><span class="line">debug3: remaining preferred: ,password</span><br><span class="line">debug3: authmethod_is_enabled password</span><br><span class="line">debug1: Next authentication method: password</span><br><span class="line">root@192.168.2.201&#39;s password:</span><br><span class="line">debug3: send packet: type 50</span><br><span class="line">debug2: we sent a password packet, wait for reply</span><br><span class="line">debug3: receive packet: type 52</span><br><span class="line">debug1: Authentication succeeded (password).</span><br><span class="line">Authenticated to 192.168.2.201 ([192.168.2.201]:22).</span><br><span class="line">debug1: channel 0: new [client-session]</span><br><span class="line">debug3: ssh_session2_open: channel_new: 0</span><br><span class="line">debug2: channel 0: send open</span><br><span class="line">debug3: send packet: type 90</span><br><span class="line">debug1: Requesting no-more-sessions@openssh.com</span><br><span class="line">debug3: send packet: type 80</span><br><span class="line">debug1: Entering interactive session.</span><br><span class="line">debug1: pledge: network</span><br><span class="line">debug3: receive packet: type 80</span><br><span class="line">debug1: client_input_global_request: rtype hostkeys-00@openssh.com want_reply 0</span><br><span class="line">debug3: receive packet: type 91</span><br><span class="line">debug2: channel_input_open_confirmation: channel 0: callback start</span><br><span class="line">debug2: fd 3 setting TCP_NODELAY</span><br><span class="line">debug3: ssh_packet_set_tos: set IP_TOS 0x48</span><br><span class="line">debug2: client_session2_setup: id 0</span><br><span class="line">debug2: channel 0: request pty-req confirm 1</span><br><span class="line">debug3: send packet: type 98</span><br><span class="line">debug1: Sending environment.</span><br><span class="line">debug3: Ignored env TERM_SESSION_ID</span><br><span class="line">debug3: Ignored env SSH_AUTH_SOCK</span><br><span class="line">debug1: Sending env LC_TERMINAL_VERSION &#x3D; 3.3.6</span><br><span class="line">debug2: channel 0: request env confirm 0</span><br><span class="line">debug3: send packet: type 98</span><br><span class="line">debug3: Ignored env Apple_PubSub_Socket_Render</span><br><span class="line">debug3: Ignored env COLORFGBG</span><br><span class="line">debug3: Ignored env ITERM_PROFILE</span><br><span class="line">debug3: Ignored env XPC_FLAGS</span><br><span class="line">debug1: Sending env LANG &#x3D; zh_CN.UTF-8</span><br><span class="line">debug2: channel 0: request env confirm 0</span><br><span class="line">debug3: send packet: type 98</span><br><span class="line">debug3: Ignored env PWD</span><br><span class="line">debug3: Ignored env SHELL</span><br><span class="line">debug3: Ignored env SECURITYSESSIONID</span><br><span class="line">debug3: Ignored env TERM_PROGRAM_VERSION</span><br><span class="line">debug3: Ignored env TERM_PROGRAM</span><br><span class="line">debug3: Ignored env PATH</span><br><span class="line">debug1: Sending env LC_TERMINAL &#x3D; iTerm2</span><br><span class="line">debug2: channel 0: request env confirm 0</span><br><span class="line">debug3: send packet: type 98</span><br><span class="line">debug3: Ignored env COLORTERM</span><br><span class="line">debug3: Ignored env COMMAND_MODE</span><br><span class="line">debug3: Ignored env TERM</span><br><span class="line">debug3: Ignored env HOME</span><br><span class="line">debug3: Ignored env TMPDIR</span><br><span class="line">debug3: Ignored env USER</span><br><span class="line">debug3: Ignored env XPC_SERVICE_NAME</span><br><span class="line">debug3: Ignored env LOGNAME</span><br><span class="line">debug3: Ignored env __CF_USER_TEXT_ENCODING</span><br><span class="line">debug3: Ignored env ITERM_SESSION_ID</span><br><span class="line">debug3: Ignored env SHLVL</span><br><span class="line">debug3: Ignored env OLDPWD</span><br><span class="line">debug3: Ignored env ZSH</span><br><span class="line">debug3: Ignored env PAGER</span><br><span class="line">debug3: Ignored env LESS</span><br><span class="line">debug3: Ignored env LSCOLORS</span><br><span class="line">debug3: Ignored env NVM_DIR</span><br><span class="line">debug3: Ignored env NVM_CD_FLAGS</span><br><span class="line">debug3: Ignored env NVM_BIN</span><br><span class="line">debug3: Ignored env AUTOJUMP_SOURCED</span><br><span class="line">debug3: Ignored env AUTOJUMP_ERROR_PATH</span><br><span class="line">debug3: Ignored env ANDROID_HOME</span><br><span class="line">debug3: Ignored env PUB_HOSTED_URL</span><br><span class="line">debug3: Ignored env FLUTTER_STORAGE_BASE_URL</span><br><span class="line">debug3: Ignored env FLUTTER_HOME</span><br><span class="line">debug3: Ignored env _</span><br><span class="line">debug2: channel 0: request shell confirm 1</span><br><span class="line">debug3: send packet: type 98</span><br><span class="line">debug2: channel_input_open_confirmation: channel 0: callback done</span><br><span class="line">debug2: channel 0: open confirm rwindow 0 rmax 32768</span><br><span class="line">debug3: receive packet: type 99</span><br><span class="line">debug2: channel_input_status_confirm: type 99 id 0</span><br><span class="line">debug2: PTY allocation request accepted on channel 0</span><br><span class="line">debug2: channel 0: rcvd adjust 2097152</span><br><span class="line">debug3: receive packet: type 99</span><br><span class="line">debug2: channel_input_status_confirm: type 99 id 0</span><br><span class="line">debug2: shell request accepted on channel 0</span><br><span class="line">Last login: Fri Nov  8 23:26:15 2019 from 192.168.2.2</span><br><span class="line">debug3: receive packet: type 98</span><br><span class="line">debug1: client_input_channel_req: channel 0 rtype exit-status reply 0</span><br><span class="line">debug3: receive packet: type 98</span><br><span class="line">debug1: client_input_channel_req: channel 0 rtype eow@openssh.com reply 0</span><br><span class="line">debug2: channel 0: rcvd eow</span><br><span class="line">debug2: channel 0: chan_shutdown_read (i0 o0 sock -1 wfd 4 efd 6 [write])</span><br><span class="line">debug2: channel 0: input open -&gt; closed</span><br><span class="line">debug3: receive packet: type 96</span><br><span class="line">debug2: channel 0: rcvd eof</span><br><span class="line">debug2: channel 0: output open -&gt; drain</span><br><span class="line">debug2: channel 0: obuf empty</span><br><span class="line">debug2: channel 0: chan_shutdown_write (i3 o1 sock -1 wfd 5 efd 6 [write])</span><br><span class="line">debug2: channel 0: output drain -&gt; closed</span><br><span class="line">debug3: receive packet: type 97</span><br><span class="line">debug2: channel 0: rcvd close</span><br><span class="line">debug3: channel 0: will not send data after close</span><br><span class="line">debug2: channel 0: almost dead</span><br><span class="line">debug2: channel 0: gc: notify user</span><br><span class="line">debug2: channel 0: gc: user detached</span><br><span class="line">debug2: channel 0: send close</span><br><span class="line">debug3: send packet: type 97</span><br><span class="line">debug2: channel 0: is dead</span><br><span class="line">debug2: channel 0: garbage collecting</span><br><span class="line">debug1: channel 0: free: client-session, nchannels 1</span><br><span class="line">debug3: channel 0: status: The following connections are open:</span><br><span class="line">  #0 client-session (t4 r0 i3&#x2F;0 o3&#x2F;0 e[write]&#x2F;0 fd -1&#x2F;-1&#x2F;6 sock -1 cc -1)</span><br><span class="line"></span><br><span class="line">debug3: send packet: type 1</span><br><span class="line">debug3: fd 1 is not O_NONBLOCK</span><br><span class="line">Connection to 192.168.2.201 closed.</span><br><span class="line">Transferred: sent 2676, received 2564 bytes, in 0.3 seconds</span><br><span class="line">Bytes per second: sent 8108.9, received 7769.5</span><br><span class="line">debug1: Exit status 0</span><br></pre></td></tr></table></figure>
+
+<p>并没有看出什么门道来，尝试用另一个普通用户登录是好用的 emmmmm……</p>
+<p>网上查询的结果大部分都是 把 <code>/etc/ssh/sshd_config</code> 中 <code>UsePAM yes</code> 改为 <code>UsePAM no</code>, 然后重启 sshd 服务 <code>systemctl restart sshd</code> （不好用！）</p>
+<p>由于是普通用户没有权限修改 <code>sshd_config</code>，先进入单用户模式给普通用户超级用户权限。</p>
+<h2 id="CentOS7-进入单用户模式"><a href="#CentOS7-进入单用户模式" class="headerlink" title="CentOS7 进入单用户模式"></a>CentOS7 进入单用户模式</h2><p>我这里是在 <code>VMware ESXi</code> 中安装的虚拟机。</p>
+<h3 id="单用户模式并获取-root-权限修改系统文件"><a href="#单用户模式并获取-root-权限修改系统文件" class="headerlink" title="单用户模式并获取 root 权限修改系统文件"></a>单用户模式并获取 root 权限修改系统文件</h3><ol>
+<li>重启系统</li>
+</ol>
+<p>看到这个界面按 <code>e</code></p>
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/1.jpg" alt="1"></p>
+<p>往下翻，找到出现 <code>ro</code> 的一行将 <code>ro</code> 替换成 <code>rw init=/sysroot/bin/sh</code> 或在行尾添加 <code>rw init=/sysroot/bin/sh</code> 后按 <code>Ctrl + x</code> 执行，进入单用户模式</p>
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/2.jpg" alt="2"></p>
+<p>执行 <code>chroot /sysroot</code> 获取 <code>root</code> 权限</p>
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/3.jpg" alt="3"></p>
+<p>修改 <code>vim /etc/sudoers</code> 文件提升普通用户权限，<code>wq!</code> 保存退出。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 说明：格式为（用户名    网络中的主机=（执行命令的目标用户）    执行的命令范围）</span></span><br><span class="line">admin    ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure>
+
+<p>重启系统用 <code>admin</code> 用户登录，修改 <code>sudo vim /etc/ssh/sshd_config</code> 文件，前面说过了并不好用。</p>
+<h3 id="普通单用户模式修改密码"><a href="#普通单用户模式修改密码" class="headerlink" title="普通单用户模式修改密码"></a>普通单用户模式修改密码</h3><ol>
+<li>重启系统</li>
+</ol>
+<p>看到这个界面按 <code>e</code></p>
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/1.jpg" alt="1"></p>
+<p>往下翻，在行尾添加 <code>init=/bin/sh</code> 后按 <code>Ctrl + x</code> 执行，进入单用户模式</p>
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/4.jpg" alt="4"></p>
+<p>默认修改 <code>root</code> 密码，也可以修改其他用户的密码, 执行 <code>exec /sbin/init</code> 即可退出单用户模式</p>
+<h2 id="查看系统-log"><a href="#查看系统-log" class="headerlink" title="查看系统 log"></a>查看系统 log</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo tail -100f /var/<span class="built_in">log</span>/messages</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/5.jpg" alt="5"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo tail -100f /var/<span class="built_in">log</span>/secure</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/6.jpg" alt="6"></p>
+<p>log 也只显示登录成功就关闭，不解不解……</p>
+<h2 id="老问题还没解决，又出新问题"><a href="#老问题还没解决，又出新问题" class="headerlink" title="老问题还没解决，又出新问题"></a>老问题还没解决，又出新问题</h2><p>多次登录尝试出现不能连接服务器，被服务器加入黑名单了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ssh root@192.168.2.201</span><br><span class="line">ssh_exchange_identification: read: Connection reset by peer</span><br></pre></td></tr></table></figure>
+
+<p>ip 被封了只能从 <code>VMware ESXi</code> 中使用 admin 进入服务器。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除 hosts.deny 中的 `sshd:ip`</span></span><br><span class="line"></span><br><span class="line">sudo vim /etc/hosts.deny</span><br></pre></td></tr></table></figure>
+
+<h2 id="解决root登录"><a href="#解决root登录" class="headerlink" title="解决root登录"></a>解决root登录</h2><p>多次 Google 发现 <a href="https://stackoverflow.com/questions/40867440/ssh-connection-closed-on-connect" target="_blank" rel="noopener">ssh connection closed on connect</a></p>
+<blockquote>
+<p>Verify that the user (e.g. login) you are using has permissions to access ssh over the server.<br>Its also possible that there is an exit 0 in your .bash_profile. This will cause the session to close immediately after logging in. You can try this command to remove the it: ssh <a href="mailto:david@0.0.0.1">david@0.0.0.1</a> sed -i ‘/exit\ 0/d’ .bashrc .bash_profile .profile .login</p>
+</blockquote>
+<p>尝试看下 <code>root</code> 用户下的 <code>.bashrc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[admin@centos01 ~]$ sudo cat &#x2F;root&#x2F;.bashrc</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<p>。。。。。。</p>
+<p>删除 <code>exit</code>，还原 <code>.bashrc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">alias rm&#x3D;&#39;rm -i&#39;</span><br><span class="line">alias cp&#x3D;&#39;cp -i&#39;</span><br><span class="line">alias mv&#x3D;&#39;mv -i&#39;</span><br><span class="line"></span><br><span class="line"># Source global definitions</span><br><span class="line">if [ -f &#x2F;etc&#x2F;bashrc ]; then</span><br><span class="line">  . &#x2F;etc&#x2F;bashrc</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<h2 id="中毒"><a href="#中毒" class="headerlink" title="中毒"></a>中毒</h2><p>用 root 登录后……</p>
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/7.jpg" alt="7"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[root@centos01 ~]# cat &#x2F;etc&#x2F;rc.local</span><br><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line"># THIS FILE IS ADDED FOR COMPATIBILITY PURPOSES</span><br><span class="line">#</span><br><span class="line"># It is highly advisable to create own systemd services or udev rules</span><br><span class="line"># to run scripts during boot instead of using this file.</span><br><span class="line">#</span><br><span class="line"># In contrast to previous versions due to parallel execution during boot</span><br><span class="line"># this script will NOT be run after all other services.</span><br><span class="line">#</span><br><span class="line"># Please note that you must run &#39;chmod +x &#x2F;etc&#x2F;rc.d&#x2F;rc.local&#39; to ensure</span><br><span class="line"># that this script will be executed during boot.</span><br><span class="line"></span><br><span class="line">touch &#x2F;var&#x2F;lock&#x2F;subsys&#x2F;local</span><br><span class="line">&quot;&#x2F;root&#x2F;pty&quot;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@centos01 ~]# cat &#x2F;etc&#x2F;crontab</span><br><span class="line">*&#x2F;3 * * * * root &#x2F;etc&#x2F;cron.hourly&#x2F;gcc4.sh</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@centos01 ~]# cat &#x2F;etc&#x2F;cron.hourly&#x2F;gcc4.sh</span><br><span class="line">#!&#x2F;bin&#x2F;sh</span><br><span class="line">PATH&#x3D;&#x2F;bin:&#x2F;sbin:&#x2F;usr&#x2F;bin:&#x2F;usr&#x2F;sbin:&#x2F;usr&#x2F;local&#x2F;bin:&#x2F;usr&#x2F;local&#x2F;sbin:&#x2F;usr&#x2F;X11R6&#x2F;bin</span><br><span class="line">cp &#x2F;lib&#x2F;libudev4.so &#x2F;lib&#x2F;libudev4.so.6</span><br><span class="line">&#x2F;lib&#x2F;libudev4.so.6</span><br></pre></td></tr></table></figure>
+
+<p>卧槽！局域网服务器竟然中毒了…… 貌似是 XordDos 木马</p>
+<p>再看 <code>/var/log/messages</code> 发现每分钟都在执行这个 pty （SSH 爆破程序）</p>
+<p><img src="/images/linux/linux-ssh-connection-closed-on-connect-xorddos/8.jpg" alt="8"></p>
+<p>查看定时任务 log，分析了下大概什么时候执行的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">more /var/<span class="built_in">log</span>/cron <span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+
+<p>测试服务器，不杀毒了，重做系统。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://stackoverflow.com/questions/40867440/ssh-connection-closed-on-connect" target="_blank" rel="noopener">ssh connection closed on connect</a></li>
+<li><a href="https://askubuntu.com/questions/715219/ssh-connection-closed-right-after-login-exit-status-1" target="_blank" rel="noopener">ssh connection closed right after login exit status 1</a></li>
+<li><a href="https://www.cnblogs.com/tssc/p/9265528.html" target="_blank" rel="noopener">Linux下XordDos木马的清除</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/error/" rel="tag"># error</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/linux/jenkins-maven-spring-boot/" rel="prev" title="Jenkins 部署 Maven 聚合项目">
+      <i class="fa fa-chevron-left"></i> Jenkins 部署 Maven 聚合项目
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-network/" rel="next" title="Docker 之 网络配置">
+      Docker 之 网络配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#问题"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CentOS7-进入单用户模式"><span class="nav-number">2.</span> <span class="nav-text">CentOS7 进入单用户模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单用户模式并获取-root-权限修改系统文件"><span class="nav-number">2.1.</span> <span class="nav-text">单用户模式并获取 root 权限修改系统文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#普通单用户模式修改密码"><span class="nav-number">2.2.</span> <span class="nav-text">普通单用户模式修改密码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看系统-log"><span class="nav-number">3.</span> <span class="nav-text">查看系统 log</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#老问题还没解决，又出新问题"><span class="nav-number">4.</span> <span class="nav-text">老问题还没解决，又出新问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决root登录"><span class="nav-number">5.</span> <span class="nav-text">解决root登录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中毒"><span class="nav-number">6.</span> <span class="nav-text">中毒</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="容器网络">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重学 Docker 之 容器进阶（四）">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/docker/docker-07/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="容器网络">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/8.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/9.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/10.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/11.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/12.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/12.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/14.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/docker/docker-07/15.jpg">
+<meta property="article:published_time" content="2021-04-18T11:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.383Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/docker/docker-07/2.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/docker/docker-07/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>重学 Docker 之 容器进阶（四） | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/docker/docker-07/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          重学 Docker 之 容器进阶（四）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-18 11:00:00" itemprop="dateCreated datePublished" datetime="2021-04-18T11:00:00+00:00">2021-04-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>容器网络</p>
+<a id="more"></a>
+
+<h2 id="容器网络：我修改了-proc-sys-net下的参数，为什么在容器中不起效？"><a href="#容器网络：我修改了-proc-sys-net下的参数，为什么在容器中不起效？" class="headerlink" title="容器网络：我修改了/proc/sys/net下的参数，为什么在容器中不起效？"></a>容器网络：我修改了/proc/sys/net下的参数，为什么在容器中不起效？</h2><p>容器网络最明显的一个特征就是它有自己的 Network Namespace 了。之前我们就提到过 Network Namespace 负责管理网络环境的隔离。</p>
+<p>今天呢，我们更深入地讨论一下和 Network Namespace 相关的一个问题——容器中的网络参数。</p>
+<p>和之前的思路一样，我们先来看一个问题。然后在解决问题的过程中，更深入地理解容器的网络参数配置。</p>
+<h3 id="问题再现"><a href="#问题再现" class="headerlink" title="问题再现"></a>问题再现</h3><p>在容器中运行的应用程序，如果需要用到 tcp/ip 协议栈的话，常常需要修改一些网络参数（内核中网络协议栈的参数）。</p>
+<p>很大一部分网络参数都在 /proc 文件系统下的/proc/sys/net/目录里。</p>
+<p><strong>修改这些参数主要有两种方法：一种方法是直接到 /proc 文件系统下的”/proc/sys/net/“目录里对参数做修改；还有一种方法是使用**</strong>sysctl<strong>**这个工具来修改。</strong></p>
+<p>在启动容器之前呢，根据我们的需要我们在宿主机上已经修改过了几个参数，也就是说这些参数的值已经不是内核里原来的缺省值了.</p>
+<p>比如我们改了下面的几个参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># # The default value:</span></span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_congestion_control</span></span><br><span class="line">cubic</span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_time</span></span><br><span class="line">7200</span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_intvl</span></span><br><span class="line">75</span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_probes</span></span><br><span class="line">9</span><br><span class="line"> </span><br><span class="line"><span class="comment"># # To update the value:</span></span><br><span class="line"><span class="comment"># echo bbr &gt; /proc/sys/net/ipv4/tcp_congestion_control</span></span><br><span class="line"><span class="comment"># echo 600 &gt; /proc/sys/net/ipv4/tcp_keepalive_time</span></span><br><span class="line"><span class="comment"># echo 10 &gt; /proc/sys/net/ipv4/tcp_keepalive_intvl</span></span><br><span class="line"><span class="comment"># echo 6 &gt; /proc/sys/net/ipv4/tcp_keepalive_probes</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># # Double check the value after update:</span></span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_congestion_control</span></span><br><span class="line">bbr</span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_time</span></span><br><span class="line">600</span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_intvl</span></span><br><span class="line">10</span><br><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_probes</span></span><br><span class="line">6</span><br></pre></td></tr></table></figure>
+
+<p>然后我们启动一个容器， 再来查看一下容器里这些参数的值。</p>
+<p>你可以先想想，容器里这些参数的值会是什么？我最初觉得容器里参数值应该会继承宿主机 Network Namesapce 里的值，实际上是不是这样呢？</p>
+<p>我们还是先按下面的脚本，启动容器，然后运行 docker exec 命令一起看一下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run -d --name net_para centos:8.1.1911 sleep 3600</span></span><br><span class="line">deec6082bac7b336fa28d0f87d20e1af21a784e4ef11addfc2b9146a9fa77e95</span><br><span class="line"><span class="comment"># docker exec -it net_para bash</span></span><br><span class="line">[root@deec6082bac7 /]<span class="comment"># cat /proc/sys/net/ipv4/tcp_congestion_control</span></span><br><span class="line">bbr</span><br><span class="line">[root@deec6082bac7 /]<span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_time</span></span><br><span class="line">7200</span><br><span class="line">[root@deec6082bac7 /]<span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_intvl</span></span><br><span class="line">75</span><br><span class="line">[root@deec6082bac7 /]<span class="comment"># cat /proc/sys/net/ipv4/tcp_keepalive_probes</span></span><br><span class="line">9</span><br></pre></td></tr></table></figure>
+
+<p>从这个结果我们看到，tcp_congestion_control 的值是 bbr，和宿主机 Network Namespace 里的值是一样的，而其他三个 tcp keepalive 相关的值，都不是宿主机 Network Namespace 里设置的值，而是原来系统里的缺省值了。</p>
+<p>那为什么会这样呢？在分析这个问题之前，我们需要先来看看 Network Namespace 这个概念。</p>
+<h3 id="知识详解"><a href="#知识详解" class="headerlink" title="知识详解"></a>知识详解</h3><h3 id="如何理解-Network-Namespace？"><a href="#如何理解-Network-Namespace？" class="headerlink" title="如何理解 Network Namespace？"></a>如何理解 Network Namespace？</h3><p>对于 Network Namespace，我们从字面上去理解的话，可以知道它是在一台 Linux 节点上对网络的隔离，不过它具体到底隔离了哪部分的网络资源呢？</p>
+<p>我们还是先来看看操作手册，在Linux Programmer’s Manual里对 Network Namespace 有一个段简短的描述，在里面就列出了最主要的几部分资源，它们都是通过 Network Namespace 隔离的。</p>
+<p>我把这些资源给你做了一个梳理：</p>
+<p>第一种，网络设备，这里指的是 lo，eth0 等网络设备。你可以可以通过 ip link命令看到它们。</p>
+<p>第二种是 IPv4 和 IPv6 协议栈。从这里我们可以知道，IP 层以及上面的 TCP 和 UPD 协议栈也是每个 Namespace 独立工作的。</p>
+<p>所以 IP、TCP、PUD 的很多协议，它们的相关参数也是每个 Namespace 独立的，这些参数大多数都在 /proc/sys/net/ 目录下面，同时也包括了 TCP 和 UPD 的 port 资源。</p>
+<p>第三种，IP 路由表，这个资源也是比较好理解的，你可以在不同的 Network Namespace 运行 ip route 命令，就能看到不同的路由表了。</p>
+<p>第四种是防火墙规则，其实这里说的就是 iptables 规则了，每个 Namespace 里都可以独立配置 iptables 规则。</p>
+<p>最后一种是网络的状态信息，这些信息你可以从 /proc/net 和 /sys/class/net 里得到，这里的状态基本上包括了前面 4 种资源的的状态信息。</p>
+<h3 id="Namespace-的操作"><a href="#Namespace-的操作" class="headerlink" title="Namespace 的操作"></a>Namespace 的操作</h3><p>那我们怎么建立一个新的 Network Namespace 呢？</p>
+<p><strong>我们可以通过系统调用 clone() 或者 unshare() 这两个函数来建立新的 Network Namespace。</strong></p>
+<p>下面我们会讲两个例子，带你体会一下这两个方法具体怎么用。</p>
+<p>第一种方法呢，是在新的进程创建的时候，伴随新进程建立，同时也建立出新的 Network Namespace。这个方法，其实就是通过 clone() 系统调用带上 CLONE_NEWNET flag 来实现的。</p>
+<p>Clone 建立出来一个新的进程，这个新的进程所在的 Network Namespace 也是新的。然后我们执行 ip link 命令查看 Namespace 里的网络设备，就可以确认一个新的 Network Namespace 已经建立好了。</p>
+<p>具体操作你可以看一下这段代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">new_netns</span><span class="params">(<span class="keyword">void</span> *para)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"New Namespace Devices:\n"</span>);</span><br><span class="line">            system(<span class="string">"ip link"</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"> </span><br><span class="line">            sleep(<span class="number">100</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">            <span class="keyword">pid_t</span> pid;</span><br><span class="line"> </span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Host Namespace Devices:\n"</span>);</span><br><span class="line">            system(<span class="string">"ip link"</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"> </span><br><span class="line">            pid =</span><br><span class="line">                clone(new_netns, <span class="built_in">stack</span> + STACK_SIZE, CLONE_NEWNET | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">            <span class="keyword">if</span> (pid == <span class="number">-1</span>)</span><br><span class="line">                        errExit(<span class="string">"clone"</span>);</span><br><span class="line"> </span><br><span class="line">            <span class="keyword">if</span> (waitpid(pid, <span class="literal">NULL</span>, <span class="number">0</span>) == <span class="number">-1</span>)</span><br><span class="line">                        errExit(<span class="string">"waitpid"</span>);</span><br><span class="line"> </span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二种方法呢，就是调用 unshare() 这个系统调用来直接改变当前进程的 Network Namespace，你可以看一下这段代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">            <span class="keyword">pid_t</span> pid;</span><br><span class="line"> </span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Host Namespace Devices:\n"</span>);</span><br><span class="line">            system(<span class="string">"ip link"</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"> </span><br><span class="line">            <span class="keyword">if</span> (unshare(CLONE_NEWNET) == <span class="number">-1</span>)</span><br><span class="line">                        errExit(<span class="string">"unshare"</span>);</span><br><span class="line"> </span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"New Namespace Devices:\n"</span>);</span><br><span class="line">            system(<span class="string">"ip link"</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"> </span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实呢，不仅是 Network Namespace，其它的 Namespace 也是通过 clone() 或者 unshare() 系统调用来建立的。</p>
+<p>而创建容器的程序，比如runC也是用 unshare() 给新建的容器建立 Namespace 的。</p>
+<p>这里我简单地说一下 runC 是什么，我们用 Docker 或者 containerd 去启动容器，最后都会调用 runC 在 Linux 中把容器启动起来。</p>
+<p>除了在代码中用系统调用来建立 Network Namespace，我们也可以用命令行工具来建立 Network Namespace。比如用 ip netns 命令，在下一讲学习容器网络配置的时候呢，我们会用到 ip netns，这里你先有个印象就行。</p>
+<p>在 Network Namespace 创建好了之后呢，我们可以在宿主机上运行 lsns -t net 这个命令来查看系统里已有的 Network Namespace。当然，lsns也可以用来查看其它 Namespace。</p>
+<p>用 lsns 查看已有的 Namespace 后，我们还可以用 nsenter 这个命令进入到某个 Network Namespace 里，具体去查看这个 Namespace 里的网络配置。</p>
+<p>比如下面的这个例子，用我们之前的 clone() 的例子里的代码，编译出 clone-ns 这个程序，运行后，再使用 lsns 查看新建的 Network Namespace，并且用nsenter进入到这个 Namespace，查看里面的 lo device。</p>
+<p>具体操作你可以参考下面的代码：</p>
+<p>Makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">all: clone-ns unshare-ns</span></span><br><span class="line"></span><br><span class="line"><span class="section">clone-ns: clone-ns.c</span></span><br><span class="line">	gcc -o clone-ns clone-ns.c</span><br><span class="line"></span><br><span class="line"><span class="section">unshare-ns: unshare-ns.c</span></span><br><span class="line">	gcc -o unshare-ns unshare-ns.c</span><br><span class="line"></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	rm -f *.o clone-ns unshare-ns</span><br></pre></td></tr></table></figure>
+
+<p>clone-ns.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sched.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> errExit(msg)    do &#123; perror(msg); exit(EXIT_FAILURE); \</span></span><br><span class="line">                               &#125; <span class="keyword">while</span> (<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> STACK_SIZE (1024 * 1024)</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">char</span> <span class="built_in">stack</span>[STACK_SIZE];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">new_netns</span><span class="params">(<span class="keyword">void</span> *para)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"New Namespace Devices:\n"</span>);</span><br><span class="line">	system(<span class="string">"ip link"</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"></span><br><span class="line">	sleep(<span class="number">100</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">pid_t</span> pid;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"Host Namespace Devices:\n"</span>);</span><br><span class="line">	system(<span class="string">"ip link"</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"></span><br><span class="line">	pid =</span><br><span class="line">	    clone(new_netns, <span class="built_in">stack</span> + STACK_SIZE, CLONE_NEWNET | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">	<span class="keyword">if</span> (pid == <span class="number">-1</span>)</span><br><span class="line">		errExit(<span class="string">"clone"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (waitpid(pid, <span class="literal">NULL</span>, <span class="number">0</span>) == <span class="number">-1</span>)</span><br><span class="line">		errExit(<span class="string">"waitpid"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>unshare-ns.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sched.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> errExit(msg)    do &#123; perror(msg); exit(EXIT_FAILURE); \</span></span><br><span class="line">                               &#125; <span class="keyword">while</span> (<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">pid_t</span> pid;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"Host Namespace Devices:\n"</span>);</span><br><span class="line">	system(<span class="string">"ip link"</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (unshare(CLONE_NEWNET) == <span class="number">-1</span>)</span><br><span class="line">		errExit(<span class="string">"unshare"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"New Namespace Devices:\n"</span>);</span><br><span class="line">	system(<span class="string">"ip link"</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"\n\n"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ./clone-ns &amp;</span></span><br><span class="line">[1] 7732</span><br><span class="line"><span class="comment"># Host Namespace Devices:</span></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 74:db:d1:80:54:14 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">3: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default</span><br><span class="line">    link/ether 02:42:0c:ff:2b:77 brd ff:ff:ff:ff:ff:ff</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">New Namespace Devices:</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line"> </span><br><span class="line"><span class="comment"># lsns -t net</span></span><br><span class="line">        NS TYPE NPROCS   PID USER    NETNSID NSFS COMMAND</span><br><span class="line">4026531992 net     283     1 root unassigned      /usr/lib/systemd/systemd --switched-root --system --deserialize 16</span><br><span class="line">4026532241 net       1  7734 root unassigned      ./<span class="built_in">clone</span>-ns</span><br><span class="line"><span class="comment"># nsenter -t 7734 -n ip addr</span></span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br></pre></td></tr></table></figure>
+
+<h3 id="解决问题"><a href="#解决问题" class="headerlink" title="解决问题"></a>解决问题</h3><p>那理解了 Network Namespace 之后，我们再来看看这一讲最开始的问题，我们应该怎么来设置容器里的网络相关参数呢？</p>
+<p>首先你要避免走入误区。从我们一开始的例子里，也可以看到，容器里 Network Namespace 的网络参数并不是完全从宿主机 Host Namespace 里继承的，也不是完全在新的 Network Namespace 建立的时候重新初始化的。</p>
+<p>其实呢，这一点我们只要看一下内核代码中对协议栈的初始化函数，很快就可以知道为什么会有这样的情况。</p>
+<p>在我们的例子里 tcp_congestion_control 的值是从 Host Namespace 里继承的，而 tcp_keepalive 相关的几个值会被重新初始化了。</p>
+<p>在函数tcp_sk_init() 里，tcp_keepalive 的三个参数都是重新初始化的，而 tcp_congestion_control 的值是从 Host Namespace 里复制过来的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __net_init <span class="title">tcp_sk_init</span><span class="params">(struct net *net)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">…</span><br><span class="line">        net-&gt;ipv4.sysctl_tcp_keepalive_time = TCP_KEEPALIVE_TIME;</span><br><span class="line">        net-&gt;ipv4.sysctl_tcp_keepalive_probes = TCP_KEEPALIVE_PROBES;</span><br><span class="line">        net-&gt;ipv4.sysctl_tcp_keepalive_intvl = TCP_KEEPALIVE_INTVL;</span><br><span class="line"> </span><br><span class="line">…</span><br><span class="line">        <span class="comment">/* Reno is always built in */</span></span><br><span class="line">        <span class="keyword">if</span> (!net_eq(net, &amp;init_net) &amp;&amp;</span><br><span class="line">            try_module_get(init_net.ipv4.tcp_congestion_control-&gt;owner))</span><br><span class="line">                net-&gt;ipv4.tcp_congestion_control = init_net.ipv4.tcp_congestion_control;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">                net-&gt;ipv4.tcp_congestion_control = &amp;tcp_reno;</span><br><span class="line"> </span><br><span class="line">…</span><br><span class="line"> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么我们现在知道 Network Namespace 的网络参数是怎么初始化的了，你可能会问了，我在容器里也可以修改这些参数吗？</p>
+<p>我们可以启动一个普通的容器，这里的“普通”呢，我指的不是”privileged”的那种容器，也就是在这个容器中，有很多操作都是不允许做的，比如 mount 一个文件系统。这个 privileged 容器概念，我们会在后面容器安全这一讲里详细展开，这里你有个印象。</p>
+<p>那么在启动完一个普通容器后，我们尝试一下在容器里去修改”/proc/sys/net/“下的参数。</p>
+<p>这时候你会看到，容器中”/proc/sys/“是只读 mount 的，那么在容器里是不能修改”/proc/sys/net/“下面的任何参数了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run -d --name net_para centos:8.1.1911 sleep 3600</span></span><br><span class="line">977bf3f07da90422e9c1e89e56edf7a59fab5edff26317eeb253700c2fa657f7</span><br><span class="line"><span class="comment"># docker exec -it net_para bash</span></span><br><span class="line">[root@977bf3f07da9 /]<span class="comment"># echo 600 &gt; /proc/sys/net/ipv4/tcp_keepalive_time</span></span><br><span class="line">bash: /proc/sys/net/ipv4/tcp_keepalive_time: Read-only file system</span><br><span class="line">[root@977bf3f07da9 /]<span class="comment"># cat /proc/mounts | grep "proc/sys"</span></span><br><span class="line">proc /proc/sys proc ro,relatime 0 0</span><br></pre></td></tr></table></figure>
+
+<p>为什么“/proc/sys/” 在容器里是只读 mount 呢？ 这是因为 runC 当初出于安全的考虑，把容器中所有 /proc 和 /sys 相关的目录缺省都做了 read-only mount 的处理。</p>
+<p>那我们应该怎么来修改容器中 Network Namespace 的网络参数呢？</p>
+<p>当然，如果你有宿主机上的 root 权限，最简单粗暴的方法就是用我们之前说的”nsenter”工具，用它修改容器里的网络参数的。不过这个方法在生产环境里显然是不会被允许的，因为我们不会允许用户拥有宿主机的登陆权限。</p>
+<p>其次呢，一般来说在容器中的应用已经启动了之后，才会做这样的修改。也就是说，很多 tcp 链接已经建立好了，那么即使新改了参数，对已经建立好的链接也不会生效了。这就需要重启应用，我们都知道生产环境里通常要避免应用重启，那这样做显然也不合适。</p>
+<p>通过刚刚的排除法，我们推理出了网络参数修改的“正确时机”：想修改 Network Namespace 里的网络参数，要选择容器刚刚启动，而容器中的应用程序还没启动之前进行。</p>
+<p>其实，runC 也在对 /proc/sys 目录做 read-only mount 之前，预留出了修改接口，就是用来修改容器里 “/proc/sys”下参数的，同样也是 sysctl 的参数。</p>
+<p>而 Docker 的–sysctl或者 Kubernetes 里的allowed-unsafe-sysctls特性也都利用了 runC 的 sysctl 参数修改接口，允许容器在启动时修改容器 Namespace 里的参数。</p>
+<p>比如，我们可以试一下 docker –sysctl，这时候我们会发现，在容器的 Network Namespace 里，/proc/sys/net/ipv4/tcp_keepalive_time 这个网络参数终于被修改了！</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run -d --name net_para --sysctl net.ipv4.tcp_keepalive_time=600 centos:8.1.1911 sleep 3600</span></span><br><span class="line">7efed88a44d64400ff5a6d38fdcc73f2a74a7bdc3dbc7161060f2f7d0be170d1</span><br><span class="line"><span class="comment"># docker exec net_para cat /proc/sys/net/ipv4/tcp_keepalive_time</span></span><br><span class="line">600</span><br></pre></td></tr></table></figure>
+
+<!--
+
+### 重点总结
+
+好了，今天的课我们讲完了，那么下面我来给你做个总结。
+
+今天我们讨论问题是容器中网络参数的问题，因为是问题发生在容器里，又是网络的参数，那么自然就和 Network Namespace 有关，所以我们首先要理解 Network Namespace。
+
+Network Namespace 可以隔离网络设备，ip 协议栈，ip 路由表，防火墙规则，以及可以显示独立的网络状态信息。
+
+我们可以通过 clone() 或者 unshare() 系统调用来建立新的 Network Namespace。
+
+此外，还有一些工具"ip""netns""unshare""lsns"和"nsenter"，也可以用来操作 Network Namespace。
+
+这些工具的适用条件，我用表格的形式整理如下，你可以做个参考。
+
+![1][1]
+
+接着我们分析了如何修改普通容器（非 privileged）的网络参数。
+
+由于安全的原因，普通容器的 /proc/sys 是 read-only mount 的，所以在容器启动以后，我们无法在容器内部修改 /proc/sys/net 下网络相关的参数。
+
+这时可行的方法是**通过 runC sysctl 相关的接口，在容器启动的时候对容器内的网络参数做配置。**
+
+这样一来，想要修改网络参数就可以这么做：如果是使用 Docker，我们可以加上"—sysctl"这个参数；而如果使用 Kubernetes 的话，就需要用到"allowed unsaft sysctl"这个特性了。
+
+-->
+
+<h2 id="容器网络配置（1）：容器网络不通了要怎么调试"><a href="#容器网络配置（1）：容器网络不通了要怎么调试" class="headerlink" title="容器网络配置（1）：容器网络不通了要怎么调试?"></a>容器网络配置（1）：容器网络不通了要怎么调试?</h2><p>前面我们讲 Network Namespace 隔离了网络设备，IP 协议栈和路由表，以及防火墙规则，那容器 Network Namespace 里的参数怎么去配置，我们现在已经很清楚了。</p>
+<p>其实对于网络配置的问题，我们还有一个最需要关心的内容，那就是容器和外面的容器或者节点是怎么通讯的，这就涉及到了容器网络接口配置的问题了。</p>
+<p>所以这一讲呢，我们就来聊一聊，容器 Network Namespace 里如何配置网络接口，还有当容器网络不通的时候，我们应该怎么去做一个简单调试。</p>
+<h3 id="问题再现-1"><a href="#问题再现-1" class="headerlink" title="问题再现"></a>问题再现</h3><p>在前面，我们一直是用 docker run 这个命令来启动容器的。容器启动了之后，我们也可以看到，在容器里面有一个”eth0”的网络接口，接口上也配置了一个 IP 地址。</p>
+<p>不过呢，如果我们想从容器里访问外面的一个 IP 地址，比如说 39.106.233.176（这个是极客时间网址对应的 IP），结果就发现是不能 ping 通的。</p>
+<p>这时我们可能会想到，到底是不是容器内出了问题，在容器里无法访问，会不会宿主机也一样不行呢？</p>
+<p>所以我们需要验证一下，首先我们退出容器，然后在宿主机的 Network Namespace 下，再运行 ping 39.106.233.176，结果就会发现在宿主机上，却是可以连通这个地址的。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># docker run -d --name if-test centos:8.1.1911 sleep 36000</span></span><br><span class="line">244d44f94dc2931626194c6fd3f99cec7b7c4bf61aafc6c702551e2c5ca2a371</span><br><span class="line"><span class="comment"># docker exec -it if-test bash</span></span><br><span class="line"> </span><br><span class="line">[root@244d44f94dc2 /]<span class="comment"># ip addr</span></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">808: eth0@if809: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default</span><br><span class="line">    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"> </span><br><span class="line">[root@244d44f94dc2 /]<span class="comment"># ping 39.106.233.176       ### 容器中无法ping通</span></span><br><span class="line">PING 39.106.233.176 (39.106.233.176) 56(84) bytes of data.</span><br><span class="line">^C</span><br><span class="line">--- 39.106.233.176 ping statistics ---</span><br><span class="line">9 packets transmitted, 0 received, 100% packet loss, time 185ms</span><br><span class="line"> </span><br><span class="line">[root@244d44f94dc2 /]<span class="comment"># exit             ###退出容器</span></span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># ping 39.106.233.176                        ### 宿主机上可以ping通</span></span><br><span class="line">PING 39.106.233.176 (39.106.233.176) 56(84) bytes of data.</span><br><span class="line">64 bytes from 39.106.233.176: icmp_seq=1 ttl=78 time=296 ms</span><br><span class="line">64 bytes from 39.106.233.176: icmp_seq=2 ttl=78 time=306 ms</span><br><span class="line">64 bytes from 39.106.233.176: icmp_seq=3 ttl=78 time=303 ms</span><br><span class="line">^C</span><br><span class="line">--- 39.106.233.176 ping statistics ---</span><br><span class="line">4 packets transmitted, 3 received, 25% packet loss, time 7ms</span><br><span class="line">rtt min/avg/max/mdev = 296.059/301.449/305.580/4.037 ms</span><br></pre></td></tr></table></figure>
+
+<p>那么碰到这种容器内网络不通的问题，我们应该怎么分析调试呢？我们还是需要先来理解一下，容器 Network Namespace 里的网络接口是怎么配置的。</p>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>在讲解容器的网络接口配置之前，我们需要先建立一个整体的认识，搞清楚容器网络接口在系统架构中处于哪个位置。</p>
+<p>你可以看一下我给你画的这张图，图里展示的是容器有自己的 Network Namespace，eth0 是这个 Network Namespace 里的网络接口。而宿主机上也有自己的 eth0，宿主机上的 eth0 对应着真正的物理网卡，可以和外面通讯。</p>
+<p><img src="/images/docker/docker-07/2.jpg" alt="2"></p>
+<p>那你可以先想想，我们要让容器 Network Namespace 中的数据包最终发送到物理网卡上，需要完成哪些步骤呢？从图上看，我们大致可以知道应该包括这两步。</p>
+<p><strong>第一步，就是要让数据包从容器的 Network Namespace 发送到 Host Network Namespace 上。</strong></p>
+<p><strong>第二步，数据包发到了 Host Network Namespace 之后，还要解决数据包怎么从宿主机上的 eth0 发送出去的问题。</strong></p>
+<p>好，整体的思路已经理清楚了，接下来我们做具体分析。我们先来看第一步，怎么让数据包从容器的 Network Namespace 发送到 Host Network Namespace 上面。</p>
+<p>你可以查看一下<a href="https://docs.docker.com/network/" target="_blank" rel="noopener">Docker 网络的文档</a>或者<a href="https://kubernetes.io/docs/concepts/cluster-administration/networking/" target="_blank" rel="noopener">Kubernetes 网络的文档</a>，这些文档里面介绍了很多种容器网络配置的方式。</p>
+<p>不过对于容器从自己的 Network Namespace 连接到 Host Network Namespace 的方法，一般来说就只有两类设备接口：一类是<a href="https://man7.org/linux/man-pages/man4/veth.4.html" target="_blank" rel="noopener">veth</a>，另外一类是 macvlan/ipvlan。</p>
+<p>在这些方法中，我们使用最多的就是 veth 的方式，用 Docker 启动的容器缺省的网络接口用的也是这个 veth。既然它这么常见，所以我们就用 veth 作为例子来详细讲解。至于另外一类 macvlan/ipvlan 的方式，我们在下一讲里会讲到。</p>
+<p>那什么是 veth 呢？为了方便你更好地理解，我们先来模拟一下 Docker 为容器建立 eth0 网络接口的过程，动手操作一下，这样呢，你就可以很快明白什么是 veth 了。</p>
+<p>对于这个模拟操作呢，我们主要用到的是<a href="https://man7.org/linux/man-pages/man8/ip-netns.8.html" target="_blank" rel="noopener">ip netns</a> 这个命令，通过它来对 Network Namespace 做操作。</p>
+<p>首先，我们先启动一个不带网络配置的容器，和我们之前的命令比较，主要是多加上了”–network none”参数。我们可以看到，这样在启动的容器中，Network Namespace 里就只有 loopback 一个网络设备，而没有了 eth0 网络设备了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run -d --name if-test --network none centos:8.1.1911 sleep 36000</span></span><br><span class="line">cf3d3105b11512658a025f5b401a09c888ed3495205f31e0a0d78a2036729472</span><br><span class="line"><span class="comment"># docker exec -it if-test ip addr</span></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+
+<p>完成刚才的设置以后，我们就在这个容器的 Network Namespace 里建立 veth，你可以执行一下后面的这个脚本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">pid=$(ps -ef | grep <span class="string">"sleep 36000"</span> | grep -v grep | awk <span class="string">'&#123;print $2&#125;'</span>)</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$pid</span></span><br><span class="line">ln -s /proc/<span class="variable">$pid</span>/ns/net /var/run/netns/<span class="variable">$pid</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># Create a pair of veth interfaces</span></span><br><span class="line">ip link add name veth_host <span class="built_in">type</span> veth peer name veth_container</span><br><span class="line"><span class="comment"># Put one of them in the new net ns</span></span><br><span class="line">ip link <span class="built_in">set</span> veth_container netns <span class="variable">$pid</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># In the container, setup veth_container</span></span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid</span> ip link <span class="built_in">set</span> veth_container name eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid</span> ip addr add 172.17.1.2/16 dev eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid</span> ip link <span class="built_in">set</span> eth0 up</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid</span> ip route add default via 172.17.0.1</span><br><span class="line"> </span><br><span class="line"><span class="comment"># In the host, set veth_host up</span></span><br><span class="line">ip link <span class="built_in">set</span> veth_host up</span><br></pre></td></tr></table></figure>
+
+<p>我在这里解释一下，这个 veth 的建立过程是什么样的。</p>
+<p>首先呢，我们先找到这个容器里运行的进程”sleep 36000”的 pid，通过 “/proc/$pid/ns/net”这个文件得到 Network Namespace 的 ID，这个 Network Namespace ID 既是这个进程的，也同时属于这个容器。</p>
+<p>然后我们在”/var/run/netns/“的目录下建立一个符号链接，指向这个容器的 Network Namespace。完成这步操作之后，在后面的”ip netns”操作里，就可以用 pid 的值作为这个容器的 Network Namesapce 的标识了。</p>
+<p>接下来呢，我们用 ip link 命令来建立一对 veth 的虚拟设备接口，分别是 veth_container 和 veth_host。从名字就可以看出来，veth_container 这个接口会被放在容器 Network Namespace 里，而 veth_host 会放在宿主机的 Host Network Namespace。</p>
+<p>所以我们后面的命令也很好理解了，就是用 ip link set veth_container netns $pid 把 veth_container 这个接口放入到容器的 Network Namespace 中。</p>
+<p>再然后我们要把 veth_container 重新命名为 eth0，因为这时候接口已经在容器的 Network Namesapce 里了，eth0 就不会和宿主机上的 eth0 冲突了。</p>
+<p>最后对容器内的 eht0，我们还要做基本的网络 IP 和缺省路由配置。因为 veth_host 已经在宿主机的 Host Network Namespace 了，就不需要我们做什么了，这时我们只需要 up 一下这个接口就可以了。</p>
+<p>那刚才这些操作完成以后，我们就建立了一对 veth 虚拟设备接口。我给你画了一张示意图，图里直观展示了这对接口在容器和宿主机上的位置。</p>
+<p><img src="/images/docker/docker-07/3.jpg" alt="3"></p>
+<p>现在，我们再来看看 veth 的定义了，其实它也很简单。veth 就是一个虚拟的网络设备，一般都是成对创建，而且这对设备是相互连接的。当每个设备在不同的 Network Namespaces 的时候，Namespace 之间就可以用这对 veth 设备来进行网络通讯了。</p>
+<p>比如说，你可以执行下面的这段代码，试试在 veth_host 上加上一个 IP，172.17.1.1/16，然后从容器里就可以 ping 通这个 IP 了。这也证明了从容器到宿主机可以利用这对 veth 接口来通讯了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip addr add 172.17.1.1/16 dev veth_host</span></span><br><span class="line"><span class="comment"># docker exec -it if-test ping 172.17.1.1</span></span><br><span class="line">PING 172.17.1.1 (172.17.1.1) 56(84) bytes of data.</span><br><span class="line">64 bytes from 172.17.1.1: icmp_seq=1 ttl=64 time=0.073 ms</span><br><span class="line">64 bytes from 172.17.1.1: icmp_seq=2 ttl=64 time=0.092 ms</span><br><span class="line">^C</span><br><span class="line">--- 172.17.1.1 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 received, 0% packet loss, time 30ms</span><br><span class="line">rtt min/avg/max/mdev = 0.073/0.082/0.092/0.013 ms</span><br></pre></td></tr></table></figure>
+
+<p>好了，这样我们完成了第一步，通过一对 veth 虚拟设备，可以让数据包从容器的 Network Namespace 发送到 Host Network Namespace 上。</p>
+<p>那下面我们再来看第二步， 数据包到了 Host Network Namespace 之后呢，怎么把它从宿主机上的 eth0 发送出去?</p>
+<p>其实这一步呢，就是一个普通 Linux 节点上数据包转发的问题了。这里我们解决问题的方法有很多种，比如说用 nat 来做个转发，或者建立 Overlay 网络发送，也可以通过配置 proxy arp 加路由的方法来实现。</p>
+<p>因为考虑到网络环境的配置，同时 Docker 缺省使用的是 bridge + nat 的转发方式， 那我们就在刚才讲的第一步基础上，再手动实现一下 bridge+nat 的转发方式。对于其他的配置方法，你可以看一下 Docker 或者 Kubernetes 相关的文档。</p>
+<p>Docker 程序在节点上安装完之后，就会自动建立了一个 docker0 的 bridge interface。所以我们只需要把第一步中建立的 veth_host 这个设备，接入到 docker0 这个 bridge 上。</p>
+<p>这里我要提醒你注意一下，如果之前你在 veth_host 上设置了 IP 的，就需先运行一下”ip addr delete 172.17.1.1/16 dev veth_host”，把 IP 从 veth_host 上删除。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip addr delete 172.17.1.1/16 dev veth_host </span></span><br><span class="line">ip link <span class="built_in">set</span> veth_host master docker0</span><br></pre></td></tr></table></figure>
+
+<p>这个命令执行完之后，容器和宿主机的网络配置就会发生变化，这种配置是什么样呢？你可以参考一下面这张图的描述。</p>
+<p><img src="/images/docker/docker-07/4.jpg" alt="4"></p>
+<p>从这张示意图中，我们可以看出来，容器和 docker0 组成了一个子网，docker0 上的 IP 就是这个子网的网关 IP。</p>
+<p>如果我们要让子网通过宿主机上 eth0 去访问外网的话，那么加上 iptables 的规则就可以了，也就是下面这条规则。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
+
+<p>好了，进行到这里，我们通过 bridge+nat 的配置，似乎已经完成了第二步——让数据从宿主机的 eth0 发送出去。</p>
+<p>那么我们这样配置，真的可以让容器里发送数据包到外网了吗？这需要我们做个测试，再重新尝试下这一讲开始的操作，从容器里 ping 外网的 IP，这时候，你会发现还是 ping 不通。</p>
+<p>其实呢，做到这一步，我们通过自己的逐步操作呢，重现了这一讲了最开始的问题。</p>
+<h3 id="解决问题-1"><a href="#解决问题-1" class="headerlink" title="解决问题"></a>解决问题</h3><p>既然现在我们清楚了，在这个节点上容器和宿主机上的网络配置是怎么一回事。那么要调试这个问题呢，也有了思路，关键就是找到数据包传到哪个环节时发生了中断。</p>
+<p>那最直接的方法呢，就是在容器中继续 ping 外网的 IP 39.106.233.176，然后在容器的 eth0 (veth_container)，容器外的 veth_host，docker0，宿主机的 eth0 这一条数据包的路径上运行 tcpdump。</p>
+<p>这样就可以查到，到底在哪个设备接口上没有收到 ping 的 icmp 包。我把 tcpdump 运行的结果我列到了下面。</p>
+<p>容器的 eth0：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip netns exec $pid tcpdump -i eth0 host 39.106.233.176 -nn</span></span><br><span class="line">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span><br><span class="line">listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes</span><br><span class="line">00:47:29.934294 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 1, length 64</span><br><span class="line">00:47:30.934766 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 2, length 64</span><br><span class="line">00:47:31.958875 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 3, length 64</span><br></pre></td></tr></table></figure>
+
+<p>veth_host：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tcpdump -i veth_host host 39.106.233.176 -nn</span></span><br><span class="line">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span><br><span class="line">listening on veth_host, link-type EN10MB (Ethernet), capture size 262144 bytes</span><br><span class="line">00:48:01.654720 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 32, length 64</span><br><span class="line">00:48:02.678752 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 33, length 64</span><br><span class="line">00:48:03.702827 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 34, length 64</span><br></pre></td></tr></table></figure>
+
+<p>docker0：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tcpdump -i docker0 host 39.106.233.176 -nn</span></span><br><span class="line">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span><br><span class="line">listening on docker0, link-type EN10MB (Ethernet), capture size 262144 bytes</span><br><span class="line">00:48:20.086841 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 50, length 64</span><br><span class="line">00:48:21.110765 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 51, length 64</span><br><span class="line">00:48:22.134839 IP 172.17.1.2 &gt; 39.106.233.176: ICMP <span class="built_in">echo</span> request, id 71, seq 52, length 64</span><br></pre></td></tr></table></figure>
+
+<p>host eth0：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tcpdump -i eth0 host 39.106.233.176 -nn</span></span><br><span class="line">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span><br><span class="line">listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes</span><br><span class="line">^C</span><br><span class="line">0 packets captured</span><br><span class="line">0 packets received by filter</span><br><span class="line">0 packets dropped by kernel</span><br></pre></td></tr></table></figure>
+
+<p>通过上面的输出结果，我们发现 icmp 包到达了 docker0，但是没有到达宿主机上的 eth0。</p>
+<p>因为我们已经配置了 iptables nat 的转发，这个也可以通过查看 iptables 的 nat 表确认一下，是没有问题的，具体的操作命令如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># iptables -L  -t nat</span></span><br><span class="line">Chain PREROUTING (policy ACCEPT)</span><br><span class="line">target     prot opt <span class="built_in">source</span>               destination</span><br><span class="line">DOCKER     all  --  anywhere             anywhere             ADDRTYPE match dst-type LOCAL</span><br><span class="line"> </span><br><span class="line">Chain INPUT (policy ACCEPT)</span><br><span class="line">target     prot opt <span class="built_in">source</span>               destination</span><br><span class="line"> </span><br><span class="line">Chain POSTROUTING (policy ACCEPT)</span><br><span class="line">target     prot opt <span class="built_in">source</span>               destination</span><br><span class="line">MASQUERADE  all  --  172.17.0.0/16        anywhere</span><br><span class="line"> </span><br><span class="line">Chain OUTPUT (policy ACCEPT)</span><br><span class="line">target     prot opt <span class="built_in">source</span>               destination</span><br><span class="line">DOCKER     all  --  anywhere            !127.0.0.0/8          ADDRTYPE match dst-type LOCAL</span><br><span class="line"> </span><br><span class="line">Chain DOCKER (2 references)</span><br><span class="line">target     prot opt <span class="built_in">source</span>               destination</span><br><span class="line">RETURN     all  --  anywhere             anywhere</span><br></pre></td></tr></table></figure>
+
+<p>那么会是什么问题呢？因为这里需要做两个网络设备接口之间的数据包转发，也就是从 docker0 把数据包转发到 eth0 上，你可能想到了 Linux 协议栈里的一个常用参数 ip_forward。</p>
+<p>我们可以看一下，它的值是 0，当我们把它改成 1 之后，那么我们就可以从容器中 ping 通外网 39.106.233.176 这个 IP 了！</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cat /proc/sys/net/ipv4/ip_forward</span></span><br><span class="line">0</span><br><span class="line"><span class="comment"># echo 1 &gt; /proc/sys/net/ipv4/ip_forward</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># docker exec -it if-test ping 39.106.233.176</span></span><br><span class="line">PING 39.106.233.176 (39.106.233.176) 56(84) bytes of data.</span><br><span class="line">64 bytes from 39.106.233.176: icmp_seq=1 ttl=77 time=359 ms</span><br><span class="line">64 bytes from 39.106.233.176: icmp_seq=2 ttl=77 time=346 ms</span><br><span class="line">^C</span><br><span class="line">--- 39.106.233.176 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 received, 0% packet loss, time 1ms</span><br><span class="line">rtt min/avg/max/mdev = 345.889/352.482/359.075/6.593 ms</span><br></pre></td></tr></table></figure>
+
+<!--
+
+### 重点小结
+
+这一讲，我们主要解决的问题是如何给容器配置网络接口，让容器可以和外面通讯；同时我们还学习了当容器网络不通的时候，我们应该怎么来做一个简单调试。
+
+解决容器与外界通讯的问题呢，一共需要完成两步。第一步是，怎么让数据包从容器的 Network Namespace 发送到 Host Network Namespace 上；第二步，数据包到了 Host Network Namespace 之后，还需要让它可以从宿主机的 eth0 发送出去。
+
+我们想让数据从容器 Netowrk Namespace 发送到 Host Network Namespace，可以用配置一对 veth 虚拟网络设备的方法实现。而让数据包从宿主机的 eth0 发送出去，就用可 bridge+nat 的方式完成。
+
+这里我讲的是最基本的一种配置，但它也是很常用的一个网络配置。针对其他不同需要，容器网络还有很多种。那你学习完这一讲，了解了基本的概念和操作之后呢，还可以查看更多的网上资料，学习不同的网络配置。
+
+遇到容器中网络不通的情况，我们先要理解自己的容器以及容器在宿主机上的配置，通过对主要设备上做 tcpdump 可以找到具体在哪一步数据包停止了转发。
+
+然后我们结合内核网络配置参数，路由表信息，防火墙规则，一般都可以定位出根本原因，最终解决这种网络完全不通的问题。
+
+但是如果是网络偶尔丢包的问题，这个就需要用到其他的一些工具来做分析了，这个我们会在之后做讲解。
+
+-->
+
+<h2 id="容器网络配置（2）：容器网络延时要比宿主机上的高吗"><a href="#容器网络配置（2）：容器网络延时要比宿主机上的高吗" class="headerlink" title="容器网络配置（2）：容器网络延时要比宿主机上的高吗?"></a>容器网络配置（2）：容器网络延时要比宿主机上的高吗?</h2><p>在前面，我们学习了在容器中的网络接口配置，重点讲解的是 veth 的接口配置方式，这也是绝大部分容器用的缺省的网络配置方式。</p>
+<p>不过呢，从 veth 的这种网络接口配置上看，一个数据包要从容器里发送到宿主机外，需要先从容器里的 eth0 (veth_container) 把包发送到宿主机上 veth_host，然后再在宿主机上通过 nat 或者路由的方式，经过宿主机上的 eth0 向外发送。</p>
+<p><img src="/images/docker/docker-07/5.jpg" alt="5"></p>
+<p>这种容器向外发送数据包的路径，相比宿主机上直接向外发送数据包的路径，很明显要多了一次接口层的发送和接收。尽管 veth 是虚拟网络接口，在软件上还是会增加一些开销。</p>
+<p>如果我们的应用程序对网络性能有很高的要求，特别是之前运行在物理机器上，现在迁移到容器上的，如果网络配置采用 veth 方式，就会出现网络延时增加的现象。</p>
+<p>那今天我们就来聊一聊，容器网络接口对于容器中应用程序网络延时有怎样的影响，还有这个问题应该怎么解决。</p>
+<h3 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h3><p>对于这种 veth 接口配置导致网络延时增加的现象，我们可以通过运行<a href="https://github.com/HewlettPackard/netperf" target="_blank" rel="noopener">netperf</a>（Netperf 是一个衡量网络性能的工具，它可以提供单向吞吐量和端到端延迟的测试）来模拟一下。</p>
+<p>这里我们需要两台虚拟机或者物理机，这两台机器需要同处于一个二层的网络中。</p>
+<p>具体的配置示意图如下：</p>
+<p><img src="/images/docker/docker-07/6.jpg" alt="6"></p>
+<p>首先，我们需要在第一台机器上启动一个 veth 接口的容器，容器的启动和宿主机上的配置你可以参考一下这里的脚本。在第二台机器上，我们只要启动一个 netserver 就可以了。</p>
+<p>然后呢，我们分别在容器里和宿主机上运行与 netserver 交互的 netperf，再比较一下它们延时的差异。</p>
+<p>我们可以运行 netperf 的 TCP_RR 测试用例，TCP_RR 是 netperf 里专门用来测试网络延时的，缺省每次运行 10 秒钟。运行以后，我们还要计算平均每秒钟 TCP request/response 的次数，这个次数越高，就说明延时越小。</p>
+<p>接下来，我们先在第一台机器的宿主机上直接运行 netperf 的 TCP_RR 测试用例 3 轮，得到的值分别是 2504.92，2410.14 和 2422.81，计算一下可以得到三轮 Transactions 平均值是 2446/s。</p>
+<p>Dockerfile</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> centos:<span class="number">8.1</span>.<span class="number">1911</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> netperf /</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> netserver /</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yum install -y iperf3</span></span><br></pre></td></tr></table></figure>
+
+<p>Makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">all: image</span></span><br><span class="line"></span><br><span class="line"><span class="section">image:</span></span><br><span class="line">	docker build -t registry/latency-test:v1 .</span><br><span class="line"><span class="section">clean: </span></span><br><span class="line">	docker rmi registry/latency-test:v1</span><br></pre></td></tr></table></figure>
+
+<p>start_container.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">docker stop lat-test-1;docker rm lat-test-1</span><br><span class="line"></span><br><span class="line">docker run --init --name lat-test-1 -d registry/latency-test:v1 /netserver -D</span><br><span class="line"></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># ./netperf -H 192.168.0.194 -t TCP_RR</span></span><br><span class="line">MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 192.168.0.194 () port 0 AF_INET : first burst 0</span><br><span class="line">Local /Remote</span><br><span class="line">Socket Size   Request  Resp.   Elapsed  Trans.</span><br><span class="line">Send   Recv   Size     Size    Time     Rate</span><br><span class="line">bytes  Bytes  bytes    bytes   secs.    per sec</span><br><span class="line"> </span><br><span class="line">16384  131072 1        1       10.00    2504.92</span><br><span class="line">16384  131072</span><br><span class="line"><span class="comment"># ./netperf -H 192.168.0.194 -t TCP_RR</span></span><br><span class="line">MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 192.168.0.194 () port 0 AF_INET : first burst 0</span><br><span class="line">Local /Remote</span><br><span class="line">Socket Size   Request  Resp.   Elapsed  Trans.</span><br><span class="line">Send   Recv   Size     Size    Time     Rate</span><br><span class="line">bytes  Bytes  bytes    bytes   secs.    per sec</span><br><span class="line"> </span><br><span class="line">16384  131072 1        1       10.00    2410.14</span><br><span class="line">16384  131072</span><br><span class="line"> </span><br><span class="line"><span class="comment"># ./netperf -H 192.168.0.194 -t TCP_RR</span></span><br><span class="line">MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 192.168.0.194 () port 0 AF_INET : first burst 0</span><br><span class="line">Local /Remote</span><br><span class="line">Socket Size   Request  Resp.   Elapsed  Trans.</span><br><span class="line">Send   Recv   Size     Size    Time     Rate</span><br><span class="line">bytes  Bytes  bytes    bytes   secs.    per sec</span><br><span class="line"> </span><br><span class="line">16384  131072 1        1       10.00    2422.81</span><br><span class="line">16384  131072</span><br></pre></td></tr></table></figure>
+
+<p>同样，我们再在容器中运行一下 netperf 的 TCP_RR，也一样运行三轮，计算一下这三次的平均值，得到的值是 2141。</p>
+<p>那么我们拿这次容器环境中的平均值和宿主机上得到的值 2446 做比较，会发现 Transactions 下降了大概 12.5%，也就是网络的延时超过了 10%。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[root@4150e2a842b5 /]<span class="comment"># ./netperf -H 192.168.0.194 -t TCP_RR</span></span><br><span class="line">MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 192.168.0.194 () port 0 AF_INET : first burst 0</span><br><span class="line">Local /Remote</span><br><span class="line">Socket Size   Request  Resp.   Elapsed  Trans.</span><br><span class="line">Send   Recv   Size     Size    Time     Rate</span><br><span class="line">bytes  Bytes  bytes    bytes   secs.    per sec</span><br><span class="line"> </span><br><span class="line">16384  131072 1        1       10.00    2104.68</span><br><span class="line">16384  131072</span><br><span class="line"> </span><br><span class="line">[root@4150e2a842b5 /]<span class="comment"># ./netperf -H 192.168.0.194 -t TCP_RR</span></span><br><span class="line">MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 192.168.0.194 () port 0 AF_INET : first burst 0</span><br><span class="line">Local /Remote</span><br><span class="line">Socket Size   Request  Resp.   Elapsed  Trans.</span><br><span class="line">Send   Recv   Size     Size    Time     Rate</span><br><span class="line">bytes  Bytes  bytes    bytes   secs.    per sec</span><br><span class="line"> </span><br><span class="line">16384  131072 1        1       10.00    2146.34</span><br><span class="line">16384  131072</span><br><span class="line"> </span><br><span class="line">[root@4150e2a842b5 /]<span class="comment"># ./netperf -H 192.168.0.194 -t TCP_RR</span></span><br><span class="line">MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 192.168.0.194 () port 0 AF_INET : first burst 0</span><br><span class="line">Local /Remote</span><br><span class="line">Socket Size   Request  Resp.   Elapsed  Trans.</span><br><span class="line">Send   Recv   Size     Size    Time     Rate</span><br><span class="line">bytes  Bytes  bytes    bytes   secs.    per sec</span><br><span class="line"> </span><br><span class="line">16384  131072 1        1       10.00    2173.79</span><br><span class="line">16384  131072</span><br></pre></td></tr></table></figure>
+
+<h3 id="分析问题"><a href="#分析问题" class="headerlink" title="分析问题"></a>分析问题</h3><p>刚才我们已经得到了测试的数值，我们发现 veth 方式的确带来了很高的网络延时。那现在我们先来分析一下，为什么 veth 会带来这么大的网络延时，然后再看看有什么方法可以降低容器里的网络延时。</p>
+<p>我们先回顾一下容器里 veth 接口的配置，还是拿我们上一讲里容器 veth 的图作为例子。</p>
+<p><img src="/images/docker/docker-07/3.jpg" alt="3"></p>
+<p>veth 的虚拟网络接口一般都是成对出现，就像上面图里的 veth_container 和 veth_host 一样。</p>
+<p>在每次网络传输的过程中，数据包都需要通过 veth_container 这个接口向外发送，而且必须保证 veth_host 先接收到这个数据包。</p>
+<p>虽然 veth 是一个虚拟的网络接口，但是在接收数据包的操作上，这个虚拟接口和真实的网路接口并没有太大的区别。这里除了没有硬件中断的处理，其他操作都差不多，特别是软中断（softirq）的处理部分其实就和真实的网络接口是一样的。</p>
+<p>我们可以通过阅读 Linux 内核里的 <a href="https://github.com/torvalds/linux/blob/v5.4/drivers/net/veth.c" target="_blank" rel="noopener">veth 的驱动代码（drivers/net/veth.c）</a>确认一下。</p>
+<p>veth 发送数据的函数是 veth_xmit()，它里面的主要操作就是找到 veth peer 设备，然后触发 peer 设备去接收数据包。</p>
+<p>比如 veth_container 这个接口调用了 veth_xmit() 来发送数据包，最后就是触发了它的 peer 设备 veth_host 去调用 netif_rx() 来接收数据包。主要的代码我列在下面了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">netdev_tx_t</span> <span class="title">veth_xmit</span><span class="params">(struct sk_buff *skb, struct net_device *dev)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">…</span><br><span class="line">       <span class="comment">/* 拿到veth peer设备的net_device */</span></span><br><span class="line">       rcv = rcu_dereference(priv-&gt;peer);</span><br><span class="line">…</span><br><span class="line">       <span class="comment">/* 将数据送到veth peer设备 */</span> </span><br><span class="line">       <span class="keyword">if</span> (likely(veth_forward_skb(rcv, skb, rq, rcv_xdp) == NET_RX_SUCCESS)) &#123;</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">…</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">veth_forward_skb</span><span class="params">(struct net_device *dev, struct sk_buff *skb,</span></span></span><br><span class="line"><span class="function"><span class="params">                            struct veth_rq *rq, <span class="keyword">bool</span> xdp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="comment">/* 这里最后调用了 netif_rx() */</span></span><br><span class="line">        <span class="keyword">return</span> __dev_forward_skb(dev, skb) ?: xdp ?</span><br><span class="line">                veth_xdp_rx(rq, skb) :</span><br><span class="line">                netif_rx(skb);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而 netif_rx() 是一个网络设备驱动里面标准的接收数据包的函数，netif_rx() 里面会为这个数据包 raise 一个 softirq。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__raise_softirq_irqoff(NET_RX_SOFTIRQ);</span><br></pre></td></tr></table></figure>
+
+<p>其实 softirq 这个概念，我们之前在CPU 的模块中也提到过。在处理网络数据的时候，一些运行时间较长而且不能在硬中断中处理的工作，就会通过 softirq 来处理。</p>
+<p>一般在硬件中断处理结束之后，网络 softirq 的函数才会再去执行没有完成的包的处理工作。即使这里 softirq 的执行速度很快，还是会带来额外的开销。</p>
+<p><strong>所以，根据 veth 这个虚拟网络设备的实现方式，我们可以看到它必然会带来额外的开销，这样就会增加数据包的网络延时。</strong></p>
+<h3 id="解决问题-2"><a href="#解决问题-2" class="headerlink" title="解决问题"></a>解决问题</h3><p>那么我们有什么方法可以减少容器的网络延时呢？你可能会想到，我们可不可以不使用 veth 这个方式配置网络接口，而是换成别的方式呢？</p>
+<p>的确是这样，其实除了 veth 之外，容器还可以选择其他的网络配置方式。在 Docker 的文档中提到了 macvlan 的配置方式，和 macvlan 很类似的方式还有 ipvlan。</p>
+<p>那我们先来简单看一下 macvlan 和 ipvlan 的异同点。</p>
+<p>我们先来看这两个方式的相同之处，无论是 macvlan 还是 ipvlan，它们都是在一个物理的网络接口上再配置几个虚拟的网络接口。在这些虚拟的网络接口上，都可以配置独立的 IP，并且这些 IP 可以属于不同的 Namespace。</p>
+<p>然后我再说说它们的不同点。<strong>对于 macvlan，每个虚拟网络接口都有自己独立的 mac 地址；而 ipvlan 的虚拟网络接口是和物理网络接口共享同一个 mac 地址</strong>。而且它们都有自己的 L2/L3 的配置方式，不过我们主要是拿 macvlan/ipvlan 来和 veth 做比较，这里可以先忽略 macvlan/ipvlan 这些详细的特性。</p>
+<p>我们就以 ipvlan 为例，运行下面的这个脚本，为容器手动配置上 ipvlan 的网络接口。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">docker run --init --name lat-test-1 --network none -d registry/latency-test:v1 sleep 36000</span><br><span class="line"> </span><br><span class="line">pid1=$(docker inspect lat-test-1 | grep -i Pid | head -n 1 | awk <span class="string">'&#123;print $2&#125;'</span> | awk -F <span class="string">","</span> <span class="string">'&#123;print $1&#125;'</span>)</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$pid1</span></span><br><span class="line">ln -s /proc/<span class="variable">$pid1</span>/ns/net /var/run/netns/<span class="variable">$pid1</span></span><br><span class="line"> </span><br><span class="line">ip link add link eth0 ipvt1 <span class="built_in">type</span> ipvlan mode l2</span><br><span class="line">ip link <span class="built_in">set</span> dev ipvt1 netns <span class="variable">$pid1</span></span><br><span class="line"> </span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid1</span> ip link <span class="built_in">set</span> ipvt1 name eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid1</span> ip addr add 172.17.3.2/16 dev eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid1</span> ip link <span class="built_in">set</span> eth0 up</span><br></pre></td></tr></table></figure>
+
+<p>在这个脚本里，我们先启动一个容器，这里我们用”—network none”的方式来启动，也就是在容器中没有配置任何的网络接口。</p>
+<p>接着我们在宿主机 eth0 的接口上增加一个 ipvlan 虚拟网络接口 ipvt1，再把它加入到容器的 Network Namespace 里面，重命名为容器内的 eth0，并且配置上 IP。这样我们就配置好了第一个用 ipvlan 网络接口的容器。</p>
+<p>我们可以用同样的方式配置第二个容器，这样两个容器可以相互 ping 一下 IP，看看网络是否配置成功了。</p>
+<p>create_ipvlan.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">docker stop lat-test-1;docker rm lat-test-1</span><br><span class="line">docker stop lat-test-2;docker rm lat-test-2</span><br><span class="line"></span><br><span class="line">docker run --init --name lat-test-1 --network none -d registry/latency-test:v1 sleep 36000</span><br><span class="line"></span><br><span class="line">pid1=$(docker inspect lat-test-1 | grep -i Pid | head -n 1 | awk <span class="string">'&#123;print $2&#125;'</span> | awk -F <span class="string">","</span> <span class="string">'&#123;print $1&#125;'</span>)</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$pid1</span></span><br><span class="line">ln -s /proc/<span class="variable">$pid1</span>/ns/net /var/run/netns/<span class="variable">$pid1</span></span><br><span class="line"></span><br><span class="line">ip link add link eth0 ipvt1 <span class="built_in">type</span> ipvlan mode l2</span><br><span class="line">ip link <span class="built_in">set</span> dev ipvt1 netns <span class="variable">$pid1</span></span><br><span class="line"></span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid1</span> ip link <span class="built_in">set</span> ipvt1 name eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid1</span> ip addr add 172.17.3.2/16 dev eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid1</span> ip link <span class="built_in">set</span> eth0 up</span><br><span class="line"></span><br><span class="line">docker run --init --name lat-test-2 --network none -d registry/latency-test:v1 sleep 36000</span><br><span class="line"></span><br><span class="line">pid2=$(docker inspect lat-test-2 | grep -i Pid | head -n 1 | awk <span class="string">'&#123;print $2&#125;'</span> | awk -F <span class="string">","</span> <span class="string">'&#123;print $1&#125;'</span>)</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$pid2</span></span><br><span class="line">ln -s /proc/<span class="variable">$pid2</span>/ns/net /var/run/netns/<span class="variable">$pid2</span></span><br><span class="line"></span><br><span class="line">ip link add link eth0 ipvt2 <span class="built_in">type</span> ipvlan mode l2</span><br><span class="line">ip link <span class="built_in">set</span> dev ipvt2 netns <span class="variable">$pid2</span></span><br><span class="line"></span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid2</span> ip link <span class="built_in">set</span> ipvt2 name eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid2</span> ip addr add 172.17.3.3/16 dev eth0</span><br><span class="line">ip netns <span class="built_in">exec</span> <span class="variable">$pid2</span> ip link <span class="built_in">set</span> eth0 up</span><br></pre></td></tr></table></figure>
+
+<p>两个容器配置好之后，就像下面图中描述的一样了。从这张图里，你很容易就能看出 macvlan/ipvlan 与 veth 网络配置有什么不一样。容器的虚拟网络接口，直接连接在了宿主机的物理网络接口上了，形成了一个网络二层的连接。</p>
+<p><img src="/images/docker/docker-07/7.jpg" alt="7"></p>
+<p>如果从容器里向宿主机外发送数据，看上去通过的接口要比 veth 少了，那么实际情况是不是这样呢？我们先来看一下 ipvlan 接口发送数据的代码。</p>
+<p>从下面的 ipvlan 接口的发送代码中，我们可以看到，如果是往宿主机外发送数据，发送函数会直接找到 ipvlan 虚拟接口对应的物理网络接口。</p>
+<p>比如在我们的例子中，这个物理接口就是宿主机上的 eth0，然后直接调用 dev_queue_xmit()，通过物理接口把数据直接发送出去。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ipvlan_xmit_mode_l2</span><span class="params">(struct sk_buff *skb, struct net_device *dev)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">…</span><br><span class="line">        <span class="keyword">if</span> (!ipvlan_is_vepa(ipvlan-&gt;port) &amp;&amp;</span><br><span class="line">            ether_addr_equal(eth-&gt;h_dest, eth-&gt;h_source)) &#123;</span><br><span class="line">…</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (is_multicast_ether_addr(eth-&gt;h_dest)) &#123;</span><br><span class="line">…</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/* </span></span><br><span class="line"><span class="comment">         * 对于普通的对外发送数据，上面的if 和 else if中的条件都不成立，</span></span><br><span class="line"><span class="comment">         * 所以会执行到这一步，拿到ipvlan对应的物理网路接口设备，</span></span><br><span class="line"><span class="comment">         * 然后直接从这个设备发送数据。</span></span><br><span class="line"><span class="comment">         */</span> </span><br><span class="line">        skb-&gt;dev = ipvlan-&gt;phy_dev;</span><br><span class="line">        <span class="keyword">return</span> dev_queue_xmit(skb);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>和 veth 接口相比，我们用 ipvlan 发送对外数据就要简单得多，因为这种方式没有内部额外的 softirq 处理开销。</p>
+<p>现在我们还可以看一下，在实际生产环境中，一个应用程序跑在使用 veth 接口的容器中，跟这个应用程序跑在使用 ipvlan 接口的容器中，两者的网络延时差异是怎样的。</p>
+<p>下面这张图是网络延时的监控图，图里蓝色的线表示程序运行在 veth 容器中，黄色线表示程序运行在 ipvlan 的容器里，绿色的线代表程序直接运行在物理机上。</p>
+<p>从这张延时（Latency）图里，我们可以看到，在 veth 容器里程序的网络延时要明显高一些，而程序在 ipvlan 容器里的网络延时已经比较接近物理机上的网络延时了。</p>
+<p><img src="/images/docker/docker-07/8.jpg" alt="8"></p>
+<p>所以对于网络延时敏感的应用程序，我们可以考虑使用 ipvlan/macvlan 的容器网络配置方式来替换缺省的 veth 网络配置。</p>
+<!--
+
+### 重点小结
+
+好了，今天的内容讲完了，我们来做个总结。今天我们主要讨论了容器网络接口对容器中应用程序网络延时的影响。
+
+容器通常缺省使用 veth 虚拟网络接口，不过 veth 接口会有比较大的网络延时。我们可以使用 netperf 这个工具来比较网络延时，相比物理机上的网络延时，使用 veth 接口容器的网络延时会增加超过 10%。
+
+我们通过对 veth 实现的代码做分析，可以看到由于 veth 接口是成对工作，在对外发送数据的时候，peer veth 接口都会 raise softirq 来完成一次收包操作，这样就会带来数据包处理的额外开销。
+
+如果要减小容器网络延时，就可以给容器配置 ipvlan/macvlan 的网络接口来替代 veth 网络接口。Ipvlan/macvlan 直接在物理网络接口上虚拟出接口，在发送对外数据包的时候可以直接通过物理接口完成，没有节点内部类似 veth 的那种 softirq 的开销。容器使用 ipvlan/maclan 的网络接口，它的网络延时可以非常接近物理网络接口的延时。
+
+对于延时敏感的应用程序，我们可以考虑使用 ipvlan/macvlan 网络接口的容器。不过，由于 ipvlan/macvlan 网络接口直接挂载在物理网络接口上，对于需要使用 iptables 规则的容器，比如 Kubernetes 里使用 service 的容器，就不能工作了。这就需要你结合实际应用的需求做个判断，再选择合适的方案。
+
+-->
+
+<h2 id="容器网络配置（3）：容器中的网络乱序包怎么这么高？"><a href="#容器网络配置（3）：容器中的网络乱序包怎么这么高？" class="headerlink" title="容器网络配置（3）：容器中的网络乱序包怎么这么高？"></a>容器网络配置（3）：容器中的网络乱序包怎么这么高？</h2><p>我们来聊一下容器中发包乱序的问题。这个问题也同样来自于工作实践，我们的用户把他们的应用程序从物理机迁移到容器之后，从网络监控中发现，容器中数据包的重传的数量要比在物理机里高了不少。</p>
+<p>在前面，我们已经知道了容器网络缺省的接口是 veth，veth 接口都是成对使用的。容器通过 veth 接口向外发送数据，首先需要从 veth 的一个接口发送给跟它成对的另一个接口。</p>
+<p>那么这种接口会不会引起更多的网络重传呢？如果会引起重传，原因是什么，我们又要如何解决呢？接下来我们就带着这三个问题开始今天的学习。</p>
+<h3 id="问题重现-1"><a href="#问题重现-1" class="headerlink" title="问题重现"></a>问题重现</h3><p>我们可以在容器里运行一下 iperf3 命令，向容器外部发送一下数据，从 iperf3 的输出”Retr”列里，我们可以看到有多少重传的数据包。</p>
+<p>比如下面的例子里，我们可以看到有 162 个重传的数据包。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># iperf3 -c 192.168.147.51</span></span><br><span class="line">Connecting to host 192.168.147.51, port 5201</span><br><span class="line">[  5] <span class="built_in">local</span> 192.168.225.12 port 51700 connected to 192.168.147.51 port 5201</span><br><span class="line">[ ID] Interval           Transfer     Bitrate                        Retr    Cwnd</span><br><span class="line">[  5]   0.00-1.00   sec  1001 MBytes  8.40 Gbits/sec  162    192 KBytes</span><br><span class="line">…</span><br><span class="line">- - - - - - - - - - - - - - - - - - - - - - - - -</span><br><span class="line">[ ID] Interval           Transfer     Bitrate         Retr</span><br><span class="line">[  5]   0.00-10.00  sec  9.85 GBytes  8.46 Gbits/sec  162             sender</span><br><span class="line">[  5]   0.00-10.04  sec  9.85 GBytes  8.42 Gbits/sec                  receiver</span><br><span class="line"> </span><br><span class="line">iperf Done.</span><br></pre></td></tr></table></figure>
+
+<p><strong>网络中发生了数据包的重传，有可能是数据包在网络中丢了，也有可能是数据包乱序导致的</strong>。那么，我们怎么来判断到底是哪一种情况引起的重传呢？</p>
+<p>最直接的方法就是用 tcpdump 去抓包，不过对于大流量的网络，用 tcpdump 抓包瞬间就会有几个 GB 的数据。可是这样做的话，带来的额外系统开销比较大，特别是在生产环境中这个方法也不太好用。</p>
+<p>所以这里我们有一个简单的方法，那就是运行 netstat 命令来查看协议栈中的丢包和重传的情况。比如说，在运行上面的 iperf3 命令前后，我们都在容器的 Network Namespace 里运行一下 netstat 看看重传的情况。</p>
+<p>我们会发现，一共发生了 162 次（604-442）快速重传（fast retransmits），这个数值和 iperf3 中的 Retr 列里的数值是一样的。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-bash-4.2<span class="comment"># nsenter -t 51598 -n netstat -s | grep retran</span></span><br><span class="line">    454 segments retransmited</span><br><span class="line">    442 fast retransmits</span><br><span class="line">-bash-4.2<span class="comment"># nsenter -t 51598 -n netstat -s | grep retran</span></span><br><span class="line">    616 segments retransmited</span><br><span class="line">    604 fast retransmits</span><br></pre></td></tr></table></figure>
+
+<h3 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h3><h3 id="快速重传（fast-retransmit）"><a href="#快速重传（fast-retransmit）" class="headerlink" title="快速重传（fast retransmit）"></a>快速重传（fast retransmit）</h3><p>在刚才的问题重现里，我们运行 netstat 命令后，统计了快速重传的次数。那什么是快速重传（fast retransmit）呢？这里我给你解释一下。</p>
+<p>我们都知道 TCP 协议里，发送端（sender）向接受端（receiver）发送一个数据包，接受端（receiver）都回应 ACK。如果超过一个协议栈规定的时间（RTO），发送端没有收到 ACK 包，那么发送端就会重传（Retransmit）数据包，就像下面的示意图一样。</p>
+<p><img src="/images/docker/docker-07/9.jpg" alt="9"></p>
+<p>不过呢，这样等待一个超时之后再重传数据，对于实际应用来说太慢了，所以 TCP 协议又定义了快速重传 （fast retransmit）的概念。它的基本定义是这样的：<strong>如果发送端收到 3 个重复的 ACK，那么发送端就可以立刻重新发送 ACK 对应的下一个数据包</strong>。</p>
+<p>就像下面示意图里描述的那样，接受端没有收到 Seq 2 这个包，但是收到了 Seq 3–5 的数据包，那么接收端在回应 Ack 的时候，Ack 的数值只能是 2。这是因为按顺序来说收到 Seq 1 的包之后，后面 Seq 2 一直没有到，所以接收端就只能一直发送 Ack 2。</p>
+<p>那么当发送端收到 3 个重复的 Ack 2 后，就可以马上重新发送 Seq 2 这个数据包了，而不用再等到重传超时之后了。</p>
+<p><img src="/images/docker/docker-07/10.jpg" alt="10"></p>
+<p>虽然 TCP 快速重传的标准定义是需要收到 3 个重复的 Ack，不过你会发现在 Linux 中常常收到一个 Dup Ack（重复的 Ack）后，就马上重传数据了。这是什么原因呢？</p>
+<p>这里先需要提到 <strong>SACK</strong> 这个概念，SACK 也就是选择性确认（Selective Acknowledgement）。其实跟普通的 ACK 相比呢，SACK 会把接收端收到的所有包的序列信息，都反馈给发送端。</p>
+<p>你看看下面这张图，就能明白这是什么意思了。</p>
+<p><img src="/images/docker/docker-07/11.jpg" alt="11"></p>
+<p>那有了 SACK，对于发送端来说，在收到 SACK 之后就已经知道接收端收到了哪些数据，没有收到哪些数据。</p>
+<p>在 Linux 内核中会有个判断（你可以看看下面的这个函数），大概意思是这样的：如果在接收端收到的数据和还没有收到的数据之间，两者数据量差得太大的话（超过了 reordering*mss_cache），也可以马上重传数据。</p>
+<p>这里你需要注意一下，<strong>这里的数据量差是根据 bytes 来计算的，而不是按照包的数目来计算的，所以你会看到即使只收到一个 SACK，Linux 也可以重发数据包</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">tcp_force_fast_retransmit</span><span class="params">(struct sock *sk)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">tcp_sock</span> *<span class="title">tp</span> = <span class="title">tcp_sk</span>(<span class="title">sk</span>);</span></span><br><span class="line"> </span><br><span class="line">        <span class="keyword">return</span> after(tcp_highest_sack_seq(tp),</span><br><span class="line">                     tp-&gt;snd_una + tp-&gt;reordering * tp-&gt;mss_cache);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好了，了解了快速重传的概念之后，我们再来看看，如果 netstat 中有大量的”fast retransmits”意味着什么？</p>
+<p>如果你再用 netstat 查看”reordering”，就可以看到大量的 SACK 发现的乱序包。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-bash-4.2<span class="comment"># nsenter -t 51598 -n netstat -s  | grep reordering</span></span><br><span class="line">    Detected reordering 501067 <span class="built_in">times</span> using SACK</span><br></pre></td></tr></table></figure>
+
+<p><strong>其实在云平台的这种网络环境里，网络包乱序 +SACK 之后，产生的数据包重传的量要远远高于网络丢包引起的重传</strong>。</p>
+<p>比如说像下面这张图里展示的这样，Seq 2 与 Seq 3 这两个包如果乱序的话，那么就会引起 Seq 2 的立刻重传。</p>
+<p><img src="/images/docker/docker-07/12.jpg" alt="12"></p>
+<h3 id="Veth-接口的数据包的发送"><a href="#Veth-接口的数据包的发送" class="headerlink" title="Veth 接口的数据包的发送"></a>Veth 接口的数据包的发送</h3><p>现在我们知道了网络包乱序会造成数据包的重传，接着我们再来看看容器的 veth 接口配置有没有可能会引起数据包的乱序。</p>
+<p>在上一讲里，我们讲过通过 veth 接口从容器向外发送数据包，会触发 peer veth 设备去接收数据包，这个接收的过程就是一个网络的 softirq 的处理过程。</p>
+<p>在触发 softirq 之前，veth 接口会模拟硬件接收数据的过程，通过 enqueue_to_backlog() 函数把数据包放到某个 CPU 对应的数据包队列里（softnet_data）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">netif_rx_internal</span><span class="params">(struct sk_buff *skb)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> ret;</span><br><span class="line"> </span><br><span class="line">        net_timestamp_check(netdev_tstamp_prequeue, skb);</span><br><span class="line"> </span><br><span class="line">        trace_netif_rx(skb);</span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_RPS</span></span><br><span class="line">        <span class="keyword">if</span> (static_branch_unlikely(&amp;rps_needed)) &#123;</span><br><span class="line">                <span class="class"><span class="keyword">struct</span> <span class="title">rps_dev_flow</span> <span class="title">voidflow</span>, *<span class="title">rflow</span> = &amp;<span class="title">voidflow</span>;</span></span><br><span class="line">                <span class="keyword">int</span> cpu;</span><br><span class="line"> </span><br><span class="line">                preempt_disable();</span><br><span class="line">                rcu_read_lock();</span><br><span class="line"> </span><br><span class="line">                cpu = get_rps_cpu(skb-&gt;dev, skb, &amp;rflow);</span><br><span class="line">                <span class="keyword">if</span> (cpu &lt; <span class="number">0</span>)</span><br><span class="line">                        cpu = smp_processor_id();</span><br><span class="line"> </span><br><span class="line">                ret = enqueue_to_backlog(skb, cpu, &amp;rflow-&gt;last_qtail);</span><br><span class="line"> </span><br><span class="line">                rcu_read_unlock();</span><br><span class="line">                preempt_enable();</span><br><span class="line">        &#125; <span class="keyword">else</span></span><br><span class="line">#endif</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="keyword">unsigned</span> <span class="keyword">int</span> qtail;</span><br><span class="line"> </span><br><span class="line">                ret = enqueue_to_backlog(skb, get_cpu(), &amp;qtail);</span><br><span class="line">                put_cpu();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码，我们可以看到，在缺省的状况下（也就是没有 RPS 的情况下），enqueue_to_backlog() 把数据包放到了“当前运行的 CPU”（get_cpu()）对应的数据队列中。如果是从容器里通过 veth 对外发送数据包，那么这个“当前运行的 CPU”就是容器中发送数据的进程所在的 CPU。</p>
+<p>对于多核的系统，这个发送数据的进程可以在多个 CPU 上切换运行。进程在不同的 CPU 上把数据放入队列并且 raise softirq 之后，因为每个 CPU 上处理 softirq 是个异步操作，所以两个 CPU network softirq handler 处理这个进程的数据包时，处理的先后顺序并不能保证。</p>
+<p>所以，veth 对的这种发送数据方式增加了容器向外发送数据出现乱序的几率。</p>
+<p><img src="/images/docker/docker-07/12.jpg" alt="12"></p>
+<h3 id="RSS-和-RPS"><a href="#RSS-和-RPS" class="headerlink" title="RSS 和 RPS"></a>RSS 和 RPS</h3><p>那么对于 veth 接口的这种发包方式，有办法减少一下乱序的几率吗？</p>
+<p>其实，我们在上面 netif_rx_internal() 那段代码中，有一段在”#ifdef CONFIG_RPS”中的代码。</p>
+<p>我们看到这段代码中在调用 enqueue_to_backlog() 的时候，传入的 CPU 并不是当前运行的 CPU，而是通过 get_rps_cpu() 得到的 CPU，那么这会有什么不同呢？这里的 RPS 又是什么意思呢？</p>
+<p>要解释 RPS 呢，需要先看一下 RSS，这个 RSS 不是我们之前说的内存 RSS，而是和网卡硬件相关的一个感念，它是 Receive Side Scaling 的缩写。</p>
+<p>现在的网卡性能越来越强劲了，从原来一条 RX 队列扩展到了 N 条 RX 队列，而网卡的硬件中断也从一个硬件中断，变成了每条 RX 队列都会有一个硬件中断。</p>
+<p>每个硬件中断可以由一个 CPU 来处理，那么对于多核的系统，多个 CPU 可以并行的接收网络包，这样就大大地提高了系统的网络数据的处理能力.</p>
+<p>同时，在网卡硬件中，可以根据数据包的 4 元组或者 5 元组信息来保证同一个数据流，比如一个 TCP 流的数据始终在一个 RX 队列中，这样也能保证同一流不会出现乱序的情况。</p>
+<p>下面这张图，大致描述了一下 RSS 是怎么工作的。</p>
+<p><img src="/images/docker/docker-07/14.jpg" alt="14"></p>
+<p>RSS 的实现在网卡硬件和驱动里面，而 RPS（Receive Packet Steering）其实就是在软件层面实现类似的功能。它主要实现的代码框架就在上面的 netif_rx_internal() 代码里，原理也不难。</p>
+<p>就像下面的这张示意图里描述的这样：在硬件中断后，CPU2 收到了数据包，再一次对数据包计算一次四元组的 hash 值，得到这个数据包与 CPU1 的映射关系。接着会把这个数据包放到 CPU1 对应的 softnet_data 数据队列中，同时向 CPU1 发送一个 IPI 的中断信号。</p>
+<p>这样一来，后面 CPU1 就会继续按照 Netowrk softirq 的方式来处理这个数据包了。</p>
+<p><img src="/images/docker/docker-07/15.jpg" alt="15"></p>
+<p>RSS 和 RPS 的目的都是把数据包分散到更多的 CPU 上进行处理，使得系统有更强的网络包处理能力。在把数据包分散到各个 CPU 时，保证了同一个数据流在一个 CPU 上，这样就可以减少包的乱序。</p>
+<p>明白了 RPS 的概念之后，我们再回头来看 veth 对外发送数据时候，在 enqueue_to_backlog() 的时候选择 CPU 的问题。显然，如果对应的 veth 接口上打开了 RPS 的配置以后，那么对于同一个数据流，就可以始终选择同一个 CPU 了。</p>
+<p>其实我们打开 RPS 的方法挺简单的，只要去 /sys 目录下，在网络接口设备接收队列中修改队列里的 rps_cpus 的值，这样就可以了。rps_cpus 是一个 16 进制的数，每个 bit 代表一个 CPU。</p>
+<p>比如说，我们在一个12CPU的节点上，想让 host 上的 veth 接口在所有的 12个CPU上，都可以通过 RPS 重新分配数据包。那么就可以执行下面这段命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cat /sys/devices/virtual/net/veth57703b6/queues/rx-0/rps_cpus</span></span><br><span class="line">000</span><br><span class="line"><span class="comment"># echo fff &gt; /sys/devices/virtual/net/veth57703b6/queues/rx-0/rps_cpus</span></span><br><span class="line"><span class="comment"># cat /sys/devices/virtual/net/veth57703b6/queues/rx-0/rps_cpus</span></span><br><span class="line">fff</span><br></pre></td></tr></table></figure>
+
+<!--
+
+### 重点小结
+
+由于在容器平台中看到大部分的重传是快速重传（fast retransmits），我们先梳理了什么是快速重传。快速重传的基本定义是：如果发送端收到 3 个重复的 ACK，那么发送端就可以立刻重新发送 ACK 对应的下一个数据包，而不用等待发送超时。
+
+不过我们在 Linux 系统上还会看到发送端收到一个重复的 ACK 就快速重传的，这是因为 Linux 下对 SACK 做了一个特别的判断之后，就可以立刻重传数据包。
+
+我们再对容器云平台中的快速重传做分析，就会发现这些重传大部分是由包的乱序触发的。
+
+通过对容器 veth 网络接口进一步研究，我们知道它可能会增加数据包乱序的几率。同时在这个分析过程中，我们也看到了 Linux 网络 RPS 的特性。
+
+**RPS 和 RSS 的作用类似，都是把数据包分散到更多的 CPU 上进行处理，使得系统有更强的网络包处理能力。它们的区别是 RSS 工作在网卡的硬件层，而 RPS 工作在 Linux 内核的软件层。**
+
+在把数据包分散到各个 CPU 时，RPS 保证了同一个数据流是在一个 CPU 上的，这样就可以有效减少包的乱序。那么我们可以把 RPS 的这个特性配置到 veth 网络接口上，来减少数据包乱序的几率。
+
+不过，我这里还要说明的是，RPS 的配置还是会带来额外的系统开销，在某些网络环境中会引起 softirq CPU 使用率的增大。那接口要不要打开 RPS 呢？这个问题你需要根据实际情况来做个权衡。
+
+同时你还要注意，TCP 的乱序包，并不一定都会产生数据包的重传。想要减少网络数据包的重传，我们还可以考虑协议栈中其他参数的设置，比如 /proc/sys/net/ipv4/tcp_reordering。
+
+-->
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《由浅入深吃透 Docker》</li>
+<li>《容器实战高手课》</li>
+<li><a href="http://www.docker.com" target="_blank" rel="noopener">http://www.docker.com</a></li>
+<li><a href="https://www.docker-cn.com" target="_blank" rel="noopener">https://www.docker-cn.com</a></li>
+<li><a href="https://docs.docker.com/compose/compose-file/compose-file-v3/" target="_blank" rel="noopener">https://docs.docker.com/compose/compose-file/compose-file-v3/</a></li>
+<li><a href="https://docs.docker.com/compose/reference/" target="_blank" rel="noopener">https://docs.docker.com/compose/reference/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/docker/" rel="tag"># docker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-06/" rel="prev" title="重学 Docker 之 容器进阶（三）">
+      <i class="fa fa-chevron-left"></i> 重学 Docker 之 容器进阶（三）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/docker/docker-08/" rel="next" title="重学 Docker 之 容器进阶（五）">
+      重学 Docker 之 容器进阶（五） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#容器网络：我修改了-proc-sys-net下的参数，为什么在容器中不起效？"><span class="nav-number">1.</span> <span class="nav-text">容器网络：我修改了&#x2F;proc&#x2F;sys&#x2F;net下的参数，为什么在容器中不起效？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题再现"><span class="nav-number">1.1.</span> <span class="nav-text">问题再现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#知识详解"><span class="nav-number">1.2.</span> <span class="nav-text">知识详解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何理解-Network-Namespace？"><span class="nav-number">1.3.</span> <span class="nav-text">如何理解 Network Namespace？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Namespace-的操作"><span class="nav-number">1.4.</span> <span class="nav-text">Namespace 的操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解决问题"><span class="nav-number">1.5.</span> <span class="nav-text">解决问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器网络配置（1）：容器网络不通了要怎么调试"><span class="nav-number">2.</span> <span class="nav-text">容器网络配置（1）：容器网络不通了要怎么调试?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题再现-1"><span class="nav-number">2.1.</span> <span class="nav-text">问题再现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本概念"><span class="nav-number">2.2.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解决问题-1"><span class="nav-number">2.3.</span> <span class="nav-text">解决问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器网络配置（2）：容器网络延时要比宿主机上的高吗"><span class="nav-number">3.</span> <span class="nav-text">容器网络配置（2）：容器网络延时要比宿主机上的高吗?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题重现"><span class="nav-number">3.1.</span> <span class="nav-text">问题重现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析问题"><span class="nav-number">3.2.</span> <span class="nav-text">分析问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解决问题-2"><span class="nav-number">3.3.</span> <span class="nav-text">解决问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器网络配置（3）：容器中的网络乱序包怎么这么高？"><span class="nav-number">4.</span> <span class="nav-text">容器网络配置（3）：容器中的网络乱序包怎么这么高？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题重现-1"><span class="nav-number">4.1.</span> <span class="nav-text">问题重现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#问题分析"><span class="nav-number">4.2.</span> <span class="nav-text">问题分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#快速重传（fast-retransmit）"><span class="nav-number">4.3.</span> <span class="nav-text">快速重传（fast retransmit）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Veth-接口的数据包的发送"><span class="nav-number">4.4.</span> <span class="nav-text">Veth 接口的数据包的发送</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RSS-和-RPS"><span class="nav-number">4.5.</span> <span class="nav-text">RSS 和 RPS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="K8s 是一个强大的平台，但它的网络比较复杂，涉及很多概念，例如 Pod 网络，Service 网络，Cluster IPs，NodePort，LoadBalancer 和 Ingress 等等，为了理解，模仿 TCP&#x2F;IP 协议栈，把 K8s 的网络分解为四个抽象层，从0到3，除了第0层，每一层都是构建于前一层之上，如下图所示：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes 网络">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/k8s/k8s-network/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="K8s 是一个强大的平台，但它的网络比较复杂，涉及很多概念，例如 Pod 网络，Service 网络，Cluster IPs，NodePort，LoadBalancer 和 Ingress 等等，为了理解，模仿 TCP&#x2F;IP 协议栈，把 K8s 的网络分解为四个抽象层，从0到3，除了第0层，每一层都是构建于前一层之上，如下图所示：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/8.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/k8s/k8s-network/9.jpg">
+<meta property="article:published_time" content="2020-02-04T13:32:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.391Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/k8s/k8s-network/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/k8s/k8s-network/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kubernetes 网络 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/k8s/k8s-network/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes 网络
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-04 13:32:00" itemprop="dateCreated datePublished" datetime="2020-02-04T13:32:00+00:00">2020-02-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>K8s 是一个强大的平台，但它的网络比较复杂，涉及很多概念，例如 Pod 网络，Service 网络，Cluster IPs，NodePort，LoadBalancer 和 Ingress 等等，为了理解，模仿 TCP/IP 协议栈，把 K8s 的网络分解为四个抽象层，从0到3，除了第0层，每一层都是构建于前一层之上，如下图所示：</p>
+<a id="more"></a>
+
+<p><img src="/images/k8s/k8s-network/1.jpg" alt="1"></p>
+<h2 id="节点网络"><a href="#节点网络" class="headerlink" title="节点网络"></a>节点网络</h2><p>第0层 Node 节点网络比较好理解，也就是保证 K8s 节点（物理或虚拟机）之间能够正常 IP 寻址和互通的网络，这个一般由底层（公有云或数据中心）网络基础设施支持。</p>
+<h2 id="Pod-网络"><a href="#Pod-网络" class="headerlink" title="Pod 网络"></a>Pod 网络</h2><p>Pod 的网络构建在节点（如下图 eth0 节点网络）网络之上，Pod 网络保证 Pod 之间能做正常的 IP 寻址。一个 Pod 可以驻一个或多个容器，这些容器共享 Pod 网络栈（共享一个虚拟网卡，如下图 veth0）。如果 Pod 内的容器要访问外部网络要走 Pod 网卡，容器之间可以通过 localhost 直接访问，同时端口空间也是共享的（容器不能用同一个端口）。</p>
+<p>Pod 的网络栈是由 Pause 容器创建，Pause 存在的目的是为其他 Pod 内的容器创建共享网络栈。</p>
+<p>K8s 会在每个节点网络上创建一个虚拟网桥（可以看做是虚拟交换机）用来做 Pod 之间寻址（如下图 cbr0）。其次 K8s 会在路由上修改路由器的规则，使得 Worker 节点之间上的 Pod 可以相互访问。这层网络通常被称作覆盖（Overlay）网络。</p>
+<p>如 Pod A 里的应用想访问 Pod B 里的应用，寻址过程为：veth0 会把请求转发到 cbr0，cbr0 发现不在本节点会把请求向上转发到 eth0，eth0 发现也无法解析这个 IP 会继续向上转发到路由器，路由器通过检查路由表发现请求目标落在 10.0.2.0/24 这个范围内，会访问它的下一跳 10.100.0.3 然后会继续通过节点的 eth0 向下处理…… 最后访问到目标应用。</p>
+<p><img src="/images/k8s/k8s-network/2.jpg" alt="2"></p>
+<h2 id="Service-网络"><a href="#Service-网络" class="headerlink" title="Service 网络"></a>Service 网络</h2><p>K8s 的 Service 网络构建于 Pod 网络之上，它主要目的是解决服务发现（Service Discovery）和负载均衡（Load Balancing）问题。</p>
+<p>Service 如何寻址？</p>
+<p><img src="/images/k8s/k8s-network/3.jpg" alt="3"></p>
+<p>Service 网络也是由 K8s 单独创建和管理，它是独立于 Pod 网络的单独网络，它有独立的 IP 地址空间。采用服务注册发现机制实现。</p>
+<p>K8s 1.2 版本以前使用<code>用户空间代理</code>模式：</p>
+<p>这里有两个阶段，一个是服务注册发现阶段，另一位一个阶段是服务调用阶段。假设 K8s 集群现在发布了一个服务叫 Service Test，K8s 为这个服务分配了一个集群IP（ClusterIP：<code>10.3.241.152</code>）这个 IP 隶属于 Service 网络，Service 网络地址空间是 <code>10.3.240.0/20</code>。相应的 ClusterIP、端口、Pod 地址列表信息都会记录在 <code>Api Server</code>上面（存储在 <code>etcd</code> 里面）。后面如果 Service Test 这些地址发生变更，K8s 会更新 <code>Api Server</code>。每个 Worker 节点 <code>Kube-Proxy</code> （服务发现和负载客户端类似 <code>Ribbon</code>）会监听 <code>Api Server</code> 信息，并告诉 <code>netfilter</code> 过滤这些请求，将请求包转发给自己（<code>Kube-Proxy</code>)。</p>
+<p>服务调用阶段，当某个 <code>client process</code> 要访问 Service Test 会先通过本地的 DNS（DNS 背后也会监听 Api Server 变化） 查询服务目标 ClusterIP（<code>10.3.241.152</code>），查到 IP 后会将请求转发到本地 Pod 虚拟网卡（veth0：<code>10.0.2.3</code>），veth0 通过主机桥网络向主机网卡转发（host eth0），转发过程中会被 <code>netfilter</code> 截获。之前服务发现阶段 <code>Kube-Proxy</code> 告诉了 <code>netfilter</code> 将这些请求转发给自己（<code>10.100.0.2:10400</code>)。Kube-Proxy 收到请求后会以某种负载均衡策略选出一个 Pod 告诉 <code>host eth0</code>，之后走的就是 Pod 网络。</p>
+<p>这种模式比较重，包会在用户空间内转发，有开销。</p>
+<p><img src="/images/k8s/k8s-network/4.jpg" alt="4"></p>
+<p>K8s 1.2 引入<code>iptables/ipvs</code> 模式：</p>
+<p>这种模式比较轻量级，主流程跟用户空间代理模式差不多，不同的是在第2和3步骤。请求包在 <code>netfilter</code> 截获以后并没有交给 <code>Kube-Proxy</code>进行转发，而是通过修改 <code>iptables</code> 或修改 <code>ipvs</code> 规则直接进行转发。这样就省去了内核跟用户空间之间迁移的开销。这样就简化了很多，<code>Kube-Proxy</code> 只负责将信息同步给 <code>netfilter</code> 就可以了。</p>
+<p><img src="/images/k8s/k8s-network/5.jpg" alt="5"></p>
+<p>K8s 通过一个 <code>ServiceName + ClusterIP</code> 统一屏蔽服务发现和负载均衡，底层技术是在 <code>DNS + Service Registry</code> 基础上发展演进出来。<code>ClusterIP</code> 也是虚拟的IP所以也会变，只有服务名一般是不变的，所以引入 DNS 服务屏蔽服务名和 ClusterIP 之间的关系，客户端只需要访问服务名就可以了。</p>
+<p>K8s 的服务发现和负载均衡是在客户端通过 <code>Kube-Proxy + iptables</code> 转发实现，它对应用无侵入，且不穿透 <code>Proxy</code>，没有额外性能损耗。</p>
+<p>有了 Service 抽象，K8s 中部署的应用都可以通过一个抽象的 ClusterIP 进行寻址访问，并且消费方不需要关心这个 ClusterIP 后面究竟有多少个 Pod 实例，它们的 PodIP 是什么，会不会变化，如何以负载均衡方式去访问等问题。</p>
+<h2 id="外部流量访问集群内部网络"><a href="#外部流量访问集群内部网络" class="headerlink" title="外部流量访问集群内部网络"></a>外部流量访问集群内部网络</h2><p>K8s 的 Service 网络只是一个集群内部网络，集群外部是无法直接访问的。而我们发布的应用，有些是需要暴露出去，要让外网甚至公网能够访问的，这样才能对外输出业务价值。</p>
+<p>K8s 接入外部流量的时候，会有 NodePort，LoadBalancer 和 Ingress 等概念，这些概念都是和 K8s 外部流量接入相关的，它们既是不同概念，同时又有关联性。</p>
+<p>外部网络如何对 Service 寻址？</p>
+<p><img src="/images/k8s/k8s-network/6.jpg" alt="6"></p>
+<p>外部访问到节点（eth0：10.100.0.3）网络，从而访问 Service 网络，由 <code>Kube-Proxy</code> 和 <code>netfilter</code> 配合实现。底层原理由 <code>Kube-Proxy</code> 在节点上暴露监听转发服务（端口：32213），这个端口一般限制在 <code>30000-32767</code> 这个范围之内。当节点网络上有请求到达这个端口，<code>Kube-Proxy</code> 就会将请求转发到对应的服务上。后面转发流程和 Service 一样。</p>
+<h3 id="NodePort"><a href="#NodePort" class="headerlink" title="NodePort"></a>NodePort</h3><p>将 K8s 服务暴露在节点网络的机制术语叫 NodePort，是一种特殊的 Service。底层的原理是 K8s 会在每个 Worker 节点上都暴露一个相同端口，这个端口背后就是 <code>Kube-Proxy</code> 转发服务，通过这个服务就可以让节点网络可以访问内部的 Service。</p>
+<p><img src="/images/k8s/k8s-network/7.jpg" alt="7"></p>
+<h3 id="Load-Balancer"><a href="#Load-Balancer" class="headerlink" title="Load Balancer"></a>Load Balancer</h3><p>通过 NodePort 虽然可以把 K8s 内部的 Service 暴露在节点网络上面，如果要让集群外部或公网访问到这个节点网络，一般还需要引入负载均衡（Load Balancer)，LB 一般有公网 IP。 通过 LB 一方面能将外部流量转发路由到节点网络上面，另一方面还能实现对节点网络实现负载均衡。</p>
+<p><img src="/images/k8s/k8s-network/8.jpg" alt="8"></p>
+<h3 id="Ingress"><a href="#Ingress" class="headerlink" title="Ingress"></a>Ingress</h3><p>通过 <code>LB + IP</code> 虽然可以把 K8s 集群内部服务暴露在公网上面，但是 LB, IP 一般都是付费资源，如果需要暴露在公网上的服务比较多，那么每个服务都要申请一个 <code>LB + IP</code> 相应的成本比较高，管理维护比较麻烦。</p>
+<p>因此 K8s 引入 Ingress 概念，它是一种特殊的资源。Ingress 的作用基本上等价于反向代理或者网关，它的主要作用是反向路由。通过 Ingress 可以将多个内部服务同时暴露出事，但是只需要一个前置的 <code>LB + IP</code>。Ingress 还可以做更复杂事情，比如：动态路由更新、安全认证、日志监控等等。</p>
+<p><img src="/images/k8s/k8s-network/9.jpg" alt="9"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><table>
+<thead>
+<tr>
+<th align="left">概念</th>
+<th align="left">作用</th>
+<th align="left">实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">节点网络</td>
+<td align="left">Master/Worker</td>
+<td align="left">节点之间网络互通 路由器，交换机，网卡</td>
+</tr>
+<tr>
+<td align="left">Pod 网络</td>
+<td align="left">Pod 之间互通</td>
+<td align="left">虚拟网卡，虚拟网桥，路由器</td>
+</tr>
+<tr>
+<td align="left">Service 网络</td>
+<td align="left">屏蔽 Pod 地址变化+负载均衡</td>
+<td align="left">Kube-proxy, Netfilter, Api-Server，DNS</td>
+</tr>
+<tr>
+<td align="left">NodePort</td>
+<td align="left">将 Service 暴露在节点网络上</td>
+<td align="left">Kube-proxy + Netfliter</td>
+</tr>
+<tr>
+<td align="left">LoadBalancer</td>
+<td align="left">将 Service 暴露在公网上+负载均衡</td>
+<td align="left">公有云 LB + NodePort</td>
+</tr>
+<tr>
+<td align="left">Ingress</td>
+<td align="left">反向路由，安全，日志监控(类似反向代理 or 网关)</td>
+<td align="left">Nginx/Envoy/Traefik/Faraday</td>
+</tr>
+</tbody></table>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://kubernetes.io/zh/docs/concepts/" target="_blank" rel="noopener">kubernetes concepts</a></li>
+<li>《Spring Boot &amp; Kubernetes 云原生微服务实践》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-concepts/" rel="prev" title="Kubernetes 简介和基本概念">
+      <i class="fa fa-chevron-left"></i> Kubernetes 简介和基本概念
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-cmd/" rel="next" title="Kubernetes 基本命令">
+      Kubernetes 基本命令 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#节点网络"><span class="nav-number">1.</span> <span class="nav-text">节点网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pod-网络"><span class="nav-number">2.</span> <span class="nav-text">Pod 网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-网络"><span class="nav-number">3.</span> <span class="nav-text">Service 网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#外部流量访问集群内部网络"><span class="nav-number">4.</span> <span class="nav-text">外部流量访问集群内部网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NodePort"><span class="nav-number">4.1.</span> <span class="nav-text">NodePort</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Load-Balancer"><span class="nav-number">4.2.</span> <span class="nav-text">Load Balancer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ingress"><span class="nav-number">4.3.</span> <span class="nav-text">Ingress</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

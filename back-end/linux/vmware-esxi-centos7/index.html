@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记录一次在 VMware ESXi 上安装 CentOS7 系统全过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在 VMware ESXi 中安装 CentOS7">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/vmware-esxi-centos7/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="记录一次在 VMware ESXi 上安装 CentOS7 系统全过程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/8.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/9.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/10.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/11.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/12.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/13.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/14.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/15.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/16.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/19.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/20.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/21.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/22.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/23.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/24.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/25.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/26.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/27.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/28.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/29.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/30.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/31.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/32.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/33.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/34.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/35.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/36.jpg">
+<meta property="article:published_time" content="2019-09-07T20:02:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="centos7">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/linux/vmware-esxi-centos7/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/vmware-esxi-centos7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>在 VMware ESXi 中安装 CentOS7 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/vmware-esxi-centos7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在 VMware ESXi 中安装 CentOS7
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-09-07 20:02:00" itemprop="dateCreated datePublished" datetime="2019-09-07T20:02:00+00:00">2019-09-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一次在 <code>VMware ESXi</code> 上安装 <code>CentOS7</code> 系统全过程。</p>
+<a id="more"></a>
+
+<h2 id="什么是-vSphere"><a href="#什么是-vSphere" class="headerlink" title="什么是 vSphere?"></a>什么是 vSphere?</h2><blockquote>
+<p>vSphere 是 VMware 公司在 2001 年基于云计算推出的一套企业级虚拟化解决方案、核心组件为 ESXi。如今，经历了 5 个版本的改进，已经实现了虚拟化基础架构、高可用性、集中管理、性能监控等一体化解决方案。</p>
+</blockquote>
+<ul>
+<li><a href="https://idc.wanyunshuju.com/li/580.html" target="_blank" rel="noopener">虚拟化 VMware ESXi 6.7 服务器安装配置详细步骤图文</a></li>
+<li><a href="https://www.vmware.com/cn.html" target="_blank" rel="noopener">VMware ESXi 6.7.0</a></li>
+</ul>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><h3 id="下载系统镜像"><a href="#下载系统镜像" class="headerlink" title="下载系统镜像"></a>下载系统镜像</h3><ul>
+<li>CentOS7 系统 <a href="https://www.centos.org" target="_blank" rel="noopener">官网</a></li>
+<li><a href="http://mirrors.aliyun.com/centos/7.6.1810/isos/x86_64/CentOS-7-x86_64-DVD-1810.iso" target="_blank" rel="noopener">使用阿里云镜像下载 CentOS7.6</a></li>
+</ul>
+<h3 id="将镜像上传到-VMware-ESXi"><a href="#将镜像上传到-VMware-ESXi" class="headerlink" title="将镜像上传到 VMware ESXi"></a>将镜像上传到 VMware ESXi</h3><p><img src="/images/linux/vmware-esxi-centos7/1.jpg" alt="1"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/2.jpg" alt="2"></p>
+<p>选择存储，点击数据存储浏览器</p>
+<p><img src="/images/linux/vmware-esxi-centos7/3.jpg" alt="3"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/4.jpg" alt="4"></p>
+<p>点击上传，将下载好的 <code>CentOS7</code>镜像上传到根目录</p>
+<p><img src="/images/linux/vmware-esxi-centos7/6.jpg" alt="6"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/7.jpg" alt="7"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/8.jpg" alt="8"></p>
+<p>选择客户机操作系统，注意客户机操作系统版本要一致</p>
+<p><img src="/images/linux/vmware-esxi-centos7/9.jpg" alt="9"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/10.jpg" alt="10"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/11.jpg" alt="11"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/12.jpg" alt="12"></p>
+<p>点击进入新创建好的虚拟机</p>
+<p><img src="/images/linux/vmware-esxi-centos7/13.jpg" alt="13"></p>
+<p>编辑虚拟机配置</p>
+<p><img src="/images/linux/vmware-esxi-centos7/14.jpg" alt="14"></p>
+<p>CD/DVD 驱动器 1 更改为数据存储 ISO 文件， 并点击介质浏览</p>
+<p><img src="/images/linux/vmware-esxi-centos7/15.jpg" alt="15"></p>
+<p>选择刚刚上传好的 CentOS7 镜像文件</p>
+<p><img src="/images/linux/vmware-esxi-centos7/16.jpg" alt="16"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/19.jpg" alt="19"></p>
+<h2 id="安装-CentOS7-操作系统"><a href="#安装-CentOS7-操作系统" class="headerlink" title="安装 CentOS7 操作系统"></a>安装 CentOS7 操作系统</h2><p>直接回车安装引导</p>
+<p><img src="/images/linux/vmware-esxi-centos7/20.jpg" alt="20"></p>
+<p>选择语言</p>
+<p><img src="/images/linux/vmware-esxi-centos7/21.jpg" alt="21"></p>
+<p>选择需要安装的版本，默认是最小化安装</p>
+<p><img src="/images/linux/vmware-esxi-centos7/22.jpg" alt="22"></p>
+<p>这里我选择最小化默认安装，也可以选择 GUI 带桌面的系统</p>
+<p><img src="/images/linux/vmware-esxi-centos7/23.jpg" alt="23"></p>
+<p>选择系统安装位置，可以在这里进行分区管理（默认会自动分区）。<br>自定义分区，选择要分区的硬盘，我要配置分区，然后点击完成。</p>
+<p><img src="/images/linux/vmware-esxi-centos7/24.jpg" alt="24"></p>
+<p>手动分区需要注意：</p>
+<ol>
+<li>三个必须建立的分区，<code>swap</code> 交换分区、<code>boot</code> 引导分区、<code>/</code> 根目录分区，也就是系统分区</li>
+<li>建立 <code>swap</code> 根据物理内存。 用于在系统运行内存不足时提供运算, 系统默认分配基本为物理内存的 <code>2</code> 倍</li>
+<li>建议 <code>swap</code> 分区设置如下：</li>
+</ol>
+<ul>
+<li>小于等于 <code>4G</code> 物理内存的系统，至少设置 <code>2GB</code> 的交换分区</li>
+<li><code>4G ～ 16G</code> 物理内存的系统，至少设置 <code>4GB</code> 的交换分区</li>
+<li><code>16G ～ 64G</code> 物理内存的系统，至少设置 <code>8GB</code> 的交换分区</li>
+<li><code>64G ～ 256G</code> 物理内存的系统，至少设置 <code>16GB</code> 的交换分区</li>
+</ul>
+<ol start="3">
+<li><code>boot</code> 分区系统默认给 <code>1G</code></li>
+<li><code>home</code> 目录可以创建，也可以把所以除了 <code>boot</code> 和 <code>swap</code> 之外的磁盘剩余全部划分到 <code>/</code> 根目录下</li>
+</ol>
+<p><img src="/images/linux/vmware-esxi-centos7/25.jpg" alt="25"></p>
+<p>确定已经分配好的分区，删除旧分区格式，点击接受更改</p>
+<p><img src="/images/linux/vmware-esxi-centos7/26.jpg" alt="26"></p>
+<p>网络和主机名配置</p>
+<p><img src="/images/linux/vmware-esxi-centos7/27.jpg" alt="27"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/28.jpg" alt="28"></p>
+<p>选择常规，勾选可用时自动连接到这个网络，以免重启后网卡不自动连接</p>
+<p><img src="/images/linux/vmware-esxi-centos7/29.jpg" alt="29"></p>
+<p>选择 IPv4 设置，进入后选择方法, 选择手动连接。<br>输入地址，子掩码，网关(可在<code>ESXi 网络</code>中查看)，然后填写 dns 服务器, 点击保存。</p>
+<p><img src="/images/linux/vmware-esxi-centos7/30.jpg" alt="30"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/31.jpg" alt="31"></p>
+<p>然后点击开始安装。 安装中要设置 root 密码，否则 root 用户不会被启用。</p>
+<p><img src="/images/linux/vmware-esxi-centos7/32.jpg" alt="32"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/33.jpg" alt="33"></p>
+<p>创建普通用户(可选)</p>
+<p><img src="/images/linux/vmware-esxi-centos7/34.jpg" alt="34"></p>
+<p><img src="/images/linux/vmware-esxi-centos7/35.jpg" alt="35"></p>
+<p>等待安装完后，点击重启。<br>直接回车，进入系统，到此 CentOS 系统安装完成。</p>
+<p><img src="/images/linux/vmware-esxi-centos7/36.jpg" alt="36"></p>
+<h2 id="CentOS-7-安装后的相关配置"><a href="#CentOS-7-安装后的相关配置" class="headerlink" title="CentOS 7 安装后的相关配置"></a><a href="/back-end/linux/linux-initial-centos7/#more">CentOS 7 安装后的相关配置</a></h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/centos7/" rel="tag"># centos7</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/linux/linux-map/" rel="prev" title="Linux 知识地图">
+      <i class="fa fa-chevron-left"></i> Linux 知识地图
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/linux-initial-centos7/" rel="next" title="CentOS 7 安装后的相关配置">
+      CentOS 7 安装后的相关配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是-vSphere"><span class="nav-number">1.</span> <span class="nav-text">什么是 vSphere?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备工作"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#下载系统镜像"><span class="nav-number">2.1.</span> <span class="nav-text">下载系统镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#将镜像上传到-VMware-ESXi"><span class="nav-number">2.2.</span> <span class="nav-text">将镜像上传到 VMware ESXi</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-CentOS7-操作系统"><span class="nav-number">3.</span> <span class="nav-text">安装 CentOS7 操作系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CentOS-7-安装后的相关配置"><span class="nav-number">4.</span> <span class="nav-text">CentOS 7 安装后的相关配置</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

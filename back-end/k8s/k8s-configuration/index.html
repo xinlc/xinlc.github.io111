@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Kubernetes 配置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes 配置">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/k8s/k8s-configuration/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Kubernetes 配置">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-20T10:20:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.391Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/k8s/k8s-configuration/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kubernetes 配置 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/k8s/k8s-configuration/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes 配置
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-20 10:20:00" itemprop="dateCreated datePublished" datetime="2020-06-20T10:20:00+00:00">2020-06-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Kubernetes 配置</p>
+<a id="more"></a>
+
+<h2 id="ConfigMap"><a href="#ConfigMap" class="headerlink" title="ConfigMap"></a>ConfigMap</h2><p>Kubernetes ConfigMap 可以将配置信息和容器镜像解耦，以使得容器化的应用程序可移植。</p>
+<p>ConfigMap 是k8s的一个配置管理组件，可以将配置以key-value的形式传递，通常用来保存不需要加密的配置信息，加密信息则需用到Secret，主要用来应对以下场景：</p>
+<ul>
+<li>使用k8s部署应用，当你将应用配置写进代码中，就会存在一个问题，更新配置时也需要打包镜像，ConfigMap可以将配置信息和docker镜像解耦。</li>
+<li>使用微服务架构的话，存在多个服务共用配置的情况，如果每个服务中单独一份配置的话，那么更新配置就很麻烦，使用ConfigMap可以友好的进行配置共享。</li>
+</ul>
+<p>其次，ConfigMap可以用来保存单个属性，也可以用来保存配置文件。</p>
+<p>ConfigMap在容器使用的典型用法如下：</p>
+<ul>
+<li>将配置项设置为容器内的环境变量。</li>
+<li>将启动参数设置为环境变量。</li>
+<li>以Volume的形式挂载到容器内部的文件或目录。</li>
+</ul>
+<blockquote>
+<p>ConfigMap 用于保存配置数据的键值对，可以用来保存单个属性，也可以用来保存配置文件。ConfigMap 跟 secret 很类似，但它可以更方便地处理不包含敏感信息的字符串。</p>
+</blockquote>
+<h3 id="创建ConfigMap"><a href="#创建ConfigMap" class="headerlink" title="创建ConfigMap"></a>创建ConfigMap</h3><p>系统中可以通过YAML配置文件或者直接使用<code>kubectl create configmap</code>命令行的方式来创建ConfigMap，下面将详细介绍这两种方式的操作流程。</p>
+<h3 id="通过YAML配置文件方式创建"><a href="#通过YAML配置文件方式创建" class="headerlink" title="通过YAML配置文件方式创建"></a>通过YAML配置文件方式创建</h3><p>创建YAML文件appvar.yaml，其中描述将应用所需的变量定义为ConfigMap的用法，key为配置文件的别名，value表示是配置文件的全部文本内容。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">game-demo</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="comment"># 类属性键；每一个键都映射到一个简单的值</span></span><br><span class="line">  <span class="attr">player_initial_lives:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">ui_properties_file_name:</span> <span class="string">"user-interface.properties"</span></span><br><span class="line">  <span class="comment"># 类文件键</span></span><br><span class="line">  <span class="attr">game.properties:</span> <span class="string">|</span></span><br><span class="line">    <span class="string">enemy.types=aliens,monsters</span></span><br><span class="line">    <span class="string">player.maximum-lives=5</span></span><br><span class="line">  <span class="attr">user-interface.properties:</span> <span class="string">|</span></span><br><span class="line">    <span class="string">color.good=purple</span></span><br><span class="line">    <span class="string">color.bad=yellow</span></span><br><span class="line">    <span class="string">allow.textmode=true</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>ConfigMap中的每个data项都会成为一个新文件。</p>
+</blockquote>
+<ul>
+<li>data一栏包括了配置数据，ConfigMap可以被用来保存单个属性，也可以用来保存一个配置文件。</li>
+<li>配置数据可以通过很多种方式在Pods里被使用。</li>
+<li>ConfigMaps可以被用来：<ul>
+<li>设置环境变量的值</li>
+<li>在容器里设置命令行参数</li>
+<li>在数据卷里面创建config文件</li>
+<li>用户和系统组件两者都可以在ConfigMap里面存储配置数据。</li>
+</ul>
+</li>
+</ul>
+<h2 id="通过kubectl命令行方式创建"><a href="#通过kubectl命令行方式创建" class="headerlink" title="通过kubectl命令行方式创建"></a>通过kubectl命令行方式创建</h2><p>在kubectl create configmap命令种使用参数–from-file或–from-literal指定文件、目录或者文本，也可以创建一个或者多个ConfigMap参数。</p>
+<ul>
+<li>指定文件，语句格式如下：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Kubectl create connfigmap NAME --from-file=[key= ] <span class="built_in">source</span> --from-file=[key= ] <span class="built_in">source</span></span><br><span class="line"><span class="comment"># kubectl create configmap game-config-1 --from-file=docs/user-guide/configmap/kubectl/game.properties</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>指定目录，语句格式如下：<br>需要注意，目录中的每个配置文件名都被会被设置为key，文件中的内容将被设置为value，语法为：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Kubectl create connfigmap NAME --from-file=config-files-dir</span><br><span class="line"><span class="comment"># kubectl create configmap game-config-2 --from-file=docs/user-guide/configmap/kubectl</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>指定文本，语句格式如下：<br>此方式将直接指定key:value，语法为：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Kubectl create connfigmap NAME --from-literal=key1=value1  --from-literal=key2=value2</span><br></pre></td></tr></table></figure>
+
+<p>这是一个 Pod 的示例，它通过使用 game-demo 中的值来配置一个 Pod：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">configmap-demo-pod</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">demo</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">game.example/demo-game</span></span><br><span class="line">      <span class="attr">env:</span></span><br><span class="line">        <span class="comment"># 定义环境变量</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">PLAYER_INITIAL_LIVES</span> <span class="comment"># 请注意这里和 ConfigMap 中的键名是不一样的</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">configMapKeyRef:</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">game-demo</span>           <span class="comment"># 这个值来自 ConfigMap</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">player_initial_lives</span> <span class="comment"># 需要取值的键</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">UI_PROPERTIES_FILE_NAME</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">configMapKeyRef:</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">game-demo</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">ui_properties_file_name</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">config</span></span><br><span class="line">        <span class="attr">mountPath:</span> <span class="string">"/config"</span></span><br><span class="line">        <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="comment"># 您可以在 Pod 级别设置卷，然后将其挂载到 Pod 内的容器中</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">config</span></span><br><span class="line">      <span class="attr">configMap:</span></span><br><span class="line">        <span class="comment"># 提供你想要挂载的 ConfigMap 的名字</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">game-demo</span></span><br></pre></td></tr></table></figure>
+
+<p>ConfigMap 不会区分单行属性值和多行类似文件的值，重要的是 Pods 和其他对象如何使用这些值。比如，定义一个卷，并将它作为 /config 文件夹安装到 demo 容器内，并创建四个文件：</p>
+<ul>
+<li>/config/player_initial_lives</li>
+<li>/config/ui_properties_file_name</li>
+<li>/config/game.properties</li>
+<li>/config/user-interface.properties</li>
+</ul>
+<p>如果您要确保 /config 只包含带有 .properties 扩展名的文件，可以使用两个不同的 ConfigMaps，并在 spec 中同时引用这两个 ConfigMaps 来创建 Pod。第一个 ConfigMap 定义了 player_initial_lives 和 ui_properties_file_name，第二个 ConfigMap 定义了 kubelet 放进 /config 的文件。</p>
+<h2 id="使用ConfigMap"><a href="#使用ConfigMap" class="headerlink" title="使用ConfigMap"></a>使用ConfigMap</h2><h3 id="通过环境变量方式使用ConfigMap"><a href="#通过环境变量方式使用ConfigMap" class="headerlink" title="通过环境变量方式使用ConfigMap"></a>通过环境变量方式使用ConfigMap</h3><p>以创建的ConfigMap“appvar.yaml”为例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">appvar</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">apploglevel:</span> <span class="string">info</span></span><br><span class="line">  <span class="attr">appdatadir:</span> <span class="string">/var/data</span></span><br></pre></td></tr></table></figure>
+
+<p>创建Pod，以便于使用ConfitgMap中的内容，指令操作如下所示。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">pod-test</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">test</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">[</span> <span class="string">"/bin/sh"</span><span class="string">,</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"env | grep APP"</span> <span class="string">]</span></span><br><span class="line">    <span class="attr">env:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">APPLOG</span>                             <span class="comment"># 定义环境变量APPLOG</span></span><br><span class="line">      <span class="attr">valueFrom:</span> </span><br><span class="line">        <span class="attr">configMapkeyRef:</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">appvar</span>                         <span class="comment"># 指定config</span></span><br><span class="line">          <span class="attr">key:</span> <span class="string">apploglevel</span>                     <span class="comment"># 指定config中的key</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">APPDIR</span>                             <span class="comment"># 定义环境变量APPDIR</span></span><br><span class="line">      <span class="attr">valueFrom:</span></span><br><span class="line">        <span class="attr">configMapkeyRef:</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">appvar</span></span><br><span class="line">          <span class="attr">key:</span> <span class="string">appdatadir</span></span><br><span class="line">  <span class="attr">restartPolicy:</span> <span class="string">Never</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面Pod代码的定义中，将ConfigMap“appvar”中定义的内容以环境变量（APPLOGLEVEL和APPDATADIR）方式设置为容器内部的环境变量，在容器的启动命令中将会显示这两个环境变量的值（“env | grep APP”）。<br>使用kubectl create -f命令创建该Pod，由于是测试Pod，所以该Pod在执行完启动命令后将会退出，并且不会被系统自动重（restartPolicy=Never）。</p>
+<h3 id="通过VolumeMount使用ConfigMap"><a href="#通过VolumeMount使用ConfigMap" class="headerlink" title="通过VolumeMount使用ConfigMap"></a>通过VolumeMount使用ConfigMap</h3><p>cm-apache.yaml：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">cm-apache</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">html:</span> <span class="string">hello</span> <span class="string">world</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">/var/www/html</span></span><br></pre></td></tr></table></figure>
+
+<p>创建YAML文件“pod-volume-test.yaml”，并在配置中加入Volume信息，代码如下所示。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">pod-volume-test</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">apache</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">httpd</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">volume-test</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/www/html</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">volume-test</span></span><br><span class="line">      <span class="attr">configMap:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">cm-apache</span></span><br><span class="line">        <span class="attr">items:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">html</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">main.html</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">path</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">path.txt</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@pod-volume-test:/<span class="comment"># cd /var/www/html/</span></span><br><span class="line">root@pod-volume-test:/var/www/html<span class="comment"># ls</span></span><br><span class="line">main.html  path.txt</span><br><span class="line">root@pod-volume-test:/var/www/html<span class="comment"># cat main.html</span></span><br><span class="line">hello world</span><br><span class="line">root@pod-volume-test:/var/www/html<span class="comment"># cat path.txt</span></span><br><span class="line">/var/www/html</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用ConfigMap的限制条件"><a href="#使用ConfigMap的限制条件" class="headerlink" title="使用ConfigMap的限制条件"></a>使用ConfigMap的限制条件</h3><p>使用ConfigMap的限制条件如下：</p>
+<ul>
+<li>ConfigMap必须在Pod之前创建。</li>
+<li>ConfigMap受Namespace限制，只有处于相同Namespace中的Pod才可以引用它。</li>
+<li>ConfigMap中的配额管理还未能实现。</li>
+<li>kubelet只支持可以被API Server管理的Pod使用ConfigMap。kubelet在本Node上通过 –manifest-url或–config自动创建的静态Pod将无法引用ConfigMap。</li>
+<li>在Pod对ConfigMap进行挂载（volumeMount）操作时，在容器内部只能挂载为“目录”，无法挂载为“文件”。在挂载到容器内部后，在目录下将包含ConfigMap定义的每个item，如果在该目录下原来还有其他文件，则容器内的该目录将被挂载的ConfigMap覆盖。如果应用程序需要保留原来的其他文件，则需要进行额外的处理。可以将ConfigMap挂载到容器内部的临时目录，再通过启动脚本将配置文件复制或者链接到（cp或link命令）应用所用的实际配置目录下。</li>
+</ul>
+<h2 id="使用私有仓库中的docker镜像"><a href="#使用私有仓库中的docker镜像" class="headerlink" title="使用私有仓库中的docker镜像"></a>使用私有仓库中的docker镜像</h2><p>企业通常会因为如下几个原因，需要搭建自己的私有 docker registry：</p>
+<ul>
+<li>限制 docker 镜像的分发范围，例如：只允许在内网分发，或者只允许被授权的用户获取 docker 镜像</li>
+<li>提高推送 docker 镜像以及抓取 docker 镜像时的网络传输速度</li>
+</ul>
+<p>在这种情况下，您需要在 Kubernetes 中使用私有 docker registry 中的 docker 镜像。</p>
+<h3 id="前提假设"><a href="#前提假设" class="headerlink" title="前提假设"></a>前提假设</h3><p>假设您已经搭建了自己的私有 docker registry，并成功向其中推送了一个 docker 镜像，其主要参数如下：</p>
+<table>
+<thead>
+<tr>
+<th>参数名称</th>
+<th>参数值</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>registry地址</td>
+<td>my-registry.example.com</td>
+<td>推荐使用域名，也可以是 ip 地址</td>
+</tr>
+<tr>
+<td>registry端口</td>
+<td>5000</td>
+<td>必须支持 HTTPS</td>
+</tr>
+<tr>
+<td>registry用户名</td>
+<td>myusername</td>
+<td></td>
+</tr>
+<tr>
+<td>registry密码</td>
+<td>mypassowrd</td>
+<td></td>
+</tr>
+<tr>
+<td>repository名字</td>
+<td>example</td>
+<td></td>
+</tr>
+<tr>
+<td>image名字</td>
+<td>web-example</td>
+<td></td>
+</tr>
+<tr>
+<td>image标签</td>
+<td>v1.0.1</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>并且，您可以在 kubernetes 集群中的任意节点通过如下 docker 命令成功抓取该 docker 镜像</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker login my-registry.example.com:5000</span><br><span class="line"><span class="comment"># username:  提示 username 时，输入：myusername</span></span><br><span class="line"><span class="comment"># password:  提示 password 时，输入：mypassword</span></span><br><span class="line">docker pull my-registry.example.com:5000/example/web-example:v1.0.1</span><br></pre></td></tr></table></figure>
+
+<p>::: tip</p>
+<ul>
+<li>您的私有 docker registry 必须支持 HTTPS</li>
+<li>如果搭建私有的 docker registry，推荐 vmware 开源的 <a href="https://github.com/goharbor/harbor" target="_blank" rel="noopener">Harbor</a></li>
+<li>您也可以使用任何其他 docker registry，只要您能够在 kubernetes 集群的任意节点通过上面的 docker pull 命令成功抓取到该 docker registry 中的镜像</li>
+</ul>
+<p>:::</p>
+<p><strong>创建 Secrets：</strong></p>
+<p>kind 为 docker-registry</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kubectl create secret docker-registry registry-key \</span><br><span class="line">--docker-server=registry.cn-beijing.aliyuncs.com/leo \</span><br><span class="line">--docker-username=xxx \</span><br><span class="line">--docker-password=xxx \</span><br><span class="line">--docker-email=xinlichao2016@gmail.com</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用：</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span> <span class="comment"># 与k8s集群版本有关，使用 kubectl api-versions 即可查看当前集群支持的版本</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span> <span class="comment"># 该配置的类型，我们使用的是 Deployment</span></span><br><span class="line"><span class="attr">metadata:</span> <span class="comment"># 元数据，即 Deployment 的一些基本属性和信息</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">demo-deployment</span> <span class="comment"># Deployment 的名称</span></span><br><span class="line">  <span class="attr">labels:</span> <span class="comment"># 标签，可以灵活定位一个或多个资源，其中key和value均可自定义，可以定义多组</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">demo</span> <span class="comment"># 为该Deployment设置key为app，value为nginx的标签</span></span><br><span class="line"><span class="attr">spec:</span> <span class="comment"># 这是关于该Deployment的描述，可以理解为你期待该Deployment在k8s中如何使用</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span> <span class="comment"># 使用该Deployment创建一个应用程序实例</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="comment"># 标签选择器，与上面的标签共同作用</span></span><br><span class="line">    <span class="attr">matchLabels:</span> <span class="comment"># 选择包含标签app:nginx的资源</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">demo</span></span><br><span class="line">  <span class="attr">template:</span> <span class="comment"># 这是选择或创建的Pod的模板</span></span><br><span class="line">    <span class="attr">metadata:</span> <span class="comment"># Pod的元数据</span></span><br><span class="line">      <span class="attr">labels:</span> <span class="comment"># Pod的标签，上面的selector即选择包含标签app:nginx的Pod</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">demo</span></span><br><span class="line">    <span class="attr">spec:</span> <span class="comment"># 期望Pod实现的功能（即在pod中部署）</span></span><br><span class="line">      <span class="attr">imagePullSecrets:</span> <span class="comment"># 私有镜像</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">registry-key</span></span><br><span class="line">      <span class="attr">containers:</span> <span class="comment"># 生成container，与docker中的container是同一种</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">demo-web</span> <span class="comment"># container的名称</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">registry.cn-beijing.aliyuncs.com/leo/demo-web:1.0.0-release</span> <span class="comment"># 使用镜像nginx:1.7.9创建container，该container默认80端口可访问</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">demo-service</span> <span class="comment"># Service 的名称</span></span><br><span class="line">  <span class="attr">labels:</span> <span class="comment"># Service 自己的标签</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">demo</span> <span class="comment"># 为该 Service 设置 key 为 app，value 为 nginx 的标签</span></span><br><span class="line"><span class="attr">spec:</span> <span class="comment"># 这是关于该 Service 的定义，描述了 Service 如何选择 Pod，如何被访问</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="comment"># 标签选择器</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">demo</span> <span class="comment"># 选择包含标签 app:nginx 的 Pod</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">demo-port</span> <span class="comment"># 端口的名字</span></span><br><span class="line">    <span class="attr">protocol:</span> <span class="string">TCP</span> <span class="comment"># 协议类型 TCP/UDP</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">80</span> <span class="comment"># 集群内的其他容器组可通过 80 端口访问 Service</span></span><br><span class="line">    <span class="attr">nodePort:</span> <span class="number">32600</span> <span class="comment"># 通过任意节点的 32600 端口访问 Service</span></span><br><span class="line">    <span class="attr">targetPort:</span> <span class="number">80</span> <span class="comment"># 将请求转发到匹配 Pod 的 80 端口</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">NodePort</span> <span class="comment"># Serive的类型，ClusterIP/NodePort/LoaderBalancer</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="亲和性与反亲和性"><a href="#亲和性与反亲和性" class="headerlink" title="亲和性与反亲和性"></a>亲和性与反亲和性</h2><p><code>nodeSelector</code> 提供了一个非常简单的方式，将 Pod 限定到包含特定标签的节点上。亲和性与反亲和性（affinity / anti-affinity）特性则极大地扩展了限定的表达方式。主要的增强点在于：</p>
+<ol>
+<li>表达方式更加有效（不仅仅是多个精确匹配表达式的“和”关系）</li>
+<li>可以标识该规则为“soft” / “preference” （软性的、偏好的）而不是 hard requirement（必须的），此时，如果调度器发现该规则不能被满足，Pod 仍然可以被调度</li>
+<li>可以对比节点上（或其他拓扑域 topological domain）已运行的其他 Pod 的标签，而不仅仅是节点自己的标签，此时，可以定义类似这样的规则：某两类 Pod 不能在同一个节点（或拓扑域）上共存</li>
+</ol>
+<h3 id="节点亲和性"><a href="#节点亲和性" class="headerlink" title="节点亲和性"></a>节点亲和性</h3><p>节点亲和性（node affinity）的概念与 <code>nodeSelector</code> 相似，可以基于节点的标签来限定 Pod 可以被调度到哪些节点上。</p>
+<p>当前支持两种类型的节点亲和性， <code>requiredDuringSchedulingIgnoredDuringExecution</code> （hard，目标节点必须满足此条件） 以及 <code>preferredDuringSchedulingIgnoredDuringExecution</code> （soft，目标节点最好能满足此条件）。名字中 <code>IgnoredDuringExecution</code> 意味着：如果 Pod 已经调度到节点上以后，节点的标签发生改变，使得节点已经不再匹配该亲和性规则了，Pod 仍将继续在节点上执行（这一点与 <code>nodeSelector</code> 相似）。将来，Kubernetes 将会提供 <code>requiredDuringSchedulingRequiredDuringExecution</code> 这个选项，该选项与 <code>requiredDuringSchedulingIgnoredDuringExecution</code> 相似，不同的是，当节点的标签不在匹配亲和性规则之后，Pod 将被从节点上驱逐。</p>
+<p><code>requiredDuringSchedulingIgnoredDuringExecution</code> 的一个例子是，<code>只在 Intel CPU 上运行该 Pod</code>，<code>preferredDuringSchedulingIgnoredDuringExecution</code> 的一个例子是，<code>尽量在高可用区 XYZ 中运行这个 Pod，但是如果做不到，也可以在其他地方运行该 Pod</code>。</p>
+<p>PodSpec 中通过 <code>affinity.nodeAffinity</code> 字段来定义节点亲和性，示例文件如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">with-node-affinity</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">affinity:</span></span><br><span class="line">    <span class="attr">nodeAffinity:</span></span><br><span class="line">      <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">        <span class="attr">nodeSelectorTerms:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">matchExpressions:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">kubernetes.io/e2e-az-name</span></span><br><span class="line">            <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">            <span class="attr">values:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">e2e-az1</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">e2e-az2</span></span><br><span class="line">      <span class="attr">preferredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">weight:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">preference:</span></span><br><span class="line">          <span class="attr">matchExpressions:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">another-node-label-key</span></span><br><span class="line">            <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">            <span class="attr">values:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">another-node-label-value</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">with-node-affinity</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">k8s.gcr.io/pause:2.0</span></span><br></pre></td></tr></table></figure>
+
+<p>此处的亲和性规则表明，该 Pod 只能被调度到包含 key 为 <code>kubernetes.io/e2e-az-name</code> 且 value 为 <code>e2e-az1</code> 或 <code>e2e-az2</code> 的标签的节点上。此外，如果节点已经满足了前述条件，将优先选择包含 key 为 <code>another-node-label-key</code> 且 value 为 <code>another-node-label-value</code> 的标签的节点。</p>
+<p>例子中使用了操作符 <code>In</code>。节点亲和性支持如下操作符：<code>In</code>、<code>NotIn</code>、<code>Exists</code>、<code>DoesNotExist</code>、<code>Gt</code>、<code>Lt</code>。使用 <code>NotIn</code> 和 <code>DoesNotExist</code> 可以实现节点反亲和性（node anti-affinity）的效果，或者也可以使用 <code>污点</code> 为节点排斥某类 Pod。</p>
+<p>如果某个 Pod 同时指定了 <code>nodeSelector</code> 和 <code>nodeAffinity</code>，则目标节点必须同时满足两个条件，才能将 Pod 调度到该节点上。</p>
+<p>如果为 <code>nodeAffinity</code> 指定多个 <code>nodeSelectorTerms</code>，则目标节点只需要满足任意一个 <code>nodeSelectorTerms</code> 的要求，就可以将 Pod 调度到该节点上。</p>
+<p>如果为 <code>nodeSelectorTerms</code> 指定多个 <code>matchExpressions</code>，则目标节点必须满足所有的 <code>matchExpressions</code> 的要求，才能将 Pod 调度到该节点上。</p>
+<p>当 Pod 被调度到某节点上之后，如果移除或者修改节点的标签，Pod 将仍然继续在节点上运行。换句话说，节点亲和性规则只在调度该 Pod 时发生作用。</p>
+<p><code>preferredDuringSchedulingIgnoredDuringExecution</code> 中的 <code>weight</code> 字段取值范围为 1-100。对于每一个满足调度要求的节点（资源请求、亲和性/反亲和性规则，等），调度器将遍历该节点匹配的 <code>preferredDuringSchedulingIgnoredDuringExecution</code> 中所有的<code>weight</code> 并求和。此求和结果将与节点的其他优先级计算的得分合并。得分最高的节点被优先选择。</p>
+<h3 id="Pod亲和性与反亲和性"><a href="#Pod亲和性与反亲和性" class="headerlink" title="Pod亲和性与反亲和性"></a>Pod亲和性与反亲和性</h3><p>Pod之间的亲和性与反亲和性（inter-pod affinity and anti-affinity）可以基于已经运行在节点上的 Pod 的标签（而不是节点的标签）来限定 Pod 可以被调度到哪个节点上。此类规则的表现形式是：</p>
+<ul>
+<li><p>当 X 已经运行了一个或者多个满足规则 Y 的 Pod 时，待调度的 Pod 应该（或者不应该 - 反亲和性）在 X 上运行</p>
+<ul>
+<li><p>规则 Y 以 LabelSelector 的形式表述，附带一个可选的名称空间列表</p>
+<blockquote>
+<p>与节点不一样，Pod 是在名称空间中的（因此，Pod的标签是在名称空间中的），针对 Pod 的 LabelSelector 必须同时指定对应的名称空间</p>
+</blockquote>
+</li>
+<li><p>X 是一个拓扑域的概念，例如节点、机柜、云供应商可用区、云供应商地域，等。X 以 <code>topologyKey</code> 的形式表达，该 Key代表了节点上代表拓扑域（topology domain）的一个标签。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="pod-affinity-的一个例子"><a href="#pod-affinity-的一个例子" class="headerlink" title="pod affinity 的一个例子"></a>pod affinity 的一个例子</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">with-pod-affinity</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">affinity:</span></span><br><span class="line">    <span class="attr">podAffinity:</span></span><br><span class="line">      <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">labelSelector:</span></span><br><span class="line">          <span class="attr">matchExpressions:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">security</span></span><br><span class="line">            <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">            <span class="attr">values:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">S1</span></span><br><span class="line">        <span class="attr">topologyKey:</span> <span class="string">failure-domain.beta.kubernetes.io/zone</span></span><br><span class="line">    <span class="attr">podAntiAffinity:</span></span><br><span class="line">      <span class="attr">preferredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">weight:</span> <span class="number">100</span></span><br><span class="line">        <span class="attr">podAffinityTerm:</span></span><br><span class="line">          <span class="attr">labelSelector:</span></span><br><span class="line">            <span class="attr">matchExpressions:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">security</span></span><br><span class="line">              <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">              <span class="attr">values:</span></span><br><span class="line">              <span class="bullet">-</span> <span class="string">S2</span></span><br><span class="line">          <span class="attr">topologyKey:</span> <span class="string">failure-domain.beta.kubernetes.io/zone</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">with-pod-affinity</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">k8s.gcr.io/pause:2.0</span></span><br></pre></td></tr></table></figure>
+
+<p>该 Pod 的 <code>affinity</code> 定义了一个 Pod 亲和性规则和一个 Pod 反亲和性规则，例子中， <code>podAffinity</code> 是 <code>requiredDuringSchedulingIgnoredDuringExecution</code>，而 <code>podAntiAffinity</code> 则是 <code>preferredDuringSchedulingIgnoredDuringExecution</code>。</p>
+<ul>
+<li><p>Pod 亲和性规则要求，该 Pod 可以被调度到的节点所在的可用区 <code>zone</code> 必须已经有一个已经运行的 Pod 包含标签 key=security，value=S1，或者更准确地说，节点必须满足如下条件：</p>
+<ul>
+<li>节点包含 key 为 <code>failure-domain.beta.kubernetes.io/zone</code> 的标签，假设该标签的值为 <code>V</code></li>
+<li>至少有一个包含 key 为 <code>failure-domain.beta.kubernetes.io/zone</code> 且 value 为 <code>V</code> 的标签的节点已经运行了一个包含标签 key 为 <code>security</code> 且 value 为 <code>S1</code> 的 Pod</li>
+</ul>
+</li>
+<li><p>Pod 反亲和性规则要求，该 Pod 最好不要被调度到已经运行了包含 key 为 <code>security</code> 且 value 为 <code>S2</code> 的标签的 Pod 的节点上，或者更准确地说，必须满足如下条件：</p>
+<ul>
+<li>如果 <code>topologyKey</code> 是 <code>failure-domain.beta.kubernetes.io/zone</code>，则，Pod不能被调度到同一个 zone 中的已经运行了包含标签 <code>security: S2</code> 的节点上</li>
+</ul>
+</li>
+</ul>
+<p>参考 <a href="https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/podaffinity.md" target="_blank" rel="noopener">design doc</a> 可以了解更多 Pod 亲和性与反亲和性的例子。</p>
+<p>原则上， <code>topologyKey</code> 可以是任何合法的标签 key。然而，处于性能和安全的考虑，仍然对 <code>topologyKey</code> 有如下限制：</p>
+<ol>
+<li>对亲和性以及 <code>requiredDuringSchedulingIgnoredDuringExecution</code> Pod 反亲和性，<code>topologyKey</code> 不能为空</li>
+<li>对 <code>requiredDuringSchedulingIgnoredDuringExecution</code> Pod 反亲和性，管理控制器 <code>LimitPodHardAntiAffinityTopology</code> 被用来限制 <code>topologyKey</code> 必须为 <code>kubernetes.io/hostname</code>。如果想要使用其他的自定义 topology，必须修改该管理控制器，或者将其禁用</li>
+<li>对 <code>preferredDuringSchedulingIgnoredDuringExecution</code> Pod 反亲和性，如果 <code>topologyKey</code> 为空，则代表所有的 topology （此时，不局限于 <code>kubernetes.io/hostname</code>、<code>failure-domain.beta.kubernetes.io/zone</code> 和 <code>failure-domain.beta.kubernetes.io/region</code> 的组合）</li>
+<li>除了上述的情形以外，<code>topologyKey</code> 可以是任何合法的标签 Key</li>
+</ol>
+<p>除了 <code>labelSelector</code> 和 <code>topologyKey</code> 以外，还可以指定一个 <code>namespaces</code> 的列表，用作 <code>labelSelector</code> 的作用范围（与 <code>labelSelector</code> 和 <code>topologyKey</code> 的定义为同一个级别）。如果不定义或者该字段为空，默认为 Pod 所在的名称空间。</p>
+<p>所有与 <code>requiredDuringSchedulingIgnoredDuringExecution</code> 亲和性和反亲和性关联的 <code>matchExpressions</code> 必须被满足，Pod 才能被调度到目标节点。</p>
+<h4 id="更多实用的例子"><a href="#更多实用的例子" class="headerlink" title="更多实用的例子"></a>更多实用的例子</h4><p>Pod 亲和性与反亲和性结合高级别控制器（例如 ReplicaSet、StatefulSet、Deployment 等）一起使用时，可以非常实用。此时可以很容易的将一组工作复杂调度到同一个 topology，例如，同一个节点。</p>
+<h5 id="始终在同一个节点"><a href="#始终在同一个节点" class="headerlink" title="始终在同一个节点"></a>始终在同一个节点</h5><p>在一个三节点的集群中，部署一个使用 redis 的 web 应用程序，并期望 web-server 尽可能与 redis 在同一个节点上。</p>
+<p>下面是 redis deployment 的 yaml 片段，包含三个副本以及 <code>app=store</code> 标签选择器。Deployment 中配置了 <code>PodAntiAffinity</code>，确保调度器不会将三个副本调度到一个节点上：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">redis-cache</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">store</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">store</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">affinity:</span></span><br><span class="line">        <span class="attr">podAntiAffinity:</span></span><br><span class="line">          <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">labelSelector:</span></span><br><span class="line">              <span class="attr">matchExpressions:</span></span><br><span class="line">              <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">app</span></span><br><span class="line">                <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">                <span class="attr">values:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">store</span></span><br><span class="line">            <span class="attr">topologyKey:</span> <span class="string">"kubernetes.io/hostname"</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">redis-server</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">redis:3.2-alpine</span></span><br></pre></td></tr></table></figure>
+
+<p>下面是 webserver deployment 的 yaml 片段，配置了 <code>podAntiAffinity</code> 以及 <code>podAffinity</code>。要求将其副本与 包含 <code>app=store</code> 标签的 Pod 放在同一个节点上；同时也要求 web-server 的副本不被调度到同一个节点上。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">web-server</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">web-store</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">web-store</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">affinity:</span></span><br><span class="line">        <span class="attr">podAntiAffinity:</span></span><br><span class="line">          <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">labelSelector:</span></span><br><span class="line">              <span class="attr">matchExpressions:</span></span><br><span class="line">              <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">app</span></span><br><span class="line">                <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">                <span class="attr">values:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">web-store</span></span><br><span class="line">            <span class="attr">topologyKey:</span> <span class="string">"kubernetes.io/hostname"</span></span><br><span class="line">        <span class="attr">podAffinity:</span></span><br><span class="line">          <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">labelSelector:</span></span><br><span class="line">              <span class="attr">matchExpressions:</span></span><br><span class="line">              <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">app</span></span><br><span class="line">                <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">                <span class="attr">values:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">store</span></span><br><span class="line">            <span class="attr">topologyKey:</span> <span class="string">"kubernetes.io/hostname"</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">web-app</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx:1.12-alpine</span></span><br></pre></td></tr></table></figure>
+
+<p>如果创建上述两个 deployment，集群将如下所示：</p>
+<table>
+<thead>
+<tr>
+<th>Node-1</th>
+<th>Node-2</th>
+<th>Node-3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>web-server-1</td>
+<td>webserver-2</td>
+<td>webserver-3</td>
+</tr>
+<tr>
+<td>cache-1</td>
+<td>cache-2</td>
+<td>cache-3</td>
+</tr>
+</tbody></table>
+<p><code>web-server</code> 的三个副本都自动与 cach 的副本运行在相同的节点上。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods -o wide</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下所示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">NAME                           READY     STATUS    RESTARTS   AGE       IP           NODE</span><br><span class="line">redis-cache-1450370735-6dzlj   1&#x2F;1       Running   0          8m        10.192.4.2   kube-node-3</span><br><span class="line">redis-cache-1450370735-j2j96   1&#x2F;1       Running   0          8m        10.192.2.2   kube-node-1</span><br><span class="line">redis-cache-1450370735-z73mh   1&#x2F;1       Running   0          8m        10.192.3.1   kube-node-2</span><br><span class="line">web-server-1287567482-5d4dz    1&#x2F;1       Running   0          7m        10.192.2.3   kube-node-1</span><br><span class="line">web-server-1287567482-6f7v5    1&#x2F;1       Running   0          7m        10.192.4.3   kube-node-3</span><br><span class="line">web-server-1287567482-s330j    1&#x2F;1       Running   0          7m        10.192.3.2   kube-node-2</span><br></pre></td></tr></table></figure>
+
+<h5 id="始终不在相同的节点上"><a href="#始终不在相同的节点上" class="headerlink" title="始终不在相同的节点上"></a>始终不在相同的节点上</h5><p>上面的例子使用了 <code>PodAntiAffinity</code> 规则与 <code>topologyKey: &quot;kubernetes.io/hostname&quot;</code> 来部署 redis 集群，因此没有任何两个副本被调度到同一个节点上。参考 <a href="https://kubernetes.io/docs/tutorials/stateful-application/zookeeper/#tolerating-node-failure" target="_blank" rel="noopener">ZooKeeper tutorial</a> 了解如何使用相同的方式为 StatefulSet 配置反亲和性以实现高可用。</p>
+<h2 id="污点和容忍"><a href="#污点和容忍" class="headerlink" title="污点和容忍"></a>污点和容忍</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>Pod 中存在属性 Node selector / Node affinity，用于将 Pod 指定到合适的节点。</p>
+<p>相对的，节点中存在属性 <code>污点 taints</code>，使得节点可以排斥某些 Pod。</p>
+<p>污点和容忍（taints and tolerations）成对工作，以确保 Pod 不会被调度到不合适的节点上。</p>
+<ul>
+<li>可以为节点增加污点（taints，一个节点可以有 0-N 个污点）</li>
+<li>可以为 Pod 增加容忍（toleration，一个 Pod 可以有 0-N 个容忍）</li>
+<li>如果节点上存在污点，则该节点不会接受任何不能容忍（tolerate）该污点的 Pod。</li>
+</ul>
+<h4 id="向节点添加污点"><a href="#向节点添加污点" class="headerlink" title="向节点添加污点"></a>向节点添加污点</h4><ul>
+<li><p>执行 <code>kubectl taint</code> 命令，可向节点添加污点，如下所示：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes node1 key=value:NoSchedule</span><br></pre></td></tr></table></figure>
+<p>该命令为节点 <code>node1</code> 添加了一个污点。污点是一个键值对，在本例中，污点的键为 <code>key</code>，值为 <code>value</code>，污点效果为 <code>NoSchedule</code>。此污点意味着 Kubernetes 不会向该节点调度任何 Pod，除非该 Pod 有一个匹配的容忍（toleration）</p>
+</li>
+<li><p>执行如下命令可以将本例中的污点移除：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes node1 key:NoSchedule-</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="向-Pod-添加容忍"><a href="#向-Pod-添加容忍" class="headerlink" title="向 Pod 添加容忍"></a>向 Pod 添加容忍</h4><p>PodSpec 中有一个 <code>tolerations</code> 字段，可用于向 Pod 添加容忍。下面的两个例子中定义的容忍都可以匹配上例中的污点，包含这些容忍的 Pod 也都可以被调度到 <code>node1</code> 节点上：</p>
+<ul>
+<li>容忍1：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"key"</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">"Equal"</span></span><br><span class="line">  <span class="attr">value:</span> <span class="string">"value"</span></span><br><span class="line">  <span class="attr">effect:</span> <span class="string">"NoSchedule"</span></span><br></pre></td></tr></table></figure></li>
+<li>容忍2：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"key"</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">"Exists"</span></span><br><span class="line">  <span class="attr">effect:</span> <span class="string">"NoSchedule"</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>下面这个 Pod 的例子中，使用了容忍：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">env:</span> <span class="string">test</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">  <span class="attr">tolerations:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"example-key"</span></span><br><span class="line">    <span class="attr">operator:</span> <span class="string">"Exists"</span></span><br><span class="line">    <span class="attr">effect:</span> <span class="string">"NoSchedule"</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="污点与容忍的匹配"><a href="#污点与容忍的匹配" class="headerlink" title="污点与容忍的匹配"></a>污点与容忍的匹配</h4><p>当满足如下条件时，Kubernetes 认为容忍和污点匹配：</p>
+<ul>
+<li>键（key）相同</li>
+<li>效果（effect）相同</li>
+<li>污点的 <code>operator</code> 为：<ul>
+<li><code>Exists</code> （此时污点中不应该指定 <code>value</code>）</li>
+<li>或者 <code>Equal</code> （此时容忍的 <code>value</code> 应与污点的 <code>value</code> 相同）</li>
+</ul>
+</li>
+</ul>
+<p>如果不指定 <code>operator</code>，则其默认为 <code>Equal</code></p>
+<p>::: tip 特殊情况</p>
+<p>存在如下两种特殊情况：</p>
+<ul>
+<li><p>容忍中未定义 <code>key</code> 但是定义了 operator 为 <code>Exists</code>，Kubernetes 认为此容忍匹配所有的污点，如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">operator:</span> <span class="string">"Exists"</span></span><br></pre></td></tr></table></figure></li>
+<li><p>容忍中未定义 <code>effect</code> 但是定义了 <code>key</code>，Kubernetes 认为此容忍匹配所有 <code>effect</code>，如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"key"</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">"Exists"</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>:::</p>
+<p>支持的效果 <code>effect</code> 有：</p>
+<ul>
+<li><strong><code>NoSchedule</code></strong></li>
+<li><strong><code>PreferNoSchedule</code></strong> 比 <code>NoSchedule</code> 更宽容一些，Kubernetes 将尽量避免将没有匹配容忍的 Pod 调度到该节点上，但是并不是不可以</li>
+<li><strong><code>NoExecute</code></strong> 不能在节点上运行（如果已经运行，将被驱逐）</li>
+</ul>
+<p>一个节点上可以有多个污点，同时一个 Pod 上可以有多个容忍。Kubernetes 使用一种类似于过滤器的方法来处理多个节点和容忍：</p>
+<ul>
+<li>对于节点的所有污点，检查 Pod 上是否有匹配的容忍，如果存在匹配的容忍，则忽略该污点；</li>
+<li>剩下的不可忽略的污点将对该 Pod 起作用</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>如果存在至少一个不可忽略的污点带有效果 <code>NoSchedule</code>，则 Kubernetes 不会将 Pod 调度到该节点上</li>
+<li>如果没有不可忽略的污点带有效果 <code>NoSchedule</code>，但是至少存在一个不可忽略的污点带有效果 <code>PreferNoSchedule</code>，则 Kubernetes 将尽量避免将该 Pod 调度到此节点</li>
+<li>如果存在至少一个忽略的污点带有效果 <code>NoExecute</code>，则：<ul>
+<li>假设 Pod 已经在该节点上运行，Kubernetes 将从该节点上驱逐（evict）该 Pod</li>
+<li>假设 Pod 尚未在该节点上运行，Kubernetes 将不会把 Pod 调度到该节点</li>
+</ul>
+</li>
+</ul>
+<p>例如，假设您给一个节点添加了三个污点：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes node1 key1=value1:NoSchedule</span><br><span class="line">kubectl taint nodes node1 key1=value1:NoExecute</span><br><span class="line">kubectl taint nodes node1 key2=value2:NoSchedule</span><br></pre></td></tr></table></figure>
+<p>同时，有一个 Pod 带有两个容忍：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"key1"</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">"Equal"</span></span><br><span class="line">  <span class="attr">value:</span> <span class="string">"value1"</span></span><br><span class="line">  <span class="attr">effect:</span> <span class="string">"NoSchedule"</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"key1"</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">"Equal"</span></span><br><span class="line">  <span class="attr">value:</span> <span class="string">"value1"</span></span><br><span class="line">  <span class="attr">effect:</span> <span class="string">"NoExecute"</span></span><br></pre></td></tr></table></figure>
+
+<p>在这个案例中，Pod 上有两个容忍，匹配了节点的前两个污点，只有节点的第三个污点对该 Pod 来说不可忽略，该污点的效果为 <code>NoSchedule</code>：</p>
+<ul>
+<li>Kubernetes 不会将此 Pod 调度到该节点上</li>
+<li>如果 Kubernetes 先将 Pod 调度到了该节点，后向该节点添加了第三个污点，则 Pod 将继续在该节点上运行而不会被驱逐（节点上带有 <code>NoExecute</code> 效果的污点已被 Pod 上的第二个容忍匹配，因此被忽略）</li>
+</ul>
+<p>通常，在带有效果 <code>NoExecute</code> 的污点被添加到节点时，节点上任何不容忍该污点的 Pod 将被立刻驱逐，而容忍该污点的 Pod 则不会被驱逐。</p>
+<p>此外，带有效果 <code>NoExecute</code> 的污点还可以指定一个可选字段 <code>tolerationSeconds</code>，该字段指定了 Pod 在多长时间后被驱逐，例如：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"key1"</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">"Equal"</span></span><br><span class="line">  <span class="attr">value:</span> <span class="string">"value1"</span></span><br><span class="line">  <span class="attr">effect:</span> <span class="string">"NoExecute"</span></span><br><span class="line">  <span class="attr">tolerationSeconds:</span> <span class="number">3600</span></span><br></pre></td></tr></table></figure>
+
+<p>此例子中，如果 Pod 已经运行在节点上，再向节点增加此污点时，Pod 将在该节点上继续运行 3600 秒，然后才被驱逐。如果污点在此之间被移除，则 Pod 将不会被驱逐。</p>
+<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><p>污点和容忍使用起来非常灵活，可以用于：</p>
+<ul>
+<li>避免 Pod 被调度到某些特定的节点</li>
+<li>从节点上驱逐本不应该在该节点运行的 Pod</li>
+</ul>
+<p>具体的场景可能有：</p>
+<ul>
+<li><strong>专属的节点：</strong> 如果您想将一组节点专门用于特定的场景，您可以为这些节点添加污点（例如 <code>kubectl taint nodes nodename dedicated=groupName:NoSchedule</code>）然后向对应的 Pod 添加容忍。带有这些容忍的 Pod 将可以使用这一组专属节点，同时也可以使用集群中的其他节点。如果您想进一步限制这些 Pod 只能使用这一组节点，那么您应该为这一组节点添加一个标签（例如 dedicated=groupName），并为这一组 Pod 添加 node affinity（或 node selector）以限制这些 Pod 只能调度到这一组节点上。</li>
+<li><strong>带有特殊硬件的节点：</strong> 集群中，如果某一组节点具备特殊的硬件（例如 GPU），此时非常有必要将那些不需要这类硬件的 Pod 从这组节点上排除掉，以便需要这类硬件的 Pod 可以得到资源。此时您可以为这类节点添加污点（例如：<code>kubectl taint nodes nodename special=true:NoSchedule</code> 或者 <code>kubectl taint nodes nodename special=true:PreferNoSchedule</code>）并为需要这类硬件的 Pod 添加匹配的容忍。</li>
+<li><strong>基于污点的驱逐</strong> 当节点出现问题时，可以使用污点以 Pod 为单位从节点上驱逐 Pod。</li>
+</ul>
+<h4 id="基于污点的驱逐（TaintBasedEviction）"><a href="#基于污点的驱逐（TaintBasedEviction）" class="headerlink" title="基于污点的驱逐（TaintBasedEviction）"></a>基于污点的驱逐（TaintBasedEviction）</h4><p>在前面的章节中，我们描述了 <a href="#污点与容忍的匹配">NoExecute</a>，该效果将对已经运行在节点上的 Pod 施加如下影响：</p>
+<ul>
+<li>不容忍该污点的 Pod 将立刻被驱逐</li>
+<li>容忍该污点的 Pod 在未指定 <code>tolerationSeconds</code> 的情况下，将继续在该节点上运行</li>
+<li>容忍该污点的 Pod 在指定了 <code>tolerationSeconds</code> 的情况下，将在指定时间超过时从节点上驱逐</li>
+</ul>
+<p>::: tip<br><code>tolerationSeconds</code> 字段可以理解为 Pod 容忍该污点的 <code>耐心</code>：</p>
+<ul>
+<li>超过指定的时间，则达到 Pod 忍耐的极限，Pod 离开所在节点</li>
+<li>不指定 <code>tolerationSeconds</code>，则认为 Pod 对该污点的容忍是无期限的<br>:::</li>
+</ul>
+<p>此外，自 kubernetes 1.6 以来，kubernetes 的节点控制器在碰到某些特定的条件时，将自动为节点添加污点。这类污点有：</p>
+<ul>
+<li><code>node.kubernetes.io/not-ready</code>： 节点未就绪。对应着 NodeCondition <code>Ready</code> 为 <code>False</code> 的情况</li>
+<li><code>node.kubernetes.io/unreachable</code>： 节点不可触达。对应着 NodeCondition <code>Ready</code> 为 <code>Unknown</code> 的情况</li>
+<li><code>node.kubernetes.io/out-of-disk</code>：节点磁盘空间已满</li>
+<li><code>node.kubernetes.io/memory-pressure</code>：节点内存吃紧</li>
+<li><code>node.kubernetes.io/disk-pressure</code>：节点磁盘吃紧</li>
+<li><code>node.kubernetes.io/network-unavailable</code>：节点网络不可用</li>
+<li><code>node.kubernetes.io/unschedulable</code>：节点不可调度</li>
+<li><code>node.cloudprovider.kubernetes.io/uninitialized</code>：如果 kubelet 是由 “外部” 云服务商启动的，该污点用来标识某个节点当前为不可用的状态。在“云控制器”（cloud-controller-manager）初始化这个节点以后，kubelet将此污点移除</li>
+</ul>
+<p>自 kubernetes 1.13 开始，上述特性被默认启用。</p>
+<p>例如，某一个包含了大量本地状态的应用，在网络断开时，可能仍然想要在节点上停留比较长的时间，以等待网络能够恢复，而避免从节点上驱逐。此时，该 Pod 的容忍可能如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">"node.kubernetes.io/unreachable"</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">"Exists"</span></span><br><span class="line">  <span class="attr">effect:</span> <span class="string">"NoExecute"</span></span><br><span class="line">  <span class="attr">tolerationSeconds:</span> <span class="number">6000</span></span><br></pre></td></tr></table></figure>
+
+<p>如果 Pod 没有 <code>node.kubernetes.io/not-ready</code> 容忍，<br>Kubernetes 将自动为 Pod 添加一个 <code>tolerationSeconds=300</code> 的 <code>node.kubernetes.io/not-ready</code> 容忍。同样的，如果 Pod 没有 <code>node.kubernetes.io/unreachable</code> 容忍，Kubernetes 将自动为 Pod 添加一个 <code>tolerationSeconds=300</code> 的 <code>node.kubernetes.io/unreachable</code> 容忍</p>
+<p>这类自动添加的容忍确保了 Pod 在节点发生 <code>not-ready</code> 和 <code>unreachable</code> 问题时，仍然在节点上保留 5 分钟。</p>
+<p>DaemonSet Pod 相对特殊一些，他们在创建时就添加了不带 <code>tolerationSeconds</code> 的 <code>NoExecute</code> 效果的容忍，适用的污点有：</p>
+<ul>
+<li><code>node.kubernetes.io/unreachable</code></li>
+<li><code>node.kubernetes.io/not-ready</code></li>
+</ul>
+<p>这将确保 DaemonSet Pod 始终不会被驱逐。</p>
+<h3 id="条件化的污点（TaintNodesByCondition）"><a href="#条件化的污点（TaintNodesByCondition）" class="headerlink" title="条件化的污点（TaintNodesByCondition）"></a>条件化的污点（TaintNodesByCondition）</h3><p>自 Kubernetes 1.12 开始，<code>TaintNodesByCondition</code> 这个特性进入 beta 阶段，此时节点控制器自动根据 Node Condition 为节点创建对应的污点。调度器则不去检查 Node conditions，而是检查节点的污点，因此 Node Condition 不再直接影响到调度程序。用户通过为 Pod 添加容忍，可以选择性地忽略节点的某些问题（以 Node Condition 呈现的问题）。</p>
+<p><code>TaintNodesByCondition</code> 这个特性只会为节点添加 <code>NoSchedule</code> 效果的污点。<code>TaintBasedEviction</code> （Kubernetes 1.13 开始默认生效）则为节点添加 <code>NoExecute</code> 效果的污点。</p>
+<p>自 Kubernetes 1.8 开始，DaemonSet Controller 自动为所有的 DaemonSet Pod 添加如下 <code>NoSchedule</code> 效果的容忍，以防止 DaemonSet 不能正常工作：</p>
+<ul>
+<li><code>node.kubernetes.io/memory-pressure</code></li>
+<li><code>node.kubernetes.io/disk-pressure</code></li>
+<li><code>node.kubernetes.io/out-of-disk</code>（只对关键 Pod 生效）</li>
+<li><code>node.kubernetes.io/unschedulable</code>（不低于 Kubernetes 1.10）</li>
+<li><code>node.kubernetes.io/network-unavailable</code>（只对 host network 生效）</li>
+</ul>
+<h2 id="Secret"><a href="#Secret" class="headerlink" title="Secret"></a>Secret</h2><h3 id="Secret概述"><a href="#Secret概述" class="headerlink" title="Secret概述"></a>Secret概述</h3><p>Kubernetes <code>Secret</code> 对象可以用来储存敏感信息，例如：密码、OAuth token、ssh 密钥等。如果不使用 <code>Secret</code>，此类信息可能被放置在 Pod 定义中或者容器镜像中。将此类敏感信息存储到 <code>Secret</code> 中，可以更好地：</p>
+<ul>
+<li>控制其使用</li>
+<li>降低信息泄露的风险</li>
+</ul>
+<p>用户可以直接创建 Secret，Kubernetes 系统也会创建一些 Secret。</p>
+<p>Secret有如下几种使用方式：</p>
+<ul>
+<li>作为 Pod 的数据卷挂载</li>
+<li>作为 Pod 的环境变量</li>
+<li>kubelet 在抓取容器镜像时，作为 docker 镜像仓库的用户名密码</li>
+</ul>
+<h4 id="内建Secret"><a href="#内建Secret" class="headerlink" title="内建Secret"></a>内建Secret</h4><p>Service Account 将自动创建 Secret</p>
+<p>Kubernetes 自动创建包含访问 Kubernetes APIServer 身份信息的 Secret，并自动修改 Pod 使其引用这类 Secret。</p>
+<p>如果需要，可以禁用或者自定义自动创建并使用 Kubernetes APIServer 身份信息的特性。然而，如果您期望安全地访问 Kubernetes APIServer，您应该使用默认的 Secret 创建使用过程。</p>
+<p>如需了解更多细节，参考 <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/" target="_blank" rel="noopener">Configure Service Accounts for Pods</a></p>
+<h4 id="解码和编辑"><a href="#解码和编辑" class="headerlink" title="解码和编辑"></a>解码和编辑</h4><p>Kubenetes 中，Secret 使用 base64 编码存储，您可以将其 <a href="#解码">解码</a> 获得对应信息的原文，创建 Secret 之后，您也可以再次 <a href="#编辑">编辑</a> Secret</p>
+<h3 id="创建Secret（使用kubectl）"><a href="#创建Secret（使用kubectl）" class="headerlink" title="创建Secret（使用kubectl）"></a>创建Secret（使用kubectl）</h3><p>假设某个 Pod 需要访问数据库。在您执行 kubectl 命令所在机器的当前目录，创建文件 <code>./username.txt</code> 文件和 <code>./password.txt</code> 暂存数据库的用户名和密码，后续我们根据这两个文件配置 kubernetes secrets。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">'admin'</span> &gt; ./username.txt</span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">'1f2d1e2e67df'</span> &gt; ./password.txt</span><br></pre></td></tr></table></figure>
+
+<p>执行命令 <code>kubectl create secret generic db-user-pass --from-file=./username.txt --from-file=./password.txt</code> 在 Kubernetes APIServer 中创建 Secret 对象，并将这两个文件中的内容存储到该 Secret 对象中，输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret &quot;db-user-pass&quot; created</span><br></pre></td></tr></table></figure>
+
+<p>::: tip</p>
+<ul>
+<li>上述命令的执行效果与此命令执行效果相同：<br><code>kubectl create secret generic db-user-pass –from-literal=username=admin –from-literal=password=1f2d1e2e67df</code></li>
+<li>如果您的密码中包含特殊字符需要转码（例如 <code>$</code>、<code>*</code>、<code>\</code>、<code>!</code>），请使用 <code>\</code> 进行转码。例如：实际密码为 <code>S!B\*d$zDsb</code>，kubectl 命令应该写成 <code>kubectl create secret generic dev-db-secret –from-literal=username=devuser –from-literal=password=S\!B\\*d\$zDsb</code>。如果通过文件创建（–from-file），则无需对文件中的密码进行转码。<br>:::</li>
+</ul>
+<p>执行命令 <code>kubectl get secrets</code>，检查 Secret 的创建结果，输出信息如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME                  TYPE                                  DATA      AGE</span><br><span class="line">db-user-pass          Opaque                                2         51s</span><br></pre></td></tr></table></figure>
+
+<p>执行命令 <code>kubectl describe secrets/db-user-pass</code>，查看 Secret 详情，输出信息如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Name:            db-user-pass</span><br><span class="line">Namespace:       default</span><br><span class="line">Labels:          &lt;none&gt;</span><br><span class="line">Annotations:     &lt;none&gt;</span><br><span class="line"></span><br><span class="line">Type:            Opaque</span><br><span class="line"></span><br><span class="line">Data</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">password.txt:    12 bytes</span><br><span class="line">username.txt:    5 bytes</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>默认情况下，<code>kubectl get</code> 和 <code>kubectl describe</code> 命令都避免展示 Secret 的内容。这种做法可以避免密码被偷窥，或者被存储到终端的日志中</p>
+</blockquote>
+<h3 id="创建Secret（手动）"><a href="#创建Secret（手动）" class="headerlink" title="创建Secret（手动）"></a>创建Secret（手动）</h3><p>和创建其他类型的 API 对象（Pod、Deployment、StatefulSet、ConfigMap 等）一样，您也可以先在 yaml 文件中定义好 Secret，然后通过 <code>kubectl apply -f</code> 命令创建。此时，您可以通过如下两种方式在 yaml 文件中定义 Secret：</p>
+<ul>
+<li><strong>data</strong>：使用 data 字段时，取值的内容必须是 base64 编码的</li>
+<li><strong>stringData</strong>：使用 stringData 时，更为方便，您可以直接将取值以明文的方式写在 yaml 文件中</li>
+</ul>
+<h4 id="在-yaml-中定义-data"><a href="#在-yaml-中定义-data" class="headerlink" title="在 yaml 中定义 data"></a>在 yaml 中定义 data</h4><ul>
+<li>假设您要保存 <code>username=admin</code> 和 <code>password=1f2d1e2e67df</code> 到 Secret 中，请先将数据的值转化为 base64 编码，执行如下命令：<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">'admin'</span> | base64</span><br><span class="line">YWRtaW4=</span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">'1f2d1e2e67df'</span> | base64</span><br><span class="line">MWYyZDFlMmU2N2Rm</span><br></pre></td></tr></table></figure></li>
+<li>创建 secret.yaml 文件，内容如下所示：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">YWRtaW4=</span></span><br><span class="line">  <span class="attr">password:</span> <span class="string">MWYyZDFlMmU2N2Rm</span></span><br></pre></td></tr></table></figure></li>
+<li>执行命令 <code>kubectl apply -f ./secret.yaml</code> 输出结果如下所示：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret &quot;mysecret&quot; created</span><br></pre></td></tr></table></figure>
+此时 Secret 创建成功</li>
+</ul>
+<h4 id="在-yaml-中定义-stringData"><a href="#在-yaml-中定义-stringData" class="headerlink" title="在 yaml 中定义 stringData"></a>在 yaml 中定义 stringData</h4><p>有时，您并不想先将用户名和密码转换为 base64 编码之后再创建 Secret，则，您可以通过定义 stringData 来达成，此时 stringData 中的取值部分将被 apiserver 自动进行 base64 编码之后再保存。</p>
+<ul>
+<li><p>创建文件 secret.yaml，内容如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">stringData:</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">admin</span></span><br><span class="line">  <span class="attr">password:</span> <span class="string">1f2d1e2e67df</span></span><br></pre></td></tr></table></figure></li>
+<li><p>执行命令 <code>kubectl apply -f ./secret.yaml</code> 输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret &quot;mysecret&quot; created</span><br></pre></td></tr></table></figure>
+<p>此时 Secret 创建成功</p>
+</li>
+<li><p>执行命令 <code>kubectl get -f ./secret.yaml -o yaml</code> 输出结果如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">password:</span> <span class="string">MWYyZDFlMmU2N2Rm</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">YWRtaW4=</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">annotations:</span></span><br><span class="line">    <span class="attr">kubectl.kubernetes.io/last-applied-configuration:</span> <span class="string">|</span></span><br><span class="line">      <span class="string">&#123;"apiVersion":"v1","kind":"Secret","metadata":&#123;"annotations":&#123;&#125;,"name":"mysecret","namespace":"default"&#125;,"stringData":&#123;"password":"1f2d1e2e67df","username":"admin"&#125;,"type":"Opaque"&#125;</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="string">"2019-09-23T14:16:56Z"</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">resourceVersion:</span> <span class="string">"10318365"</span></span><br><span class="line">  <span class="attr">selfLink:</span> <span class="string">/api/v1/namespaces/default/secrets/mysecret</span></span><br><span class="line">  <span class="attr">uid:</span> <span class="number">24602031</span><span class="string">-e18d-467a-b7fe-0962af8ec8b8</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br></pre></td></tr></table></figure>
+<p>::: tip 注意</p>
+<ul>
+<li>此时 annotation 中可以看到 password 的明文，这也许并不是您所期望的</li>
+<li>输出的 Secret 对象中，stringData 字段不再出现<br>:::</li>
+</ul>
+</li>
+</ul>
+<h4 id="同时定义了-data-和-stringData"><a href="#同时定义了-data-和-stringData" class="headerlink" title="同时定义了 data 和 stringData"></a>同时定义了 data 和 stringData</h4><p>::: tip<br>如果您同时定义了 data 和 stringData，对于两个对象中 key 重复的字段，最终将采纳 stringData 中的 value<br>:::</p>
+<ul>
+<li><p>创建文件 secret.yaml，该文件同时定义了 data 和 stringData，内容如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">YWRtaW4=</span></span><br><span class="line"><span class="attr">stringData:</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">administrator</span></span><br></pre></td></tr></table></figure></li>
+<li><p>执行命令 <code>kubectl apply -f ./secret.yaml</code> 输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret &quot;mysecret&quot; created</span><br></pre></td></tr></table></figure>
+<p>此时 Secret 创建成功</p>
+</li>
+<li><p>执行命令 <code>kubectl get -f ./secret.yaml -o yaml</code> 输出结果如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="number">2018</span><span class="number">-11</span><span class="string">-15T20:46:46Z</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">resourceVersion:</span> <span class="string">"7579"</span></span><br><span class="line">  <span class="attr">uid:</span> <span class="string">91460ecb-e917-11e8-98f2-025000000001</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">YWRtaW5pc3RyYXRvcg==</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>此处 <code>YWRtaW5pc3RyYXRvcg==</code> 解码后的值是 <code>administrator</code></p>
+</blockquote>
+</li>
+</ul>
+<h4 id="将配置文件存入-Secret"><a href="#将配置文件存入-Secret" class="headerlink" title="将配置文件存入 Secret"></a>将配置文件存入 Secret</h4><p>假设您的某个应用程序需要从一个配置文件中读取敏感信息，此时，您可以将该文件的内容存入 Secret，再通过数据卷的形式挂载到容器。[挂载方式未完待续]</p>
+<p>例如，您的应用程序需要读取如下配置文件内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apiUrl: &quot;https:&#x2F;&#x2F;my.api.com&#x2F;api&#x2F;v1&quot;</span><br><span class="line">username: user</span><br><span class="line">password: password</span><br></pre></td></tr></table></figure>
+
+<p>您可以使用下面的 secret.yaml 创建 Secret</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">stringData:</span></span><br><span class="line">  <span class="attr">config.yaml:</span> <span class="string">|-</span></span><br><span class="line">    <span class="attr">apiUrl:</span> <span class="string">"https://my.api.com/api/v1"</span></span><br><span class="line">    <span class="attr">username:</span> <span class="string">user</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">password</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>执行命令 <code>kubectl apply -f ./secret.yaml</code> 输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret &quot;mysecret&quot; created</span><br></pre></td></tr></table></figure>
+<p>此时 Secret 创建成功</p>
+</li>
+<li><p>执行命令 <code>kubectl get -f ./secret.yaml -o yaml</code> 输出结果如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="number">2018</span><span class="number">-11</span><span class="string">-15T20:40:59Z</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">resourceVersion:</span> <span class="string">"7225"</span></span><br><span class="line">  <span class="attr">uid:</span> <span class="string">c280ad2e-e916-11e8-98f2-025000000001</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">config.yaml:</span> <span class="string">YXBpVXJsOiAiaHR0cHM6Ly9teS5hcGkuY29tL2FwaS92MSIKdXNlcm5hbWU6IHt7dXNlcm5hbWV9fQpwYXNzd29yZDoge3twYXNzd29yZH19</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="创建Secret（使用Generator）"><a href="#创建Secret（使用Generator）" class="headerlink" title="创建Secret（使用Generator）"></a>创建Secret（使用Generator）</h3><p>从 kubernetes v1.14 开始，kubectl 集成了 <a href="https://kustomize.io/" target="_blank" rel="noopener">Kustomize</a>。通过 Kustomize，您可以使用 generator（Kustomize 的概念）创建 Secret，并保存到 API Server。Generator 必须在 <code>kustomization.yaml</code> 文件中指定。</p>
+<h4 id="从文件生成-Secret"><a href="#从文件生成-Secret" class="headerlink" title="从文件生成 Secret"></a>从文件生成 Secret</h4><p>例如，如果想从 <code>./username.txt</code> 和 <code>./password.txt</code> 文件生成（generate）一个 Secret，则可以：</p>
+<ul>
+<li>执行如下指令创建 <code>kustomization.yaml</code> 文件</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Create a kustomization.yaml file with SecretGenerator</span></span><br><span class="line">cat &lt;&lt;EOF &gt;./kustomization.yaml</span><br><span class="line">secretGenerator:</span><br><span class="line">- name: db-user-pass</span><br><span class="line">  files:</span><br><span class="line">  - username.txt</span><br><span class="line">  - password.txt</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>执行指令 <code>kubectl apply -k .</code> 以创建 Secret 对象，输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret&#x2F;db-user-pass-96mffmfh4k created</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行指令 <code>kubectl get secrets</code> 以检查创建结果，输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME                             TYPE                                  DATA      AGE</span><br><span class="line">db-user-pass-96mffmfh4k          Opaque                                2         51s</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行指令 <code>kubectl describe secrets/db-user-pass-96mffmfh4k</code> 以查看 Secret 详情（请使用您自己的 Secret 名字），输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Name:            db-user-pass</span><br><span class="line">Namespace:       default</span><br><span class="line">Labels:          &lt;none&gt;</span><br><span class="line">Annotations:     &lt;none&gt;</span><br><span class="line"></span><br><span class="line">Type:            Opaque</span><br><span class="line"></span><br><span class="line">Data</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">password.txt:    12 bytes</span><br><span class="line">username.txt:    5 bytes</span><br></pre></td></tr></table></figure>
+<p>::: tip<br>生成的 Secret 的名字包含一个 hash 值（Secret 内容的 hash）做为后缀，这种做法可以确保每次修改 Secret 的内容时，都将产生新的 Secret 对象<br>:::</p>
+</li>
+</ul>
+<h4 id="从明文生成-Secret"><a href="#从明文生成-Secret" class="headerlink" title="从明文生成 Secret"></a>从明文生成 Secret</h4><p>例如，如果要从明文 <code>username=admin</code> 和 <code>password=secret</code>，您可以：</p>
+<ul>
+<li><p>通过如下指令创建 secret generator 的 <code>kustomization.yaml</code> 文件：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Create a kustomization.yaml file with SecretGenerator</span></span><br><span class="line">cat &lt;&lt;EOF &gt;./kustomization.yaml</span><br><span class="line">secretGenerator:</span><br><span class="line">- name: db-user-pass</span><br><span class="line">  literals:</span><br><span class="line">  - username=admin</span><br><span class="line">  - password=secret</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然后执行指令 <code>kubectl apply -k .</code> 创建 Secret 对象，输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">secret&#x2F;db-user-pass-dddghtt9b5 created</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="解码和编辑Secret"><a href="#解码和编辑Secret" class="headerlink" title="解码和编辑Secret"></a>解码和编辑Secret</h3><h4 id="解码Secret"><a href="#解码Secret" class="headerlink" title="解码Secret"></a>解码Secret</h4><p>Secret 中的信息可以通过 <code>kubectl get secret</code> 命令获取。例如，执行命令 <code>kubectl get secret mysecret -o yaml</code> 可获取前面章节中所创建的 Secret，输出信息如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="number">2016</span><span class="number">-01</span><span class="string">-22T18:41:56Z</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">resourceVersion:</span> <span class="string">"164619"</span></span><br><span class="line">  <span class="attr">uid:</span> <span class="string">cfee02d6-c137-11e5-8d73-42010af00002</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">YWRtaW4=</span></span><br><span class="line">  <span class="attr">password:</span> <span class="string">MWYyZDFlMmU2N2Rm</span></span><br></pre></td></tr></table></figure>
+
+<p>执行命令 <code>echo &#39;MWYyZDFlMmU2N2Rm&#39; | base64 --decode</code> 可解码密码字段，输出结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1f2d1e2e67df</span><br></pre></td></tr></table></figure>
+
+<p>执行命令 <code>echo &#39;YWRtaW4=&#39; | base64 --decode</code> 可解码用户名字段，输出结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">admin</span><br></pre></td></tr></table></figure>
+
+<h4 id="编辑Secret"><a href="#编辑Secret" class="headerlink" title="编辑Secret"></a>编辑Secret</h4><p>执行命令 <code>kubectl edit secrets mysecret</code> 可以编辑已经创建的 Secret，该命令将打开一个类似于 <code>vi</code> 的文本编辑器，您可以直接编辑已经进行 base64 编码的字段，如下所示：</p>
+<figure class="highlight yaml"><figcaption><span>&#123;7,8&#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Please edit the object below. Lines beginning with a '#' will be ignored,</span></span><br><span class="line"><span class="comment"># and an empty file will abort the edit. If an error occurs while saving this file will be</span></span><br><span class="line"><span class="comment"># reopened with the relevant failures.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">username:</span> <span class="string">YWRtaW4=</span></span><br><span class="line">  <span class="attr">password:</span> <span class="string">MWYyZDFlMmU2N2Rm</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">annotations:</span></span><br><span class="line">    <span class="attr">kubectl.kubernetes.io/last-applied-configuration:</span> <span class="string">&#123;</span> <span class="string">...</span> <span class="string">&#125;</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="number">2016</span><span class="number">-01</span><span class="string">-22T18:41:56Z</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mysecret</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">resourceVersion:</span> <span class="string">"164619"</span></span><br><span class="line">  <span class="attr">uid:</span> <span class="string">cfee02d6-c137-11e5-8d73-42010af00002</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">Opaque</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Security-Context"><a href="#Security-Context" class="headerlink" title="Security Context"></a>Security Context</h2><h3 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h3><blockquote>
+<p>参考文档：Kubernetes 官网文档 <a href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#assign-selinux-labels-to-a-container" target="_blank" rel="noopener">Configure a Security Context for a Pod or Container</a></p>
+</blockquote>
+<p>Security Context（安全上下文）用来限制容器对宿主节点的可访问范围，以避免容器非法操作宿主节点的系统级别的内容，使得节点的系统或者节点上其他容器组受到影响。</p>
+<p>Security Context可以按照如下几种方式设定：</p>
+<ul>
+<li>访问权限控制：是否可以访问某个对象（例如文件）是基于 <a href="https://wiki.archlinux.org/index.php/users_and_groups" target="_blank" rel="noopener">userID（UID）和 groupID（GID）</a> 的</li>
+<li><a href="https://en.wikipedia.org/wiki/Security-Enhanced_Linux" target="_blank" rel="noopener">Security Enhanced Linux (SELinux)</a>：为对象分配Security标签</li>
+<li>以 privileged（特权）模式运行</li>
+<li><a href="https://linux-audit.com/linux-capabilities-hardening-linux-binaries-by-removing-setuid/" target="_blank" rel="noopener">Linux Capabilities</a>：为容器组（或容器）分配一部分特权，而不是 root 用户的所有特权</li>
+<li><a href="https://kubernetes.io/docs/tutorials/clusters/apparmor/" target="_blank" rel="noopener">AppArmor</a>：自 Kubernetes v1.4 以来，一直处于 beta 状态</li>
+<li><a href="https://docs.docker.com/engine/security/seccomp/" target="_blank" rel="noopener">Seccomp</a>：过滤容器中进程的系统调用（system call）</li>
+<li>AllowPrivilegeEscalation（允许特权扩大）：此项配置是一个布尔值，定义了一个进程是否可以比其父进程获得更多的特权，直接效果是，容器的进程上是否被设置 <a href="https://www.kernel.org/doc/Documentation/prctl/no_new_privs.txt" target="_blank" rel="noopener">no_new_privs</a> 标记。当出现如下情况时，AllowPrivilegeEscalation 的值始终为 true：<ul>
+<li>容器以 privileged 模式运行</li>
+<li>容器拥有 CAP_SYS_ADMIN 的 Linux Capability</li>
+</ul>
+</li>
+</ul>
+<p>如需要了解更多关于 Linux 安全机制方面的信息，请参考 <a href="https://www.linux.com/tutorials/overview-linux-kernel-security-features/" target="_blank" rel="noopener">Overview Of Linux Kernel Security Features</a></p>
+<h3 id="为Pod设置Security-Context"><a href="#为Pod设置Security-Context" class="headerlink" title="为Pod设置Security Context"></a>为Pod设置Security Context</h3><p>在 Pod 的定义中增加 <code>securityContext</code> 字段，即可为 Pod 指定 Security 相关的设定。 <code>securityContext</code> 字段是一个<code>PodSecurityContext</code>对象。通过该字段指定的内容将对该 Pod 中所有的容器生效。</p>
+<h2 id="Pod示例"><a href="#Pod示例" class="headerlink" title="Pod示例"></a>Pod示例</h2><p>以下面的 Pod 为例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">security-context-demo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">securityContext:</span></span><br><span class="line">    <span class="attr">runAsUser:</span> <span class="number">1000</span></span><br><span class="line">    <span class="attr">runAsGroup:</span> <span class="number">3000</span></span><br><span class="line">    <span class="attr">fsGroup:</span> <span class="number">2000</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sec-ctx-vol</span></span><br><span class="line">    <span class="attr">emptyDir:</span> <span class="string">&#123;&#125;</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sec-ctx-demo</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">[</span> <span class="string">"sh"</span><span class="string">,</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"sleep 1h"</span> <span class="string">]</span></span><br><span class="line">    <span class="attr">volumeMounts:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sec-ctx-vol</span></span><br><span class="line">      <span class="attr">mountPath:</span> <span class="string">/data/demo</span></span><br><span class="line">    <span class="attr">securityContext:</span></span><br><span class="line">      <span class="attr">allowPrivilegeEscalation:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的例子中：</p>
+<ul>
+<li><code>spec.securityContext.runAsUser</code> 字段指定了该 Pod 中所有容器的进程都以UserID <code>1000</code> 的身份运行，<code>spec.securityContext.runAsGroup</code> 字段指定了该 Pod 中所有容器的进程都以GroupID <code>3000</code> 的身份运行<ul>
+<li>如果该字段被省略，容器进程的GroupID为 root(0)</li>
+<li>容器中创建的文件，其所有者为 userID 1000，groupID 3000</li>
+</ul>
+</li>
+<li><code>spec.securityContext.fsGroup</code> 字段指定了该 Pod 的 fsGroup 为 2000<ul>
+<li>数据卷 （本例中，对应挂载点 <code>/data/demo</code> 的数据卷为 <code>sec-ctx-demo</code>） 的所有者以及在该数据卷下创建的任何文件，其 GroupID 为 2000</li>
+</ul>
+</li>
+</ul>
+<h2 id="执行Pod示例"><a href="#执行Pod示例" class="headerlink" title="执行Pod示例"></a>执行Pod示例</h2><ul>
+<li><p>创建 Pod</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f security-context-1.yaml</span><br></pre></td></tr></table></figure></li>
+<li><p>验证 Pod 已运行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pod security-context-demo</span><br></pre></td></tr></table></figure></li>
+<li><p>进入容器的命令行界面</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">exec</span> -it security-context-demo -- sh</span><br></pre></td></tr></table></figure></li>
+<li><p>在该命令行界面中，查看正在运行的进程</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps</span><br></pre></td></tr></table></figure>
+<p>请注意，所有的进程都以 user 1000 的身份运行（由 runAsUser 指定），输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">    1 1000      0:00 sleep 1h</span><br><span class="line">    6 1000      0:00 sh</span><br><span class="line">...</span><br></pre></td></tr></table></figure></li>
+<li><p>在命令行界面中，切换到目录 <code>/data</code>，并查看目录中的文件列表</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /data</span><br><span class="line">ls -l</span><br></pre></td></tr></table></figure>
+<p>请注意，<code>/data/demo</code> 目录的 groupID 为 2000（由 fsGroup 指定），输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">drwxrwsrwx    2 root     2000          4096 Oct  4 05:08 demo</span><br></pre></td></tr></table></figure></li>
+<li><p>在命令行界面中，切换到目录 <code>/data/demo</code>，并创建一个文件</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /data/demo</span><br><span class="line"><span class="built_in">echo</span> hello &gt; testfile</span><br><span class="line">ls -l</span><br></pre></td></tr></table></figure>
+<p>请注意，<code>testfile</code> 的 groupID 为 2000 （由 FSGroup 指定），输出结果如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-rw-r--r--    1 1000     2000             6 Oct  4 05:09 testfile</span><br></pre></td></tr></table></figure></li>
+<li><p>在命令行界面中执行 <code>id</code> 命令，输出结果如下所示：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ id</span><br><span class="line">uid=1000 gid=3000 groups=2000</span><br></pre></td></tr></table></figure>
+<p>请注意：</p>
+<ul>
+<li>gid 为 3000，与 <code>runAsGroup</code> 字段所指定的一致</li>
+<li>如果 <code>runAsGroup</code> 字段被省略，则 gid 取值为 0（即 root），此时容器中的进程将可以操作 root Group 的文件</li>
+</ul>
+</li>
+<li><p>执行 <code>exit</code> 退出命令行界面</p>
+</li>
+</ul>
+<h3 id="为容器设置Security-Context"><a href="#为容器设置Security-Context" class="headerlink" title="为容器设置Security Context"></a>为容器设置Security Context</h3><p>容器的定义中包含 <code>securityContext</code> 字段，该字段接受 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#securitycontext-v1-core" target="_blank" rel="noopener">SecurityContext</a> 对象。通过指定该字段，可以为容器设定安全相关的配置，当该字段的配置与 Pod 级别的 <code>securityContext</code> 配置相冲突时，容器级别的配置将覆盖 Pod 级别的配置。容器级别的 <code>securityContext</code> 不影响 Pod 中的数据卷。</p>
+<p>下面的示例中的 Pod 包含一个 Container，且 Pod 和 Container 都有定义 <code>securityContext</code> 字段：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">security-context-demo-2</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">securityContext:</span></span><br><span class="line">    <span class="attr">runAsUser:</span> <span class="number">1000</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sec-ctx-demo-2</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">[</span> <span class="string">"sh"</span><span class="string">,</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"sleep 1h"</span> <span class="string">]</span></span><br><span class="line">    <span class="attr">securityContext:</span></span><br><span class="line">      <span class="attr">runAsUser:</span> <span class="number">2000</span></span><br><span class="line">      <span class="attr">allowPrivilegeEscalation:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>执行命令以创建 Pod<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f security-context-2.yaml</span><br></pre></td></tr></table></figure></li>
+<li>执行命令以验证容器已运行<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pod security-context-demo-2</span><br></pre></td></tr></table></figure></li>
+<li>执行命令进入容器的命令行界面：<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">exec</span> -it security-context-demo-2 -- sh</span><br></pre></td></tr></table></figure></li>
+<li>在命令行界面中查看所有的进程<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux</span><br></pre></td></tr></table></figure>
+请注意，容器的进程以 userID 2000 的身份运行。该取值由 <code>spec.containers[*].securityContext.runAsUser</code> 容器组中的字段定义。Pod 中定义的 <code>spec.securityContext.runAsUser</code> 取值 1000 被覆盖。输出结果如下所示：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PID   USER      TIME  COMMAND</span><br><span class="line">  1   2000      0:00  sleep 1h</span><br><span class="line">  6   2000      0:00  sh</span><br><span class="line"> 11   2000      0:00  ps aux</span><br><span class="line">...</span><br></pre></td></tr></table></figure></li>
+<li>执行命令 <code>exit</code> 退出命令行界面</li>
+</ul>
+<h3 id="为容器设置Linux-Capabilities"><a href="#为容器设置Linux-Capabilities" class="headerlink" title="为容器设置Linux Capabilities"></a>为容器设置Linux Capabilities</h3><p>使用 <a href="http://man7.org/linux/man-pages/man7/capabilities.7.html" target="_blank" rel="noopener">Linux Capabilities</a> 可以为容器内的进程授予某些特定的权限（而不是 root 用户的所有权限）。在容器定义的 <code>securityContext</code> 中添加 <code>capabilities</code> 字段，可以向容器添加或删除 Linux Capability。</p>
+<p>本文后续章节中，先运行一个不包含 <code>capabilities</code> 字段的容器，观察容器内进程的 linux capabilities 位图的情况；然后在运行一个包含 <code>capabilities</code> 字段的容器，比较其 linux capabilities 位图与前者的不同。</p>
+<h4 id="无capabilities字段时"><a href="#无capabilities字段时" class="headerlink" title="无capabilities字段时"></a>无capabilities字段时</h4><p>我们先确认在没有 <code>capabilities</code> 字段时，容器的行为是怎样的。下面的例子中包含一个容器，我们没有为其添加或删除任何 Linux capability。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">security-context-demo-3</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sec-ctx-demo-3</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">[</span> <span class="string">"sh"</span><span class="string">,</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"sleep 1h"</span> <span class="string">]</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>执行命令以创建 Pod<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f security-context-3.yaml</span><br></pre></td></tr></table></figure></li>
+<li>执行命令以验证容器正在运行<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pod security-context-demo-3</span><br></pre></td></tr></table></figure></li>
+<li>执行命令以进入容器的命令行界面<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">exec</span> -it security-context-demo-3 -- sh</span><br></pre></td></tr></table></figure></li>
+<li>在容器的命令行界面中查看正在运行的进程<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux</span><br></pre></td></tr></table></figure>
+输出结果中展示了容器中进程的 process ID（PID），如下所示：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">  1   root     0:00  sleep 1h</span><br><span class="line">  6   root     0:00  sh</span><br><span class="line"> 11   root     0:00  ps aux</span><br></pre></td></tr></table></figure></li>
+<li>在容器的命令行界面中查看 process 1 的状态<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /proc/1</span><br><span class="line">cat status</span><br></pre></td></tr></table></figure>
+输出结果中展示了该进程 Linux Capabilities 的位图，如下所示：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">CapPrm: 00000000a80425fb</span><br><span class="line">CapEff: 00000000a80425fb</span><br><span class="line">...</span><br></pre></td></tr></table></figure></li>
+<li>记录下该进程的位图，然后执行命令 <code>exit</code> 退出重启的命令行界面</li>
+</ul>
+<h4 id="有capabilities字段时"><a href="#有capabilities字段时" class="headerlink" title="有capabilities字段时"></a>有capabilities字段时</h4><p>接下来，我们运行同样的一个容器，不同的是，这次为其设置了 <code>capabilities</code> 字段。下面是 yaml 配置文件，该配置中为进程添加了两个 Linux Capability： <code>CAP_NET_ADMIN</code> 和 <code>CAP_SYS_TIME</code>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">security-context-demo-4</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">sec-ctx-demo-4</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">[</span> <span class="string">"sh"</span><span class="string">,</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"sleep 1h"</span> <span class="string">]</span></span><br><span class="line">    <span class="attr">securityContext:</span></span><br><span class="line">      <span class="attr">capabilities:</span></span><br><span class="line">        <span class="attr">add:</span> <span class="string">["NET_ADMIN",</span> <span class="string">"SYS_TIME"</span><span class="string">]</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>执行命令以创建 Pod</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f security-context-4.yaml</span><br></pre></td></tr></table></figure></li>
+<li><p>执行命令以验证容器正在运行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pod security-context-demo-4</span><br></pre></td></tr></table></figure></li>
+<li><p>执行命令以进入容器的命令行界面</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">exec</span> -it security-context-demo-4 -- sh</span><br></pre></td></tr></table></figure></li>
+<li><p>在容器的命令行界面中查看正在运行的进程</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux</span><br></pre></td></tr></table></figure>
+<p>输出结果中展示了容器中进程的 process ID（PID），如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">  1   root     0:00  sleep 1h</span><br><span class="line">  6   root     0:00  sh</span><br><span class="line"> 11   root     0:00  ps aux</span><br></pre></td></tr></table></figure></li>
+<li><p>在容器的命令行界面中查看 process 1 的状态</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /proc/1</span><br><span class="line">cat status</span><br></pre></td></tr></table></figure>
+<p>输出结果中展示了该进程 Linux Capabilities 的位图，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">CapPrm: 00000000aa0435fb</span><br><span class="line">CapEff: 00000000aa0435fb</span><br><span class="line">...</span><br></pre></td></tr></table></figure></li>
+<li><p>记录下该进程的位图，然后执行命令 <code>exit</code> 退出重启的命令行界面</p>
+</li>
+<li><p>比较两次运行，进程的 Linux Capabilities 位图的差异：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">第一次运行：00000000a80425fb</span><br><span class="line">第二次运行：00000000aa0435fb</span><br></pre></td></tr></table></figure>
+<p>第一次运行时，位图的 12 位和 25 为是 0。第二次运行时，12 位和 25 位是 1.查看 Linux Capabilities 的常量定义文件 <a href="https://github.com/torvalds/linux/blob/master/include/uapi/linux/capability.h" target="_blank" rel="noopener">capability.h</a> 可知：12 位代表 <code>CAP_NET_ADMIN</code>，25 位代表 <code>CAP_SYS_TIME</code>。</p>
+</li>
+</ul>
+<p>::: tip LinuxCapability常量<br>Linux Capabilities 常量格式为 <code>CAP_XXX</code>。然而，在容器定义中添加或删除 Linux Capabilities 时，必须去除常量的前缀 <code>CAP_</code>。例如：向容器中添加 <code>CAP_SYS_TIME</code> 时，只需要填写 <code>SYS_TIME</code>。<br>:::</p>
+<h3 id="为容器设置SELinux标签"><a href="#为容器设置SELinux标签" class="headerlink" title="为容器设置SELinux标签"></a>为容器设置SELinux标签</h3><p>Pod 或容器定义的 <code>securityContext</code> 中 <code>seLinuxOptions</code> 字段是一个 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#selinuxoptions-v1-core" target="_blank" rel="noopener">SELinuxOptions</a> 对象，该字段可用于为容器指定 SELinux 标签。如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">securityContext:</span></span><br><span class="line">  <span class="attr">seLinuxOptions:</span></span><br><span class="line">    <span class="attr">level:</span> <span class="string">"s0:c123,c456"</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>为容器指定 SELinux 标签时，宿主节点的 SELinux 模块必须加载。</p>
+</blockquote>
+<h3 id="关于数据卷"><a href="#关于数据卷" class="headerlink" title="关于数据卷"></a>关于数据卷</h3><p>Pod 的 securityContext 作用于 Pod 中所有的容器，同时对 Pod 的数据卷也同样生效。具体来说，<code>fsGroup</code> 和 <code>seLinuxOptions</code> 将被按照如下方式应用到 Pod 中的数据卷：</p>
+<ul>
+<li><code>fsGroup</code>：对于支持 ownership 管理的数据卷，通过 <code>fsGroup</code> 指定的 GID 将被设置为该数据卷的 owner，并且可被 <code>fsGroup</code> 写入。更多细节请参考 <a href="https://github.com/kubernetes/community/blob/master/contributors/design-proposals/storage/volume-ownership-management.md" target="_blank" rel="noopener">Ownership Management design document</a></li>
+<li><code>seLinuxOptions</code>：对于支持 SELinux 标签的数据卷，将按照 <code>seLinuxOptions</code> 的设定重新打标签，以使 Pod 可以访问数据卷内容。通常您只需要设置 <code>seLinuxOptions</code> 中 <code>level</code> 这一部分内容。该设定为 Pod 中所有容器及数据卷设置 <a href="https://selinuxproject.org/page/NB_MLS" target="_blank" rel="noopener">Multi-Category Security (MCS)</a> 标签。<br>`</li>
+</ul>
+<h2 id="Pod-优先权"><a href="#Pod-优先权" class="headerlink" title="Pod 优先权"></a>Pod 优先权</h2><blockquote>
+<p>参考文档：<a href="https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/" target="_blank" rel="noopener">Pod Priority and Preemption</a></p>
+</blockquote>
+<p>Pod 中可以定义 优先级 <code>priority</code>，用于标识该 Pod 相对于其他 Pod 的重要程度。当存在 Pod 等待调度时（处于 Pending 状态），调度器将尝试抢占（preempt 或 驱逐 evict）低优先级（priority）的 Pod，以便调度 Pending 中的 Pod。</p>
+<p>自 Kubernetes 1.9 开始，Priority 也会对如下两个场景产生影响：</p>
+<ul>
+<li>Pod 的调度顺序</li>
+<li>资源耗尽时，从节点上驱逐 Pod 的顺序</li>
+</ul>
+<p>Pod 优先权（priority and preemption）的特性在 Kubernetes 1.11 中是 beta状态，并默认激活，在1.14 中是 GA（Generally Available 正式发布）状态。如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>Kubernetes Version</th>
+<th>Priority and Preemption State</th>
+<th>Enabled by default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.8</td>
+<td>alpha</td>
+<td>no</td>
+</tr>
+<tr>
+<td>1.9</td>
+<td>alpha</td>
+<td>no</td>
+</tr>
+<tr>
+<td>1.10</td>
+<td>alpha</td>
+<td>no</td>
+</tr>
+<tr>
+<td>1.11</td>
+<td>beta</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>1.14</td>
+<td>stable</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<p>::: danger 警告<br>如果集群中的用户并不是全部可信，可能会出现一些恶意的用户，创建最高优先级的 Pod，使得其他的 Pod 被驱逐或者不能正常调度。可以通过在 <code>ResourceQuota</code> 中指定 priority 来解决此问题。<br>:::</p>
+<h3 id="使用Pod优先权"><a href="#使用Pod优先权" class="headerlink" title="使用Pod优先权"></a>使用Pod优先权</h3><p>在 Kubernetes v1.11 及以后的版本中，参考下面的步骤启用Pod优先权（Pod priority and preemption）：</p>
+<ol>
+<li>添加一个或多个 <code>PriorityClass</code></li>
+<li>创建Pod时指定 <code>priorityClassName</code> 为其中一个 PriorityClass。（通常在 Deployment/StatefulSet等 的 <code>spec.template.spec.priorityClassName</code> 中指定，而不是直接创建 Pod）</li>
+</ol>
+<p>如果你尝试过该特性之后，想要将其禁用，你必须在 API Server 和 Scheduler 的命令行启动参数中移除 <code>PodPriority</code> 参数，或者将其设置为 <code>false</code>。禁用该特性之后：</p>
+<ul>
+<li>已经创建的 Pod 将保留 priority 字段，但是抢占行为（preemption)被禁用了，且 priority 字段也将被忽略</li>
+<li>新创建的 Pod 将不能在设置 <code>priorityClassName</code> 字段</li>
+</ul>
+<h3 id="如何禁用-preemtion"><a href="#如何禁用-preemtion" class="headerlink" title="如何禁用 preemtion"></a>如何禁用 preemtion</h3><blockquote>
+<p>preemption，英文愿意为先买权，此处可以理解为抢占行为<br>在 Kubernetes 1.12+，当前集群资源不足时，关键的 Pod 将依赖于抢占权才能被调度。因此，并不建议禁用 preemption<br>在 Kubernetes 1.15+，如果 <code>NonPreemptingPriority</code> 被启用了，PriorityClass 可以设置为 <code>preemptionPolicy: Never</code>，此时，该 PriorityClass 的所有 Pod 将不会抢占（preempty）其他 Pod 的资源</p>
+</blockquote>
+<p>在 Kubernetes 1.11+，preemption 由 kube-scheduler 的参数 <code>disablePreemption</code> 设置，默认为 <code>false</code>。如果在您已经知晓上面的提示的情况下，仍然要禁用 preemption，可以将 <code>disablePreemption</code> 参数设置为 <code>true</code>。</p>
+<p>该参数需要通过 YAML 文件配置，而不能通过命令行参数设定。示例配置如下所示：</p>
+<figure class="highlight yaml"><figcaption><span>&#123;8&#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">kubescheduler.config.k8s.io/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">KubeSchedulerConfiguration</span></span><br><span class="line"><span class="attr">algorithmSource:</span></span><br><span class="line">  <span class="attr">provider:</span> <span class="string">DefaultProvider</span></span><br><span class="line"></span><br><span class="line"><span class="string">...</span></span><br><span class="line"></span><br><span class="line"><span class="attr">disablePreemption:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://kubernetes.io/docs/concepts/configuration/overview/" target="_blank" rel="noopener">https://kubernetes.io/docs/concepts/configuration/overview/</a></li>
+<li><a href="https://kuboard.cn/" target="_blank" rel="noopener">https://kuboard.cn/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-persistent-storage/" rel="prev" title="Kubernetes 持久化存储">
+      <i class="fa fa-chevron-left"></i> Kubernetes 持久化存储
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/k8s/k8s-services-networking/" rel="next" title="Kubernetes 服务、负载均衡和网络">
+      Kubernetes 服务、负载均衡和网络 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ConfigMap"><span class="nav-number">1.</span> <span class="nav-text">ConfigMap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建ConfigMap"><span class="nav-number">1.1.</span> <span class="nav-text">创建ConfigMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过YAML配置文件方式创建"><span class="nav-number">1.2.</span> <span class="nav-text">通过YAML配置文件方式创建</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通过kubectl命令行方式创建"><span class="nav-number">2.</span> <span class="nav-text">通过kubectl命令行方式创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用ConfigMap"><span class="nav-number">3.</span> <span class="nav-text">使用ConfigMap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通过环境变量方式使用ConfigMap"><span class="nav-number">3.1.</span> <span class="nav-text">通过环境变量方式使用ConfigMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过VolumeMount使用ConfigMap"><span class="nav-number">3.2.</span> <span class="nav-text">通过VolumeMount使用ConfigMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用ConfigMap的限制条件"><span class="nav-number">3.3.</span> <span class="nav-text">使用ConfigMap的限制条件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用私有仓库中的docker镜像"><span class="nav-number">4.</span> <span class="nav-text">使用私有仓库中的docker镜像</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前提假设"><span class="nav-number">4.1.</span> <span class="nav-text">前提假设</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#亲和性与反亲和性"><span class="nav-number">5.</span> <span class="nav-text">亲和性与反亲和性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#节点亲和性"><span class="nav-number">5.1.</span> <span class="nav-text">节点亲和性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pod亲和性与反亲和性"><span class="nav-number">5.2.</span> <span class="nav-text">Pod亲和性与反亲和性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pod-affinity-的一个例子"><span class="nav-number">5.2.1.</span> <span class="nav-text">pod affinity 的一个例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更多实用的例子"><span class="nav-number">5.2.2.</span> <span class="nav-text">更多实用的例子</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#始终在同一个节点"><span class="nav-number">5.2.2.1.</span> <span class="nav-text">始终在同一个节点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#始终不在相同的节点上"><span class="nav-number">5.2.2.2.</span> <span class="nav-text">始终不在相同的节点上</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#污点和容忍"><span class="nav-number">6.</span> <span class="nav-text">污点和容忍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">6.1.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#向节点添加污点"><span class="nav-number">6.1.1.</span> <span class="nav-text">向节点添加污点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#向-Pod-添加容忍"><span class="nav-number">6.1.2.</span> <span class="nav-text">向 Pod 添加容忍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#污点与容忍的匹配"><span class="nav-number">6.1.3.</span> <span class="nav-text">污点与容忍的匹配</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用案例"><span class="nav-number">6.2.</span> <span class="nav-text">使用案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于污点的驱逐（TaintBasedEviction）"><span class="nav-number">6.2.1.</span> <span class="nav-text">基于污点的驱逐（TaintBasedEviction）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#条件化的污点（TaintNodesByCondition）"><span class="nav-number">6.3.</span> <span class="nav-text">条件化的污点（TaintNodesByCondition）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Secret"><span class="nav-number">7.</span> <span class="nav-text">Secret</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Secret概述"><span class="nav-number">7.1.</span> <span class="nav-text">Secret概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#内建Secret"><span class="nav-number">7.1.1.</span> <span class="nav-text">内建Secret</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解码和编辑"><span class="nav-number">7.1.2.</span> <span class="nav-text">解码和编辑</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Secret（使用kubectl）"><span class="nav-number">7.2.</span> <span class="nav-text">创建Secret（使用kubectl）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Secret（手动）"><span class="nav-number">7.3.</span> <span class="nav-text">创建Secret（手动）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#在-yaml-中定义-data"><span class="nav-number">7.3.1.</span> <span class="nav-text">在 yaml 中定义 data</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在-yaml-中定义-stringData"><span class="nav-number">7.3.2.</span> <span class="nav-text">在 yaml 中定义 stringData</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同时定义了-data-和-stringData"><span class="nav-number">7.3.3.</span> <span class="nav-text">同时定义了 data 和 stringData</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#将配置文件存入-Secret"><span class="nav-number">7.3.4.</span> <span class="nav-text">将配置文件存入 Secret</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Secret（使用Generator）"><span class="nav-number">7.4.</span> <span class="nav-text">创建Secret（使用Generator）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#从文件生成-Secret"><span class="nav-number">7.4.1.</span> <span class="nav-text">从文件生成 Secret</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#从明文生成-Secret"><span class="nav-number">7.4.2.</span> <span class="nav-text">从明文生成 Secret</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解码和编辑Secret"><span class="nav-number">7.5.</span> <span class="nav-text">解码和编辑Secret</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#解码Secret"><span class="nav-number">7.5.1.</span> <span class="nav-text">解码Secret</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编辑Secret"><span class="nav-number">7.5.2.</span> <span class="nav-text">编辑Secret</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Security-Context"><span class="nav-number">8.</span> <span class="nav-text">Security Context</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述-1"><span class="nav-number">8.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为Pod设置Security-Context"><span class="nav-number">8.2.</span> <span class="nav-text">为Pod设置Security Context</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pod示例"><span class="nav-number">9.</span> <span class="nav-text">Pod示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行Pod示例"><span class="nav-number">10.</span> <span class="nav-text">执行Pod示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#为容器设置Security-Context"><span class="nav-number">10.1.</span> <span class="nav-text">为容器设置Security Context</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为容器设置Linux-Capabilities"><span class="nav-number">10.2.</span> <span class="nav-text">为容器设置Linux Capabilities</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#无capabilities字段时"><span class="nav-number">10.2.1.</span> <span class="nav-text">无capabilities字段时</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#有capabilities字段时"><span class="nav-number">10.2.2.</span> <span class="nav-text">有capabilities字段时</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为容器设置SELinux标签"><span class="nav-number">10.3.</span> <span class="nav-text">为容器设置SELinux标签</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于数据卷"><span class="nav-number">10.4.</span> <span class="nav-text">关于数据卷</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pod-优先权"><span class="nav-number">11.</span> <span class="nav-text">Pod 优先权</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Pod优先权"><span class="nav-number">11.1.</span> <span class="nav-text">使用Pod优先权</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何禁用-preemtion"><span class="nav-number">11.2.</span> <span class="nav-text">如何禁用 preemtion</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">12.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

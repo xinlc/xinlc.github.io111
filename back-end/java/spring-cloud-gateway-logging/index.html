@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="请求响应日志是在日常开发调试定位问题的重要手段之一，引入网关后一般我们会在网关做统一请求日志处理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud Gateway 之 请求响应日志打印过滤器">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/java/spring-cloud-gateway-logging/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="请求响应日志是在日常开发调试定位问题的重要手段之一，引入网关后一般我们会在网关做统一请求日志处理。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-03T13:46:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.387Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="MicroServices">
+<meta property="article:tag" content="SpringCloud">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/java/spring-cloud-gateway-logging/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Spring Cloud Gateway 之 请求响应日志打印过滤器 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/java/spring-cloud-gateway-logging/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Cloud Gateway 之 请求响应日志打印过滤器
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-03 13:46:00" itemprop="dateCreated datePublished" datetime="2020-03-03T13:46:00+00:00">2020-03-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>请求响应日志是在日常开发调试定位问题的重要手段之一，引入网关后一般我们会在网关做统一请求日志处理。</p>
+<a id="more"></a>
+
+<h2 id="干货"><a href="#干货" class="headerlink" title="干货"></a>干货</h2><p>没想到记录个日志坑这么多，主要参考 <code>org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory</code> 解决 Request Body 只能消费一次问题；DataBufferFactory 解决响应体分段传输问题。</p>
+<p>参照此思路也可实现加密解密等其他需求。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> lombok.extern.slf4j.Slf4j;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.lang3.StringUtils;</span><br><span class="line"><span class="keyword">import</span> org.reactivestreams.Publisher;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cloud.gateway.filter.GatewayFilterChain;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cloud.gateway.filter.GlobalFilter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cloud.gateway.filter.factory.rewrite.CachedBodyOutputMessage;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cloud.gateway.support.BodyInserterContext;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cloud.gateway.support.ServerWebExchangeUtils;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.Ordered;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.io.buffer.DataBuffer;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.io.buffer.DataBufferFactory;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.io.buffer.DataBufferUtils;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.io.buffer.DefaultDataBufferFactory;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.HttpHeaders;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.HttpStatus;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.MediaType;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.codec.HttpMessageReader;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.server.reactive.ServerHttpRequest;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.server.reactive.ServerHttpRequestDecorator;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.server.reactive.ServerHttpResponse;</span><br><span class="line"><span class="keyword">import</span> org.springframework.http.server.reactive.ServerHttpResponseDecorator;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.reactive.function.BodyInserter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.reactive.function.BodyInserters;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.reactive.function.server.HandlerStrategies;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.reactive.function.server.ServerRequest;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.server.ServerWebExchange;</span><br><span class="line"><span class="keyword">import</span> reactor.core.publisher.Flux;</span><br><span class="line"><span class="keyword">import</span> reactor.core.publisher.Mono;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.nio.charset.StandardCharsets;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.Objects;</span><br><span class="line"><span class="keyword">import</span> java.util.logging.Level;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 访问日志全局过滤器</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> Richard</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020.03.02</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConditionalOnProperty</span>(value = <span class="string">"gateway.log.enable"</span>, matchIfMissing = <span class="keyword">true</span>)</span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AccessLoggingFilter</span> <span class="keyword">implements</span> <span class="title">GlobalFilter</span>, <span class="title">Ordered</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> LogLevel LEVEL = LogLevel.BASIC;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ACCESS_LOGGING_FILTER_ORDER = Ordered.HIGHEST_PRECEDENCE;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String REQUEST_PREFIX = <span class="string">"Request Info: &#123; "</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String REQUEST_TAIL = <span class="string">" &#125;; "</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String RESPONSE_PREFIX = <span class="string">"Response Info: &#123; "</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String RESPONSE_TAIL = <span class="string">" &#125;"</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> List&lt;HttpMessageReader&lt;?&gt;&gt; messageReaders = HandlerStrategies.withDefaults().messageReaders();</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> Mono&lt;Void&gt; <span class="title">filter</span><span class="params">(ServerWebExchange exchange, GatewayFilterChain chain)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">boolean</span> recordBody = shouldRecordReqBodyLog(exchange);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (recordBody) &#123;</span><br><span class="line">			<span class="comment">// 记录 body 日志</span></span><br><span class="line">			<span class="keyword">return</span> recordBodyLog(exchange, chain);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 记录基本日志</span></span><br><span class="line">		<span class="keyword">return</span> recordBasicLog(exchange, chain);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 是否记录 body log</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> exchange</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> 是，否</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">shouldRecordReqBodyLog</span><span class="params">(ServerWebExchange exchange)</span> </span>&#123;</span><br><span class="line">		ServerHttpRequest request = exchange.getRequest();</span><br><span class="line">		log.info(<span class="string">"Request URL:&#123;&#125;"</span>, request.getURI());</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 获取媒体类型，用于判断只记录普通类型日志，过滤如：上传文件类型，xml类型等。</span></span><br><span class="line">		MediaType mediaType = request.getHeaders().getContentType();</span><br><span class="line"></span><br><span class="line">		<span class="comment">// json 或 表单提交打印详细日志</span></span><br><span class="line">		<span class="keyword">boolean</span> recordReqDetailLog = MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)</span><br><span class="line">				|| MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> recordReqDetailLog &amp;&amp; LogLevel.BODY == LEVEL;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 记录基本日志</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> exchange</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> chain</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> Mono&lt;Void&gt; <span class="title">recordBasicLog</span><span class="params">(ServerWebExchange exchange, GatewayFilterChain chain)</span> </span>&#123;</span><br><span class="line">		<span class="comment">// 请求开始时间</span></span><br><span class="line">		<span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 构造日志</span></span><br><span class="line">		StringBuffer logMsg = <span class="keyword">new</span> StringBuffer();</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 记录请求日志</span></span><br><span class="line">		recordRequestBasicLog(exchange, logMsg);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 添加结束请求日志标识</span></span><br><span class="line">		logMsg.append(REQUEST_TAIL);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 记录响应日志</span></span><br><span class="line">		ServerHttpResponseDecorator decoratedResponse = recordResponseLog(exchange, logMsg, startTime);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 记录普通的</span></span><br><span class="line">		<span class="keyword">return</span> chain.filter(exchange.mutate().response(decoratedResponse).build())</span><br><span class="line">				.then(Mono.fromRunnable(() -&gt; &#123;</span><br><span class="line">					<span class="comment">// 打印日志</span></span><br><span class="line">					log.info(logMsg.toString());</span><br><span class="line">				&#125;));</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 记录 body 日志</span></span><br><span class="line"><span class="comment">	 * 解决 request body 只能读取一次问题，参考: org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> exchange</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> chain</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">	<span class="function"><span class="keyword">private</span> Mono&lt;Void&gt; <span class="title">recordBodyLog</span><span class="params">(ServerWebExchange exchange, GatewayFilterChain chain)</span> </span>&#123;</span><br><span class="line">		<span class="comment">// 请求开始时间</span></span><br><span class="line">		<span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 构造日志</span></span><br><span class="line">		StringBuffer logMsg = <span class="keyword">new</span> StringBuffer();</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 记录请求日志</span></span><br><span class="line">		recordRequestBasicLog(exchange, logMsg);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 读取请求体</span></span><br><span class="line">		ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);</span><br><span class="line">		Mono&lt;String&gt; modifiedBody = serverRequest.bodyToMono(String<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line">				// .log("modify_request_mono", Level.INFO)</span><br><span class="line">				.flatMap(body -&gt; &#123;</span><br><span class="line">					<span class="comment">// 拼接记录body</span></span><br><span class="line">					logMsg.append(<span class="string">",body="</span>).append(body);</span><br><span class="line"></span><br><span class="line">					<span class="comment">// 添加结束请求日志标识</span></span><br><span class="line">					logMsg.append(REQUEST_TAIL);</span><br><span class="line">					<span class="keyword">return</span> Mono.just(body);</span><br><span class="line">				&#125;);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 通过 BodyInserter 插入 body(支持修改body), 避免 request body 只能获取一次</span></span><br><span class="line">		BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, String<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">		HttpHeaders headers = <span class="keyword">new</span> HttpHeaders();</span><br><span class="line">		headers.putAll(exchange.getRequest().getHeaders());</span><br><span class="line"></span><br><span class="line">		<span class="comment">// the new content type will be computed by bodyInserter</span></span><br><span class="line">		<span class="comment">// and then set in the request decorator</span></span><br><span class="line">		headers.remove(HttpHeaders.CONTENT_LENGTH);</span><br><span class="line"></span><br><span class="line">		CachedBodyOutputMessage outputMessage = <span class="keyword">new</span> CachedBodyOutputMessage(exchange, headers);</span><br><span class="line">		<span class="keyword">return</span> bodyInserter.insert(outputMessage, <span class="keyword">new</span> BodyInserterContext())</span><br><span class="line"><span class="comment">//				 .log("modify_request", Level.INFO)</span></span><br><span class="line">				.then(Mono.defer(() -&gt; &#123;</span><br><span class="line">					<span class="comment">// 重新封装请求</span></span><br><span class="line">					ServerHttpRequest decorator = requestDecorate(exchange, headers, outputMessage);</span><br><span class="line"></span><br><span class="line">					<span class="comment">// 记录响应日志</span></span><br><span class="line">					ServerHttpResponseDecorator decoratedResponse = recordResponseLog(exchange, logMsg, startTime);</span><br><span class="line"></span><br><span class="line">					<span class="keyword">return</span> chain.filter(exchange.mutate().request(decorator).response(decoratedResponse).build())</span><br><span class="line">							.then(Mono.fromRunnable(() -&gt; &#123;</span><br><span class="line">								<span class="comment">// 打印日志</span></span><br><span class="line">								log.info(logMsg.toString());</span><br><span class="line">							&#125;));</span><br><span class="line">				&#125;));</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 记录请求基本日志</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> exchange</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> logMsg</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">recordRequestBasicLog</span><span class="params">(ServerWebExchange exchange, StringBuffer logMsg)</span> </span>&#123;</span><br><span class="line">		ServerHttpRequest request = exchange.getRequest();</span><br><span class="line">		InetSocketAddress address = request.getRemoteAddress();</span><br><span class="line">		HttpHeaders headers = request.getHeaders();</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 记录基本参数</span></span><br><span class="line">		logMsg.append(REQUEST_PREFIX);</span><br><span class="line">		logMsg.append(<span class="string">"path="</span>).append(request.getPath());</span><br><span class="line">		logMsg.append(<span class="string">",method="</span>).append(request.getMethodValue());</span><br><span class="line">		logMsg.append(<span class="string">",header="</span>).append(headers);</span><br><span class="line">		logMsg.append(<span class="string">",address="</span>).append(address.getHostName() + address.getPort());</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 记录响应日志</span></span><br><span class="line"><span class="comment">	 * 通过 DataBufferFactory 解决响应体分段传输问题。</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> exchange</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> logMsg</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> startTime</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> ServerHttpResponseDecorator <span class="title">recordResponseLog</span><span class="params">(ServerWebExchange exchange, StringBuffer logMsg, <span class="keyword">long</span> startTime)</span> </span>&#123;</span><br><span class="line">		ServerHttpResponse response = exchange.getResponse();</span><br><span class="line">		DataBufferFactory bufferFactory = response.bufferFactory();</span><br><span class="line">		logMsg.append(RESPONSE_PREFIX);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> ServerHttpResponseDecorator(response) &#123;</span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="function"><span class="keyword">public</span> Mono&lt;Void&gt; <span class="title">writeWith</span><span class="params">(Publisher&lt;? extends DataBuffer&gt; body)</span> </span>&#123;</span><br><span class="line">				<span class="keyword">if</span> (body <span class="keyword">instanceof</span> Flux) &#123;</span><br><span class="line">					<span class="comment">// 计算执行时间</span></span><br><span class="line">					<span class="keyword">long</span> executeTime = (System.currentTimeMillis() - startTime);</span><br><span class="line"></span><br><span class="line">					<span class="comment">// 获取响应类型，如果是 json 就打印</span></span><br><span class="line">					String originalResponseContentType = exchange.getAttribute(ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);</span><br><span class="line">					<span class="keyword">if</span> (LogLevel.BODY == LEVEL</span><br><span class="line">							&amp;&amp; Objects.equals(<span class="keyword">this</span>.getStatusCode(), HttpStatus.OK)</span><br><span class="line">							&amp;&amp; StringUtils.isNotBlank(originalResponseContentType)</span><br><span class="line">							&amp;&amp; originalResponseContentType.contains(<span class="string">"application/json"</span>)) &#123;</span><br><span class="line">						Flux&lt;? extends DataBuffer&gt; fluxBody = Flux.from(body);</span><br><span class="line">						<span class="keyword">return</span> <span class="keyword">super</span>.writeWith(fluxBody.buffer().map(dataBuffers -&gt; &#123;</span><br><span class="line"></span><br><span class="line">							<span class="comment">// 合并多个流集合，解决返回体分段传输</span></span><br><span class="line">							DataBufferFactory dataBufferFactory = <span class="keyword">new</span> DefaultDataBufferFactory();</span><br><span class="line">							DataBuffer join = dataBufferFactory.join(dataBuffers);</span><br><span class="line">							<span class="keyword">byte</span>[] content = <span class="keyword">new</span> <span class="keyword">byte</span>[join.readableByteCount()];</span><br><span class="line">							join.read(content);</span><br><span class="line"></span><br><span class="line">							<span class="comment">// 释放掉内存</span></span><br><span class="line">							DataBufferUtils.release(join);</span><br><span class="line">							String responseResult = <span class="keyword">new</span> String(content, StandardCharsets.UTF_8);</span><br><span class="line"></span><br><span class="line">							<span class="comment">// 构造响应日志</span></span><br><span class="line">							logMsg.append(<span class="string">"status="</span>).append(<span class="keyword">this</span>.getStatusCode());</span><br><span class="line">							logMsg.append(<span class="string">",header="</span>).append(<span class="keyword">this</span>.getHeaders());</span><br><span class="line">							logMsg.append(<span class="string">",responseResult="</span>).append(responseResult);</span><br><span class="line">							logMsg.append(<span class="string">",executeTime="</span>).append(executeTime).append(<span class="string">"ms"</span>);</span><br><span class="line">							logMsg.append(RESPONSE_TAIL);</span><br><span class="line"></span><br><span class="line">							<span class="keyword">return</span> bufferFactory.wrap(content);</span><br><span class="line">						&#125;));</span><br><span class="line">					&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">						<span class="comment">// 构造响应日志</span></span><br><span class="line">						logMsg.append(<span class="string">"status="</span>).append(<span class="keyword">this</span>.getStatusCode());</span><br><span class="line">						logMsg.append(<span class="string">",header="</span>).append(<span class="keyword">this</span>.getHeaders());</span><br><span class="line">						logMsg.append(<span class="string">",executeTime="</span>).append(executeTime).append(<span class="string">"ms"</span>);</span><br><span class="line">						logMsg.append(RESPONSE_TAIL);</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// if body is not a flux. never got there.</span></span><br><span class="line">				<span class="keyword">return</span> <span class="keyword">super</span>.writeWith(body);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 请求装饰器，重新计算 headers</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> exchange</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> headers</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> outputMessage</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> ServerHttpRequestDecorator <span class="title">requestDecorate</span><span class="params">(ServerWebExchange exchange, HttpHeaders headers,</span></span></span><br><span class="line"><span class="function"><span class="params">													   CachedBodyOutputMessage outputMessage)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> ServerHttpRequestDecorator(exchange.getRequest()) &#123;</span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="function"><span class="keyword">public</span> HttpHeaders <span class="title">getHeaders</span><span class="params">()</span> </span>&#123;</span><br><span class="line">				<span class="keyword">long</span> contentLength = headers.getContentLength();</span><br><span class="line">				HttpHeaders httpHeaders = <span class="keyword">new</span> HttpHeaders();</span><br><span class="line">				httpHeaders.putAll(<span class="keyword">super</span>.getHeaders());</span><br><span class="line">				<span class="keyword">if</span> (contentLength &gt; <span class="number">0</span>) &#123;</span><br><span class="line">					httpHeaders.setContentLength(contentLength);</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					<span class="comment">// <span class="doctag">TODO:</span> this causes a 'HTTP/1.1 411 Length Required' // on</span></span><br><span class="line">					<span class="comment">// httpbin.org</span></span><br><span class="line">					httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, <span class="string">"chunked"</span>);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> httpHeaders;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="function"><span class="keyword">public</span> Flux&lt;DataBuffer&gt; <span class="title">getBody</span><span class="params">()</span> </span>&#123;</span><br><span class="line">				<span class="keyword">return</span> outputMessage.getBody();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 优先级默认设置为最高</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> ACCESS_LOGGING_FILTER_ORDER;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 日志级别</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">enum</span> LogLevel &#123;</span><br><span class="line">		BASIC,</span><br><span class="line">		BODY;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/spring-cloud/spring-cloud-gateway/issues/47" target="_blank" rel="noopener">https://github.com/spring-cloud/spring-cloud-gateway/issues/47</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MicroServices/" rel="tag"># MicroServices</a>
+              <a href="/tags/SpringCloud/" rel="tag"># SpringCloud</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/java/spring-cloud-zuul/" rel="prev" title="微服务架构之API网关：Spring Cloud Zuul">
+      <i class="fa fa-chevron-left"></i> 微服务架构之API网关：Spring Cloud Zuul
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/java/spring-cloud-oauth2/" rel="next" title="微服务架构之安全认证：Spring Cloud Security OAuth2">
+      微服务架构之安全认证：Spring Cloud Security OAuth2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#干货"><span class="nav-number">1.</span> <span class="nav-text">干货</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">2.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

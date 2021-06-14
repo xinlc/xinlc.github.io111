@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Elasticsearch 搜索 API 整理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重学 Elastic Stack 之 Elasticsearch 搜索API大全">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/big-data/es-10/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Elasticsearch 搜索 API 整理。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-17T15:45:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.379Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="Elastic Stack">
+<meta property="article:tag" content="ES">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/big-data/es-10/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>重学 Elastic Stack 之 Elasticsearch 搜索API大全 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/big-data/es-10/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          重学 Elastic Stack 之 Elasticsearch 搜索API大全
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-17 15:45:00" itemprop="dateCreated datePublished" datetime="2021-02-17T15:45:00+00:00">2021-02-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/BigData/" itemprop="url" rel="index"><span itemprop="name">BigData</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Elasticsearch 搜索 API 整理。</p>
+<a id="more"></a>
+
+<h2 id="query-和-filter-区别"><a href="#query-和-filter-区别" class="headerlink" title="query 和 filter 区别"></a>query 和 filter 区别</h2><p>在正式进入到搜索部分之前，我们需要区分 <code>query</code>（查询）和 <code>filter</code>（过滤）的区别。</p>
+<p>在进行 <code>query</code> 的时候，除了完成匹配的过程，我们实际上在问“这个结果到底有多匹配我们的搜索关键词”。在所有的返回结果的后面都会有一个 <code>_score</code> 字段表示这个结果的匹配程度，也就是<strong>相关性</strong>。相关性越高的结果就越排在前面，相关性越低就越靠后。当两个文档的相关性相同的时候，会根据 lucene 内部的 <code>doc_id</code> 字段来排序，这个字段对于用户是不可见的也不能控制。</p>
+<p>而在进行 <strong>filter</strong> 的时候，仅仅是在问“这个文档符不符合要求”，这仅仅是一个过滤的操作判断文档是否满足我们的筛选要求，不会计算任何的相关性。比如 <code>timestamp</code> 的范围是否在2019和2020之间，<code>status</code> 状态是否是 1 等等。</p>
+<p>在一个查询语句里面可以同时存在 <code>query</code> 和 <code>filter</code>，只不过只有 <code>query</code> 的查询字段会进行相关性 <code>_score</code> 的计算，而 <code>filter</code> 仅仅用来筛选。比如在下面的查询语句里面，只有 <code>title</code> 字段会进行相关性的计算，而下面的 <code>status</code> 只是为了筛选并不会计算相关性。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"must"</span>: [</span><br><span class="line">        &#123;<span class="attr">"match"</span>: &#123;<span class="attr">"title"</span>: <span class="string">"Search"</span>&#125;&#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"filter"</span>: [</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"state"</span>: <span class="number">1</span>&#125;&#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于在实际应用中应该用 <code>query</code> 还是用 <code>filter</code> 需要根据实际的业务场景来看。如果你的产品的搜索只是需要筛选得到最后的搜索结果并不需要 Elasticsearch 的相关性排序（你可能自定义了其他的排序规则），那么使用 <code>filter</code> 就完全能够满足要求并且能够有更好的性能（filter 不需要计算相关性而且会缓存结果）；如果需要考虑文档和搜索词的相关性，那么使用 <code>query</code> 就是最好的选择。</p>
+<h2 id="相关性"><a href="#相关性" class="headerlink" title="相关性"></a>相关性</h2><p>Elasticsearch 的相似度计算主要是利用了全文检索领域的计算标准—— <strong>TF/IDF</strong>（Term Frequency/Inverted Document Frequency）也就是<strong>检索词频率</strong>和<strong>反向文档频率</strong></p>
+<ol>
+<li><strong>TF</strong>（检索词频率）：检索词在这个字段里面出现的频率越高，相关性越高。比如搜索词出现5次肯定比出现1次的文档相关性更高。</li>
+<li><strong>IDF</strong>（反向文档频率）：包含检索词的文档的频率越高，这个检索词的相关性比重越低。如果一个检索词在所有的文档里面都出现了，比如中文的 <code>的</code>，那么这个检索词肯定就不重要，相对应的根据这个检索词匹配的文档的相关性权重应该下降。</li>
+<li><strong>字段长度</strong>：注意这个字段是文档的里面被搜索的字段，不是检索词。如果这个字段的长度越长，相关性就越低。这个主要是因为这个检索词在字段内的重要性降低了，文档就相对来说不那么匹配了。</li>
+</ol>
+<p>在复合查询里面，比如 <code>bool</code> 查询，每个子查询计算出来的评分会根据特定的公式合并到综合评分里面，最后根据这个综合评分来排序。当我们想要修改不同的查询语句的在综合评分里面的比重的时候，可以在查询字段里面添加 <code>boost</code> 参数，这个值是相对于 1 来说的。如果大于 1 则这个查询参数的权重会提高；如果小于 1 ，权重就下降。</p>
+<p>这个评分系统一般是系统默认的，我们可以根据需要定制化我们自己的相关性计算方法，比如通过脚本自定义评分。</p>
+<h2 id="分析器"><a href="#分析器" class="headerlink" title="分析器"></a>分析器</h2><p>分析器是针对 <code>text</code> 字段进行文本分析的工具。文本分析是把非结构化的数据（比如产品描述或者邮件内容）转化成结构化的格式从而提高搜索效率的过程，通常在搜索引擎里面应用的比较多。</p>
+<p><code>text</code> 格式的数据和 <code>keyword</code> 格式的数据在存储和索引的时候差别比较大。<code>keyword</code> 会直接被当成整个字符串保存在文档里面，而 <code>text</code> 格式数据，需要经过分析器解析之后，转化成结构化的文档再保存起来。比如对于 <code>the quick fox</code> 字符串，如果使用 <code>keyword</code> 类型，保存直接就是 <code>the quick fox</code>，使用 <code>the quick fox</code> 作为关键词可以直接匹配，但是使用 <code>the</code> 或者 <code>quick</code> 就不能匹配；但是如果使用 <code>text</code> 保存，那么分析器会把这句话解析成 <code>the</code>、<code>quick</code>、<code>fox</code> 三个 <code>token</code> 进行保存，使用 <code>the quick fox</code> 就无法匹配，但是单独用 <code>the</code>、<code>quick</code>、<code>fox</code> 三个字符串就可以匹配。所以对于<code>text</code> 类型的数据的搜索需要格外注意，如果你的搜索词得不到想要的结果，很有可能是你的搜索语句有问题。</p>
+<p>分析器的工作过程大概分成两步：</p>
+<ol>
+<li><strong>分词</strong>（Tokenization）：根据<strong>停止词</strong>把文本分割成很多的小的 token，比如 <code>the quick fox</code> 会被分成 <code>the</code>、<code>quick</code>、<code>fox</code>，其中的停止词就是空格，还有很多其他的停止词比如&amp;或者#，大多数的标点符号都是停止词</li>
+<li><strong>归一化</strong>（Normalization）：把分隔的token变成统一的形式方便匹配，比如下面几种<ul>
+<li>把单词变成小写，<code>Quick</code> 会变成 <code>quick</code></li>
+<li>提取词干，<code>foxes</code> 变成 <code>fox</code></li>
+<li>合并同义词，<code>jump</code> 和 <code>leap</code> 是同义词，会被统一索引成 <code>jump</code></li>
+</ul>
+</li>
+</ol>
+<p>Elasticsearch 自带了一个分析器，是系统默认的标准分析器，使用标准分词器，大多数情况下都能够有不错的分析效果。用户也可以定义自己的分析器，用于满足不同的业务需求。</p>
+<p>想要知道某个解析器的分析结果，可以直接在ES里面进行分析，执行下面的语句就行了：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">POST /_analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"standard"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"1 Fire's foxes"</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 返回结果</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"1"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">1</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;NUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"fire's"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">2</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">8</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"fox"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">9</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">12</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">2</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回的 <code>tokens</code> 内部就是所有的解析结果，<code>token</code> 表示解析的词语部分，<code>start_offset</code> 和<code>end_offset</code> 分别表示 <code>token</code> 在原 <code>text</code> 内的起始和终止位置，<code>type</code> 表示类型，<code>position</code> 表示这个 token 在整个 tokens 列表里面的位置。</p>
+<p>OK！有了上面的基础知识，就可以进行下面的搜索的介绍了。</p>
+<h2 id="term-搜索"><a href="#term-搜索" class="headerlink" title="term 搜索"></a>term 搜索</h2><p>term 搜索不仅仅可以对 <code>keyword</code> 类型的字段使用，也可以对 <code>text</code> 类型的数据使用，前提是使用的搜索词必须要预先处理一下——不包含停止词并且都是小写（标准解析器），因为文档里面保存的 <code>text</code> 字段分词后的结果，用 <code>term</code> 是可以匹配的。</p>
+<h2 id="term-搜索-exists"><a href="#term-搜索-exists" class="headerlink" title="term 搜索 - exists"></a>term 搜索 - exists</h2><p>返回所有指定字段不为空的文档，比如这个字段对应的值是 <code>null</code> 或者 <code>[]</code> 或者没有为这个字段建立索引。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"exists"</span>: &#123;</span><br><span class="line">      <span class="attr">"field"</span>: <span class="string">"user"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果字段是空字符串 <code>&quot;&quot;</code> 或者包含 <code>null</code> 的数组 <code>[null,&quot;foo&quot;]</code>，都会被当作字段存在。</p>
+<p>这个方法可以用来搜索没有被索引的值或者不存在的值。</p>
+<h2 id="term-搜索-fuzzy"><a href="#term-搜索-fuzzy" class="headerlink" title="term 搜索 - fuzzy"></a>term 搜索 - fuzzy</h2><p>fuzzy 查询是一种模糊查询，会根据检索词和检索字段的<strong>编辑距离</strong>（Levenshtein Distance）来判断是否匹配。一个编辑距离就是对单词进行一个字符的修改，这种修改可能是</p>
+<ul>
+<li>修改一个字符，比如 <code>box</code> 到 <code>fox</code></li>
+<li>删除一个字符，比如 <code>black</code> 到 <code>lack</code></li>
+<li>插入一个字符，比如 <code>sic</code> 到 <code>sick</code></li>
+<li>交换两个相邻的字符的位置，比如 <code>act</code> 到 <code>cat</code></li>
+</ul>
+<p>在进行 fuzzy 搜索的时候，ES 会生成一系列的在特定编辑距离内的变形，然后返回这些变形的准确匹配。默认情况下，当检索词的长度在 <code>0..2</code> 中间时，必须准确匹配；长度在 <code>3..5</code> 之间的时候，编辑距离最大为 <code>1</code>；长度大于 <code>5</code> 的时候，最多允许编辑距离为 <code>2</code>。</p>
+<p>可以通过配置 <code>fuzziness</code> 修改最大编辑距离，<code>max_expansions</code> 修改最多的变形的 <code>token</code> 的数量</p>
+<p>比如搜索是以下条件的时候：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"fuzzy"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"Accha"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回结果有 <code>Iccha</code>、<code>AccHa</code>、<code>accha</code> 还有 <code>ccha</code></p>
+<h2 id="term-搜索-ids"><a href="#term-搜索-ids" class="headerlink" title="term 搜索 - ids"></a>term 搜索 - ids</h2><p>根据文档的 <code>_id</code> 数组返回对应的文档信息</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"ids"</span>: &#123;</span><br><span class="line">      <span class="attr">"values"</span>: [<span class="string">"1"</span>,<span class="string">"4"</span>,<span class="string">"100"</span>]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="term-搜索-prefix"><a href="#term-搜索-prefix" class="headerlink" title="term 搜索 - prefix"></a>term 搜索 - prefix</h2><p>返回所有包含以检索词为前缀的字段的文档。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"prefix"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"ac"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回所有以 <code>ac</code> 开头的字段，比如 <code>acchu</code>、<code>achu</code>、<code>achar</code> 等等</p>
+<p>在某些场景下面比如搜索框里面，需要用户在输入内容的同时也要实时展示与输入内容前缀匹配的搜索结果，就可以使用 prefix 查询。为了加速 prefix 查询，还可以在设置字段映射的时候，使用 <code>index_prefixes</code> 映射。ES 会额外建立一个长度在 2 和 5 之间索引，在进行前缀匹配的时候效率会有很大的提高。</p>
+<h2 id="term-搜索-range"><a href="#term-搜索-range" class="headerlink" title="term 搜索 - range"></a>term 搜索 - range</h2><p>对字段进行范围的匹配。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"range"</span>: &#123;</span><br><span class="line">      <span class="attr">"age"</span>: &#123;</span><br><span class="line">        <span class="attr">"gte"</span>: <span class="number">10</span>,</span><br><span class="line">        <span class="attr">"lte"</span>: <span class="number">20</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>搜索年龄在10（包含）和20（包含）之间的结果</p>
+<h2 id="term-搜索-regexp"><a href="#term-搜索-regexp" class="headerlink" title="term 搜索 - regexp"></a>term 搜索 - regexp</h2><p>正则表达式匹配。通过正则表达式来寻找匹配的字段，<code>lucene</code> 会在搜索的时候生成<strong>有限状态机</strong>，其中包含很多的<strong>状态</strong>，默认的最多状态数量是 10000</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"regexp"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"ac.*ha"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个搜索会匹配 <code>achha</code>、<code>achintha</code> 还有 <code>achutha</code></p>
+<h2 id="term-搜索-term"><a href="#term-搜索-term" class="headerlink" title="term 搜索 - term"></a>term 搜索 - term</h2><p>根据检索词来准确匹配字段。官方文档建议不要用 <code>term</code> 去搜索 <code>text</code> 类型的字段，因为分析器的原因很有可能不会出现你想要的结果。但是直接使用 <code>term</code> 去搜索 <code>text</code> 字段还是可以工作的，前提是明白为什么会返回这些数据。比如通过下面的搜索：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"term"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: &#123;</span><br><span class="line">        <span class="attr">"value"</span>: <span class="string">"accha"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>name</code> 字段是 <code>keyword</code> 类型的，没有进行解析，那么只会匹配所有 <code>name</code> 是 <code>accha</code> 的文档。</p>
+<p>如果 <code>name</code> 字段是 <code>text</code> 类型的，原字段经过分词、小写化处理之后，只能匹配到解析之后的单独 <code>token</code>，比如使用标准解析器，这个搜索会匹配 <code>Accha Baccha</code>、<code>so cute accha baccha</code> 或者<code>Accha Baccha Shivam</code> 等字段。</p>
+<h2 id="term-搜索-terms"><a href="#term-搜索-terms" class="headerlink" title="term 搜索 - terms"></a>term 搜索 - terms</h2><p>根据检索词列表来批量搜索文档，每个检索词在搜索的时候相当于 <code>or</code> 的关系，只要一个匹配就行了。Elasticsearch 最多允许 <code>65536</code> 个 <code>term</code> 同时查询。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"terms"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: [</span><br><span class="line">        <span class="string">"accha"</span>,</span><br><span class="line">        <span class="string">"ghazali"</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的查询会匹配 <code>name</code> 字段为 <code>accha</code> 和 <code>ghazali</code> 的文档。</p>
+<p>除了直接指定查询的 term 列表，还可以使用 <code>Terms lookUp</code> 功能，也就是指定某一个存在的文档的某一个字段（可能是数字、字符串或者列表）来作为搜索条件，进行 terms 搜索。</p>
+<p>比如有一个文件 <code>index</code> 是 <code>my_doc</code>，<code>id</code> 是 <code>10</code>，<code>name</code> 字段是 <code>term</code> 并且值为 <code>accha</code>，搜索可以这样写：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"terms"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: &#123;</span><br><span class="line">        <span class="attr">"index"</span>: <span class="string">"my_doc"</span>,</span><br><span class="line">        <span class="attr">"id"</span>: <span class="string">"10"</span>,</span><br><span class="line">        <span class="attr">"path"</span>: <span class="string">"name"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样就可以返回所有 <code>name</code> 字段值是 <code>accha</code> 的文档里，这个通常可以用来查询所有和某个文档某个字段重复的文档并且不需要提前知道这个字段的值是什么。</p>
+<h2 id="term-搜索-terms-set"><a href="#term-搜索-terms-set" class="headerlink" title="term 搜索 - terms_set"></a>term 搜索 - terms_set</h2><p><code>terms_set</code> 和 <code>terms</code> 十分类似，只不过是多了一个最少需要匹配数量 <code>minimum_should_match_field</code> 参数。当进行匹配的时候，只有至少包含了这么多的 <code>terms</code> 中的 <code>term</code> 的时候，才会返回对应的结果。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"terms_set"</span>: &#123;</span><br><span class="line">      <span class="attr">"programming_languages"</span>: &#123;</span><br><span class="line">        <span class="attr">"terms"</span>: [<span class="string">"c++"</span>,<span class="string">"java"</span>,<span class="string">"php"</span>],</span><br><span class="line">        <span class="attr">"minimum_should_match_field"</span>: <span class="string">"required_match"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"name"</span>:<span class="string">"Jane Smith"</span>,</span><br><span class="line">    <span class="attr">"programming_languages"</span>:[</span><br><span class="line">        <span class="string">"c++"</span>,</span><br><span class="line">        <span class="string">"java"</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">"required_matches"</span>:<span class="number">2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么只有 <code>programming_languages</code> 列表里面至少包含 <code>[&quot;c++&quot;, &quot;java&quot;, &quot;php&quot;]</code> 其中的 2 项才能满足条件</p>
+<p>还可以使用 <code>minimum_should_match_script</code> 脚本来配置动态查询</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"terms_set"</span>: &#123;</span><br><span class="line">      <span class="attr">"programming_languages"</span>: &#123;</span><br><span class="line">        <span class="attr">"terms"</span>: [<span class="string">"c++"</span>,<span class="string">"java"</span>,<span class="string">"php"</span>],</span><br><span class="line">        <span class="attr">"minimum_should_match_script"</span>: &#123;</span><br><span class="line">          <span class="attr">"source"</span>: <span class="string">"Math.min(params.num_terms, doc['required_matches'].value)"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>params.num_terms</code> 是在 <code>terms</code> 字段中的元素的个数</p>
+<h2 id="term-搜索-wildcard"><a href="#term-搜索-wildcard" class="headerlink" title="term 搜索 - wildcard"></a>term 搜索 - wildcard</h2><p>通配符匹配，返回匹配包含通配符的检索词的结果。</p>
+<p>目前只支持两种通配符：</p>
+<ul>
+<li><code>?</code>：匹配任何单一的字符</li>
+<li><code>*</code>：匹配 0 个或者多个字符</li>
+</ul>
+<p>在进行 <code>wildcard</code> 搜索的时候最好避免在检索词的开头使用 <code>*</code> 或者 <code>?</code>，这会降低搜索性能。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"wildcard"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: &#123;</span><br><span class="line">        <span class="attr">"value"</span>: <span class="string">"acc*"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个搜索会匹配 <code>acchu</code>、<code>acche</code> 或者 <code>accio</code> 父</p>
+<h2 id="text-搜索"><a href="#text-搜索" class="headerlink" title="text 搜索"></a>text 搜索</h2><p><code>text</code> 搜索实际上是针对被定义为 <code>text</code> 类型的字段的搜索，通常搜索的时候不能根据输入的字符串的整体来理解，而是要预先处理一下，把搜索词变成小的 token，再来查看每个 token 的匹配。</p>
+<h2 id="text-搜索-interval"><a href="#text-搜索-interval" class="headerlink" title="text 搜索 - interval"></a>text 搜索 - interval</h2><p>返回按照检索词的特定排列顺序排列的文档。这个查询比较复杂，这里只是简单的介绍，详细的介绍可以看<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-intervals-query.html" target="_blank" rel="noopener">官方文档</a></p>
+<p>比如我们想查询同时包含 <code>raj</code> 和 <code>nayaka</code> 的字段并且 <code>ray</code> 正好在 <code>nayaka</code> 前面，查询语句如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"intervals"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: &#123;</span><br><span class="line">        <span class="attr">"match"</span>: &#123;</span><br><span class="line">          <span class="attr">"query"</span>: <span class="string">"raj nayaka"</span>,</span><br><span class="line">          <span class="attr">"max_gaps"</span>: <span class="number">0</span>,</span><br><span class="line">          <span class="attr">"ordered"</span>: <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的查询会匹配 <code>Raj Nayaka Acchu Valmiki</code> 和 <code>Yateesh Raj Nayaka</code>。</p>
+<p>如果把 <code>ordered:true</code> 去掉，就会匹配 <code>nayaka raj</code>。</p>
+<p>如果把 <code>max_gaps:0</code> 去掉，系统会用默认值 <code>-1</code> 也就是没有距离要求，就会匹配 <code>Raj Raja nayaka</code> 或者 <code>Raj Kumar Nayaka</code></p>
+<p>其中有两个关键词 <code>ordered</code> 和 <code>max_gaps</code> 分别用来控制这个筛选条件是否需要排序以及两个 <code>token</code> 之间的最大间隔</p>
+<h2 id="text-搜索-match"><a href="#text-搜索-match" class="headerlink" title="text 搜索 - match"></a>text 搜索 - match</h2><p>查找和检索词短语匹配的文档，这些检索词在进行搜索之前会先被分析器解析，检索词可以是文本、数字、日期或者布尔值。match 检索也可以进行模糊匹配。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"nagesh acchu"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上的查询会匹配 <code>NaGesh Acchu</code>、<code>Acchu Acchu</code> 和 <code>acchu</code>。系统默认是在分词后匹配任何一个<code>token</code> 都可以完成匹配，如果修改 <code>operator</code> 为 <code>AND</code>，则会匹配同时包含 <code>nagesh</code> 和 <code>acchu</code> 的字段。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"nagesh acchu"</span>,</span><br><span class="line">        <span class="attr">"operator"</span>: <span class="string">"and"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这个查询就只会返回 <code>NaGesh Acchu</code></p>
+<p>查询的时候也可以使用模糊查询，修改 <code>fuzziness</code> 参数</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"nagesh acchu"</span>,</span><br><span class="line">        <span class="attr">"operator"</span>: <span class="string">"and"</span>,</span><br><span class="line">        <span class="attr">"fuzziness"</span>: <span class="number">1</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的语句会匹配 <code>NaGesh Acchu</code> 还有 <code>Nagesh Bacchu</code></p>
+<h2 id="text-搜索-match-bool-prefix"><a href="#text-搜索-match-bool-prefix" class="headerlink" title="text 搜索 - match_bool_prefix"></a>text 搜索 - match_bool_prefix</h2><p><code>match_bool_prefix</code> 会解析检索词，然后生成一个 <code>bool</code> 复合检索语句。如果检索词由很多个 <code>token</code> 构成，除了最后一个会进行 <code>prefix</code> 匹配，其他的会进行 <code>term</code> 匹配。</p>
+<p>比如使用 <code>nagesh ac</code> 进行 <code>match_bool_prefix</code> 搜索</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match_bool_prefix"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"nagesh ac"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的查询会匹配 <code>Nagesh Nagesh</code>、<code>Rakshith Achar</code> 或者 <code>ACoco</code></p>
+<p>实际查询等价于</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"should"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"term"</span>: &#123;</span><br><span class="line">            <span class="attr">"name"</span>: &#123;</span><br><span class="line">              <span class="attr">"value"</span>: <span class="string">"nagesh"</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"prefix"</span>: &#123;</span><br><span class="line">            <span class="attr">"name"</span>: &#123;</span><br><span class="line">              <span class="attr">"value"</span>: <span class="string">"ac"</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="text-搜索-match-phrase"><a href="#text-搜索-match-phrase" class="headerlink" title="text 搜索 - match_phrase"></a>text 搜索 - match_phrase</h2><p>词组匹配会先解析检索词，并且标注出每个的 token 相对位置，搜索匹配的字段的必须包含所有的检索词的token，并且他们的相对位置也要和检索词里面相同。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match_phrase"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"Bade Acche"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个搜索会匹配 <code>Bade Acche Lagte</code>，但是不会匹配 <code>Acche Bade Lagte</code> 或者 <code>Bade Lagte Acche</code>。</p>
+<p>如果我们不要求这两个单词相邻，希望放松一点条件，可以添加 <code>slop</code> 参数，比如设置成 <code>1</code>，代表两个 token 之间相隔的最多的距离（最多需要移动多少次才能相邻）。下面的查询语句会匹配 <code>Bade Lagte Acche</code></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match_phrase"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"Bade Acche"</span>,</span><br><span class="line">        <span class="attr">"slop"</span>: <span class="number">1</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="text-搜索-match-phrase-prefix"><a href="#text-搜索-match-phrase-prefix" class="headerlink" title="text 搜索 - match_phrase_prefix"></a>text 搜索 - match_phrase_prefix</h2><p>match_phrase_prefix 相当于是结合了 <code>match_bool_prefix</code> 和 <code>match_phrase</code>。ES 会先解析检索词，分成很多个 token，然后除去最后一个 token，对其他的 token 进行 match_phrase 的匹配，即全部都要匹配并且相对位置相同；对于最后一个 token，需要进行前缀匹配并且匹配的这个单词在前面的 match_phrase 匹配的结果的后面。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match_phrase_prefix"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"acchu ac"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的查询能够匹配 <code>Acchu Acchu1</code> 和 <code>Acchu Acchu Papu</code>，但是不能匹配 <code>acc acchu</code> 或者<code>acchu pa</code></p>
+<h2 id="text-搜索-multi-match"><a href="#text-搜索-multi-match" class="headerlink" title="text 搜索 - multi_match"></a>text 搜索 - multi_match</h2><p><code>multi_match</code> 可以同时对多个字段进行查询匹配，ES支持很多种不同的查询类型比如 <code>best_fields</code>（任何字段 <code>match</code> 检索词都表示匹配成功）、<code>phrase</code>（用 <code>match_phrase</code> 代替 <code>match</code>）还有<code>cross_field</code>（交叉匹配，通常用在所有的 token 必须在至少一个字段中出现）等等</p>
+<p>下面是普通的 <code>best_fields</code> 的匹配</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"multi_match"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"acchu"</span>,</span><br><span class="line">      <span class="attr">"fields"</span>: [</span><br><span class="line">        <span class="string">"name"</span>,</span><br><span class="line">        <span class="string">"intro"</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只要 <code>name</code> 或者 <code>intro</code> 字段任何一个包含 <code>acchu</code> 都会完成匹配。</p>
+<p>如果使用 <code>cross_fields</code> 匹配如下</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"multi_match"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"call acchu"</span>,</span><br><span class="line">      <span class="attr">"type"</span>: <span class="string">"cross_fields"</span>,</span><br><span class="line">      <span class="attr">"fields"</span>: [</span><br><span class="line">        <span class="string">"name"</span>,</span><br><span class="line">        <span class="string">"intro"</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"operator"</span>: <span class="string">"and"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的匹配需要同时满足下面两个条件:</p>
+<ul>
+<li><code>name</code> 中出现 <code>call</code> 或 <code>intro</code> 中出现 <code>call</code></li>
+<li><code>name</code> 中出现 <code>acchu</code> 或 <code>intro</code> 中出现 <code>acchu</code></li>
+</ul>
+<p>所以这个查询能够匹配 <code>name</code> 包含 <code>acchu</code> 和 <code>intro</code> 包含 <code>call</code> 的文档，或者匹配 <code>name</code> 同时包含 <code>call</code> 和 <code>acchu</code> 的文档。</p>
+<h2 id="text-搜索-common"><a href="#text-搜索-common" class="headerlink" title="text 搜索 - common"></a>text 搜索 - common</h2><p>common 查询会把查询语句分成两个部分，较为重要的分为一个部分（这个部分的 token 通常在文章中出现频率比较低），不那么重要的为一个部分（出现频率比较高，以前可能被当作停止词），然后分别用<code>low_freq_operator</code>、<code>high_freq_operator</code> 以及 <code>minimum_should_match</code> 来控制这些语句的表现。</p>
+<p>在进行查询之前需要指定一个区分高频和低频词的分界点，也就是 <code>cutoff_frequency</code>，它既可以是小数比如<code>0.001</code> 代表该字段所有的 token 的集合里面出现的频率也可以是大于 <code>1</code> 的整数代表这个词出现的次数。当 token 的频率高于这一个阈值的时候，他就会被当作高频词。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"common"</span>: &#123;</span><br><span class="line">      <span class="attr">"body"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"nelly the elephant as a cartoon"</span>,</span><br><span class="line">        <span class="attr">"cutoff_frequency"</span>: <span class="number">0.001</span>,</span><br><span class="line">        <span class="attr">"low_freq_operator"</span>: <span class="string">"and"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中高频词是 <code>the</code>、<code>a</code> 和 <code>as</code> ，低频词是 <code>nelly</code>、<code>elephant</code> 和 <code>cartoon</code>，上面的搜索大致等价于下面的查询</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"must"</span>: [</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"body"</span>: <span class="string">"nelly"</span>&#125;&#125;,</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"body"</span>: <span class="string">"elephant"</span>&#125;&#125;,</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"body"</span>: <span class="string">"cartoon"</span>&#125;&#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"should"</span>: [</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"body"</span>: <span class="string">"the"</span>&#125;&#125;,</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"body"</span>: <span class="string">"as"</span>&#125;&#125;,</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"body"</span>: <span class="string">"a"</span>&#125;&#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是第一个查询的效率要优于第二个，因为 <code>common</code> 语句有性能上的优化，只有重要的 <code>token</code> 匹配之后的文档，才会在不重要的文档的查询时候计算 <code>_score</code>；不重要的 token 在查询的时候不会计算 <code>_score</code></p>
+<h2 id="text-搜索-query-string"><a href="#text-搜索-query-string" class="headerlink" title="text 搜索 - query_string"></a>text 搜索 - query_string</h2><p>输入一个查询语句，返回和这个查询语句匹配的所有的文档。</p>
+<p>这个查询语句不是简单的检索词，而是包含特定语法的的搜索语句，里面包含操作符比如 <code>AND</code> 和 <code>OR</code>，在进行查询之前会被一个语法解析器解析，转化成可以执行的搜索语句进行搜索。用户可以生成一个特别复杂的查询语句，里面可能包含通配符、多字段匹配等等。在搜索之前 ES 会检查查询语句的语法，如果有语法错误会直接报错。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"query_string"</span>: &#123;</span><br><span class="line">      <span class="attr">"default_field"</span>: <span class="string">"name"</span>,</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"acchu AND nagesh"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的查询会匹配所有的同时包含 <code>acchu</code> 和 <code>nagesh</code> 的结果。简化一下可以这样写：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"query_string"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"name: acchu AND nagesh"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>query_string 里面还支持更加复杂的写法：</p>
+<ul>
+<li><code>name: acchu nagesh</code>：查询 <code>name</code> 包含 <code>acchu</code> 和 <code>nagesh</code> 其中的任意一个</li>
+<li><code>book.\*:(quick OR brown)</code>：<code>book</code> 的任何子字段比如 <code>book.title</code> 和 <code>book.content</code>，包含 <code>quick</code> 或者 <code>brown</code></li>
+<li><code>_exists_: title</code>：<code>title</code> 字段包含非 <code>null</code> 值</li>
+<li><code>name: acch*</code>：通配符，匹配任何 <code>acch</code> 开头的字段</li>
+<li><code>name:/joh?n(ath[oa]n)/</code>：正则表达式，需要把内容放到两个斜杠 <code>/</code> 中间</li>
+<li><code>name: acch~</code>：模糊匹配，默认编辑距离为 2，不过80%的情况编辑距离为1就能解决问题 <code>name: acch~1</code></li>
+<li><code>count:[1 TO 5]</code>：范围查询，或者 <code>count: &gt;10</code></li>
+</ul>
+<p>下面的查询允许匹配多个字段，字段之间时 <code>OR</code> 的关系</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"query_string"</span>: &#123;</span><br><span class="line">      <span class="attr">"fields"</span>: [</span><br><span class="line">        <span class="string">"name"</span>,</span><br><span class="line">        <span class="string">"intro"</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"nagesh"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="text-搜索-simple-query-string"><a href="#text-搜索-simple-query-string" class="headerlink" title="text 搜索 - simple_query_string"></a>text 搜索 - simple_query_string</h2><p>和上面的 <code>query_string</code> 类似，但是使用了更加简单的语法。使用了下面的操作符：</p>
+<ul>
+<li><code>+</code> 表示 <code>AND</code> 操作</li>
+<li><code>|</code> 表示 <code>OR</code> 操作</li>
+<li><code>-</code> 表示否定</li>
+<li><code>&quot;</code> 用于圈定一个短语</li>
+<li><code>*</code> 放在 token 的后面表示前缀匹配</li>
+<li><code>()</code> 表示优先级</li>
+<li><code>~N</code> 放在 token 后面表示模糊查询的最大编辑距离 <code>fuzziness</code></li>
+<li><code>~N</code> 放在 phrase 后面表示模糊匹配短语的 <code>slop</code> 值</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"simple_query_string"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"acch* + foll~2 + -Karen"</span>,</span><br><span class="line">      <span class="attr">"fields"</span>: [</span><br><span class="line">        <span class="string">"intro"</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的搜索相当于搜索包含前缀为 <code>acch</code> 的、和 <code>foll</code> 编辑距离最大是 <code>2</code> 的并且不包含 <code>Karen</code> 的字段，这样的语句会匹配 <code>call me acchu</code> 或者 <code>acchu follow me</code></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Elasticsearch 提供了强大的搜索功能，使用 <code>query</code> 匹配可以进行相关性的计算排序但是 <code>filter</code> 可能更加适用于大多数的过滤查询的情况，如果用户对于标准解析器不太满意可以自定义解析器或者第三方解析器比如支持中文的 <code>IK</code> 解析器。</p>
+<p>在进行搜索的时候一定要注意搜索 <code>keyword</code> 和 <code>text</code> 字段时候的区别，使用 <code>term</code> 相关的查询只能匹配单个的 <code>token</code> 但是使用 <code>text</code> 相关的搜索可以利用前面的 <code>term</code> 搜索进行组合查询，<code>text</code> 搜索更加灵活强大，但是性能相对差一点。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《Elasticsearch核心技术与实战》</li>
+<li><a href="https://www.cnblogs.com/sunshuyi/p/12716828.html" target="_blank" rel="noopener">https://www.cnblogs.com/sunshuyi/p/12716828.html</a></li>
+<li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/full-text-queries.html" target="_blank" rel="noopener">https://www.elastic.co/guide/en/elasticsearch/reference/current/full-text-queries.html</a></li>
+<li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/term-level-queries.html" target="_blank" rel="noopener">https://www.elastic.co/guide/en/elasticsearch/reference/current/term-level-queries.html</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Elastic-Stack/" rel="tag"># Elastic Stack</a>
+              <a href="/tags/ES/" rel="tag"># ES</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/big-data/flink-sql-cdc/" rel="prev" title="基于 Flink SQL CDC 的实时数据同步方案">
+      <i class="fa fa-chevron-left"></i> 基于 Flink SQL CDC 的实时数据同步方案
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/java/jackson/" rel="next" title="Jackson 使用详解">
+      Jackson 使用详解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#query-和-filter-区别"><span class="nav-number">1.</span> <span class="nav-text">query 和 filter 区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关性"><span class="nav-number">2.</span> <span class="nav-text">相关性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分析器"><span class="nav-number">3.</span> <span class="nav-text">分析器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索"><span class="nav-number">4.</span> <span class="nav-text">term 搜索</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-exists"><span class="nav-number">5.</span> <span class="nav-text">term 搜索 - exists</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-fuzzy"><span class="nav-number">6.</span> <span class="nav-text">term 搜索 - fuzzy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-ids"><span class="nav-number">7.</span> <span class="nav-text">term 搜索 - ids</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-prefix"><span class="nav-number">8.</span> <span class="nav-text">term 搜索 - prefix</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-range"><span class="nav-number">9.</span> <span class="nav-text">term 搜索 - range</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-regexp"><span class="nav-number">10.</span> <span class="nav-text">term 搜索 - regexp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-term"><span class="nav-number">11.</span> <span class="nav-text">term 搜索 - term</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-terms"><span class="nav-number">12.</span> <span class="nav-text">term 搜索 - terms</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-terms-set"><span class="nav-number">13.</span> <span class="nav-text">term 搜索 - terms_set</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#term-搜索-wildcard"><span class="nav-number">14.</span> <span class="nav-text">term 搜索 - wildcard</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索"><span class="nav-number">15.</span> <span class="nav-text">text 搜索</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-interval"><span class="nav-number">16.</span> <span class="nav-text">text 搜索 - interval</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-match"><span class="nav-number">17.</span> <span class="nav-text">text 搜索 - match</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-match-bool-prefix"><span class="nav-number">18.</span> <span class="nav-text">text 搜索 - match_bool_prefix</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-match-phrase"><span class="nav-number">19.</span> <span class="nav-text">text 搜索 - match_phrase</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-match-phrase-prefix"><span class="nav-number">20.</span> <span class="nav-text">text 搜索 - match_phrase_prefix</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-multi-match"><span class="nav-number">21.</span> <span class="nav-text">text 搜索 - multi_match</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-common"><span class="nav-number">22.</span> <span class="nav-text">text 搜索 - common</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-query-string"><span class="nav-number">23.</span> <span class="nav-text">text 搜索 - query_string</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#text-搜索-simple-query-string"><span class="nav-number">24.</span> <span class="nav-text">text 搜索 - simple_query_string</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">25.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">26.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

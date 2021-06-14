@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="2017 年终总结光阴荏苒，不知不觉中，2017 年已接近尾声。总结写的晚了些，但还好春节还没过 [手动滑稽]。 工作2017 年我主要负责餐饮圈 APP，餐饮圈微信小程序和餐饮帮微信公众号前端的研发。 架构的变化这一年项目架构变化很大，最初只用react-native。现在的架构react-native + redux + redux-saga。react-native为展现层，负责数据渲染。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2017年总结">
+<meta property="og:url" content="https://blog.lichao.xin/life/2017-summary/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="2017 年终总结光阴荏苒，不知不觉中，2017 年已接近尾声。总结写的晚了些，但还好春节还没过 [手动滑稽]。 工作2017 年我主要负责餐饮圈 APP，餐饮圈微信小程序和餐饮帮微信公众号前端的研发。 架构的变化这一年项目架构变化很大，最初只用react-native。现在的架构react-native + redux + redux-saga。react-native为展现层，负责数据渲染。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-07T18:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.399Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="summary">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/life/2017-summary/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>2017年总结 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/life/2017-summary/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          2017年总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-07 18:00:00" itemprop="dateCreated datePublished" datetime="2018-02-07T18:00:00+00:00">2018-02-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Life/" itemprop="url" rel="index"><span itemprop="name">Life</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="2017-年终总结"><a href="#2017-年终总结" class="headerlink" title="2017 年终总结"></a>2017 年终总结</h2><p>光阴荏苒，不知不觉中，2017 年已接近尾声。总结写的晚了些，但还好春节还没过 [手动滑稽]。</p>
+<h2 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h2><p>2017 年我主要负责<a href="https://www.cyqapp.com" target="_blank" rel="noopener">餐饮圈 APP</a>，餐饮圈微信小程序和餐饮帮微信公众号前端的研发。</p>
+<h3 id="架构的变化"><a href="#架构的变化" class="headerlink" title="架构的变化"></a>架构的变化</h3><p>这一年项目架构变化很大，最初只用<code>react-native</code>。<br>现在的架构<code>react-native</code> + <code>redux</code> + <code>redux-saga</code>。<code>react-native</code>为展现层，负责数据渲染。 <code>redux</code>为数据层，负责状态管理。<code>redux-saga</code>为控制层，负责业务逻辑处理。</p>
+<p>App 从一个<code>bundle</code>拆分为多个<code>bundle</code>打包，从而实现动态加载模块首屏启动更快和热更新模块。</p>
+<a id="more"></a>
+
+<p>统一技术栈，之前有部分项目使用<code>Vue.js</code>开发。虽然<code>Vue.js</code>也很好用，但为了给以后进来的小伙伴减轻学习成本（其实是不想每次做 vue 项目时都要转换思维），我们决定用<code>React</code>重写，现在来看是非常明智的决定。</p>
+<h3 id="不足之处"><a href="#不足之处" class="headerlink" title="不足之处"></a>不足之处</h3><ul>
+<li>项目没有做自动化测试，测试力度不够，每次迭代上线前都会出现一些小 bug。</li>
+<li>交互体验不够好，UI 细节处理不到位。由于项目换了主题 UI 库，旧页面没有更替新 UI 库，导致页面主题不一致。</li>
+<li>部分第三方组件库和自己写的组件没有剥离出来。</li>
+</ul>
+<h3 id="额外的产出"><a href="#额外的产出" class="headerlink" title="额外的产出"></a>额外的产出</h3><ul>
+<li><a href="https://github.com/xinlc/react-template" target="_blank" rel="noopener">react-template</a> 基于 react + redux + saga 的 Web 端开发框架模板。</li>
+<li><a href="https://github.com/xinlc/react-admin-template" target="_blank" rel="noopener">react-admin-template</a> 企业信息管平台前端 UI 框架模板。</li>
+<li><a href="https://github.com/can-yin-quan/antd-mobile-cyq" target="_blank" rel="noopener">主题 UI 库</a> 基于开源 UI 库定制的餐饮圈主题。</li>
+</ul>
+<h3 id="深刻反省"><a href="#深刻反省" class="headerlink" title="深刻反省"></a>深刻反省</h3><p>年底<a href="https://www.cyqapp.com" target="_blank" rel="noopener">餐饮圈 APP</a>上线了短视频功能。<br>在做了一圈技术调研决定用<code>大厂某牛</code>的短视频服务，迭代快完成时发现 SDK 有 bug，没事我爱 bug。通过客服了解到使用 SDK 要收取巨额授权费，What？（官方文档并没有 SDK 要收费的字眼，此时内心有一万只羊驼在奔腾）没有办法只能换服务平台。<br>由于我的疏忽导致这次迭代延期上线。此次事件让我深刻认识到自己工作经验的不足，做事考虑不周全，此类事件绝不再犯！！！</p>
+<h2 id="技术"><a href="#技术" class="headerlink" title="技术"></a>技术</h2><p>2017 年是我技术成长最快的一年，这离不开同事的帮助，真心感谢所有的同事。</p>
+<ul>
+<li>17 年微信小程序可是如火如荼，<code>餐饮圈</code>微信小程序第一版研发只用了两周时间，给 Team 点个赞。</li>
+<li>熟练使用<code>Vim</code>进行开发，此乃成神之路重要武器。<a href="/tools/vim/#vim%E7%90%86%E8%A7%A3">助你飞升</a></li>
+<li>了解并能使用<code>TypeScript</code>开发组件。</li>
+<li>掌握了新语言<code>Python</code> 并了解<code>Django</code>和<code>Scrapy</code>框架。</li>
+<li>掌握了<code>Docker</code>容器技术，对<code>微服务架构</code>也有一定的了解。</li>
+</ul>
+<h2 id="学习"><a href="#学习" class="headerlink" title="学习"></a>学习</h2><p>学无止境，只有通过不断学习，不断提高，才能让自己在日新月异的时代不被淘汰。<br>2017 年买了很多书，真正读完的只有几本：<br>《微服务设计》、《Python 核心编程（第三版）》、《Head First 设计模式》、《编码：隐匿在计算机背后的语言》、《数学之美（第二版）》、《编程珠玑（一）》、《自控力》、《乌合之众》。</p>
+<p>胸有诗书气自华，读书让我获益无穷，虽然《编程珠玑》没有看懂[一脸懵逼]，打算学学算法再重看一遍。</p>
+<p>就在写总结的时候，手机收到一条通知：</p>
+<blockquote>
+<p>React 16.3 即将发布，正式引入了 Context API。有了它，实际上不需要 Redux 或其他全局状态管理库了。没了 Redux 那一套 API，应用的复杂度可以降一个等级。<br><a href="https://medium.com/@baphemot/whats-new-in-react-16-3-d2c9b7b6193b" target="_blank" rel="noopener">link</a></p>
+</blockquote>
+<p>奋斗吧少年！</p>
+<blockquote>
+<p>I never took a day off in my 20’s. not one. —— Bill Gates</p>
+</blockquote>
+<h2 id="生活"><a href="#生活" class="headerlink" title="生活"></a>生活</h2><p>往年生活没有太大变化，吃饭、睡觉、敲代码。但今年获得一项新技能<code>基金理财</code>，希望 18 年能发大财哈哈。<code>梦想还是要有的，万一实现了呢？</code> 然后就还是一个人，不想说了……</p>
+<h2 id="展望"><a href="#展望" class="headerlink" title="展望"></a>展望</h2><p>代码虐我千百遍，我待代码如初恋。2018 年希望自己技术能力得到更高的提升，先定几个小目标：</p>
+<ul>
+<li>掌握前端自动化测试相关技术，测试很重要！测试很重要！测试很重要！重要的事情说三遍。</li>
+<li>学习<code>Objective-C</code>或<code>Swift</code>，虽然 OC 语法很恶，还是想挑战下自己。</li>
+<li>学习新世纪的语言<code>Go</code>语言，进军后端，成为全栈攻城狮。</li>
+<li>最少阅读五本技术类书籍。</li>
+<li>写出的代码无<code>bug</code>[哈哈]。</li>
+</ul>
+<p>最后祝愿家人朋友，健康，平安。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/summary/" rel="tag"># summary</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/tools/vim-options/" rel="prev" title="Vim 配置选项">
+      <i class="fa fa-chevron-left"></i> Vim 配置选项
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/echo-color/" rel="next" title="echo 输出内容带颜色">
+      echo 输出内容带颜色 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#2017-年终总结"><span class="nav-number">1.</span> <span class="nav-text">2017 年终总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作"><span class="nav-number">2.</span> <span class="nav-text">工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#架构的变化"><span class="nav-number">2.1.</span> <span class="nav-text">架构的变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不足之处"><span class="nav-number">2.2.</span> <span class="nav-text">不足之处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#额外的产出"><span class="nav-number">2.3.</span> <span class="nav-text">额外的产出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#深刻反省"><span class="nav-number">2.4.</span> <span class="nav-text">深刻反省</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#技术"><span class="nav-number">3.</span> <span class="nav-text">技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#学习"><span class="nav-number">4.</span> <span class="nav-text">学习</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生活"><span class="nav-number">5.</span> <span class="nav-text">生活</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#展望"><span class="nav-number">6.</span> <span class="nav-text">展望</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

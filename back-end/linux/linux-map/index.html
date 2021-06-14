@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <link rel="mask-icon" href="/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.lichao.xin","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"3ZZ8ITB7HE","apiKey":"062eb5a54afbcbf3f20452d58fc40035","indexName":"xinlc","hits":{"per_page":10},"labels":{"input_placeholder":"搜索","hits_empty":"未发现与「${query}」相关的内容","hits_stats":"${hits} 条相关条目，使用了 ${time} 毫秒"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Linux 知识地图">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 知识地图">
+<meta property="og:url" content="https://blog.lichao.xin/back-end/linux/linux-map/index.html">
+<meta property="og:site_name" content="Richard Xin&#39;s Blog">
+<meta property="og:description" content="Linux 知识地图">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-08-29T10:23:00.000Z">
+<meta property="article:modified_time" content="2021-06-14T01:33:22.395Z">
+<meta property="article:author" content="Richard">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="map">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.lichao.xin/back-end/linux/linux-map/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux 知识地图 | Richard Xin's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4530ac9d0bc4e258535c4a9b17029f0c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Richard Xin's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Richard Xin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Quick notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">132</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">59</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.lichao.xin/back-end/linux/linux-map/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+      <meta itemprop="name" content="Richard">
+      <meta itemprop="description" content="惶者生存，偏执者成功">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Richard Xin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux 知识地图
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-29 10:23:00" itemprop="dateCreated datePublished" datetime="2019-08-29T10:23:00+00:00">2019-08-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 01:33:22" itemprop="dateModified" datetime="2021-06-14T01:33:22+00:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Linux 知识地图</p>
+<a id="more"></a>
+
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><h3 id="基础篇"><a href="#基础篇" class="headerlink" title="基础篇"></a>基础篇</h3><ul>
+<li>Linux 版本】<ul>
+<li>内核版本格式<ul>
+<li>xx.yy.zzz<ul>
+<li><code>xx</code> 主版本</li>
+<li><code>yy</code> 次版本</li>
+<li><code>zz</code> 末版本</li>
+</ul>
+</li>
+<li>小于 2.6 版本<ul>
+<li>次版本奇数为开发版</li>
+<li>次版本偶数为稳定版</li>
+</ul>
+</li>
+<li>大于 2.6 版本<ul>
+<li><code>longterm</code> 长期支持版本</li>
+<li><code>stable</code> 稳定版</li>
+<li><code>mainline</code> 主线开发版本</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>常见发行版本<ul>
+<li><code>Red Hat</code></li>
+<li><code>Ubuntu</code></li>
+<li><code>CentOS</code></li>
+<li><code>Debian</code></li>
+<li><code>Fedora</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>重要感念<ul>
+<li><code>root</code> 账号：对应 Windows 系统的管理员账号</li>
+<li><code>/</code> 根目录：对应 Windows 系统<code>我的电脑</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="操作系统篇"><a href="#操作系统篇" class="headerlink" title="操作系统篇"></a>操作系统篇</h3><h4 id="帮助命令"><a href="#帮助命令" class="headerlink" title="帮助命令"></a>帮助命令</h4><ul>
+<li>使用终端<ul>
+<li>命令提示符<ul>
+<li><code>$</code> 普通用户</li>
+<li><code>#</code> root 用户</li>
+</ul>
+</li>
+<li>命令和路径补全: <code>tab</code> 键</li>
+<li>命令的分类(使用 type 查看某个命令的所属分类)<ul>
+<li>内部命令</li>
+<li>外部命令</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>帮助命令和用法<ul>
+<li>man<ul>
+<li><code>man xxx</code>：获取 xxx 命令</li>
+<li><code>man 1 man</code>：查看 man 命令自身的帮助文档</li>
+</ul>
+</li>
+<li>help<ul>
+<li><code>help xxx</code>：获取内部命令的帮助</li>
+<li><code>xxx --help</code>：获取外部命令的帮助</li>
+</ul>
+</li>
+<li>info<ul>
+<li>比 man 更丰富的帮助信息，格式：<code>info xxx</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="文件与目录管理"><a href="#文件与目录管理" class="headerlink" title="文件与目录管理"></a>文件与目录管理</h4><ul>
+<li>文件与目录查看命令: ls<ul>
+<li><code>-l</code> (小写 L) 显示文件的详细信息</li>
+<li><code>-a</code> 显示隐藏文件</li>
+<li><code>-r</code> 逆序显示</li>
+<li><code>-t</code> 按时间排序</li>
+<li><code>-R</code> 递归显示</li>
+</ul>
+</li>
+<li>路径操作（分绝对路径和相对路径）<ul>
+<li><code>cd</code> 进入指定路径</li>
+<li><code>pwd</code> 显示当前路径</li>
+</ul>
+</li>
+<li>建立与删除目录<ul>
+<li><code>mkdir</code> 建立目录, （<code>-p</code> 创建多级目录）</li>
+<li><code>rmdir</code> 删除空目录</li>
+</ul>
+</li>
+<li>通配符<ul>
+<li><code>*</code> 匹配任意字符</li>
+<li><code>?</code> 匹配单个字符</li>
+<li><code>[xyz]</code> 匹配 xyz 任意字符</li>
+<li><code>[a-z]</code> 匹配字符范围</li>
+<li><code>[!xyz] 或 [^xyz]</code> 匹配不在 xyz 中的任意字符</li>
+</ul>
+</li>
+<li>复制文件 cp<ul>
+<li><code>-r</code> 复制目录</li>
+<li><code>-p</code> 保留用户权限时间</li>
+<li><code>-a</code> 尽可能保留原始文件属性，等同与 <code>-dpR</code></li>
+</ul>
+</li>
+<li>删除文件 rm<ul>
+<li><code>-r</code> 递归删除</li>
+<li><code>-f</code> 不提示(强制删除，谨慎使用)</li>
+</ul>
+</li>
+<li>移动与重命名 mv<ul>
+<li>移动文件 <code>mv file1 dir1/</code></li>
+<li>重命名文件 <code>mv file1 file2</code></li>
+</ul>
+</li>
+<li>文本查看<ul>
+<li><code>head</code> 显示文件前 n 行</li>
+<li><code>tail</code> 显示结尾 n 行 （比较常用，如查看 log <code>tail -100f aa.log</code>)</li>
+<li><code>cat</code> -f 参数可以显示文件更新信息，文件内容过长不建议使用 cat 查看，可以用 less 或 more</li>
+<li><code>wc</code> 统计文件行数<ul>
+<li>代码行数  wc -l <code>find ./ -name &quot;*.js&quot;</code></li>
+<li>文件数 find ./ -name “*.js” | wc -l</li>
+<li>文件数 ls -l | grep “^-“ | wc -l</li>
+<li>递归文件数 ls -lR| grep “^-“ | wc -l</li>
+<li>递归目录树 ls -lR | grep “^d” | wc -l</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>打包和压缩<ul>
+<li><code>tar</code><ul>
+<li>打包命令</li>
+<li>扩展命 <code>.tar</code></li>
+<li>配合 <code>gzip</code>和<code>bzip2</code>可以使用打包和压缩功能</li>
+<li>压缩 tar -czvf aa.gz.tar aa/</li>
+<li>解压 tar -xzvf aa.gz.tar (注意 f 必须在最后)</li>
+</ul>
+</li>
+<li><code>gzip</code><ul>
+<li>压缩与解压命令</li>
+<li>扩展名 <code>.gz</code></li>
+</ul>
+</li>
+<li><code>bzip2</code><ul>
+<li>压缩与解压命令</li>
+<li>扩展名 <code>.bz2</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/tools/vim/">Vim 文本编辑器</a></li>
+</ul>
+<h4 id="用户管理"><a href="#用户管理" class="headerlink" title="用户管理"></a>用户管理</h4><ul>
+<li>用户命令<ul>
+<li>常用用户命令<ul>
+<li><code>useradd</code> 添加用户</li>
+<li><code>userdel</code> 删除用户</li>
+<li><code>passwd</code> 设置用户密码</li>
+<li><code>usermod</code> 修改用户信息</li>
+<li><code>groupadd</code> 添加用户组</li>
+<li><code>groupdel</code> 删除用户组</li>
+</ul>
+</li>
+<li>已管理员身份运行<ul>
+<li><code>su</code> 切换当前用户身份</li>
+<li><code>sudo</code> 用 <code>root</code> 用户身份执行某条命令</li>
+<li><code>visudo</code> 修改 sudo 命令的配置文件</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>用户配置文件<ul>
+<li><code>/etc/passwd</code> 用户信息配置文件</li>
+<li><code>/etc/shadow</code> 用户密码信息配置文件</li>
+</ul>
+</li>
+</ul>
+<h4 id="权限管理"><a href="#权限管理" class="headerlink" title="权限管理"></a>权限管理</h4><ul>
+<li>权限的表示法<ul>
+<li>一般权限用三种字符表示<ul>
+<li><code>r</code></li>
+<li><code>w</code></li>
+<li><code>x</code></li>
+</ul>
+</li>
+<li>文件权限与目录权限格式相同，但功能不同<ul>
+<li>文件权限 r w x</li>
+<li>目录权限<ul>
+<li><code>rx</code> 进入目录读取文件名</li>
+<li><code>wx</code> 修改目录内文件名</li>
+<li><code>x</code> 进入目录权限</li>
+</ul>
+</li>
+<li>特殊权限<ul>
+<li><code>/etc/passwd</code> 用户信息配置文件</li>
+<li><code>t</code> 添加了目录权限为 777 的目录的安全性，确保只有 root 用户和文件属主才可操作自己的文件或目录</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>权限相命令<ul>
+<li><code>chmod</code> 修改权限</li>
+<li><code>chown</code> 更改属主，属组</li>
+<li><code>chgrp</code> 可以单独更改属组，不常用</li>
+</ul>
+</li>
+</ul>
+<h3 id="系统管理篇"><a href="#系统管理篇" class="headerlink" title="系统管理篇"></a>系统管理篇</h3><h4 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h4><ul>
+<li>正则表达式是什么？<ul>
+<li>对字符串的一组公式</li>
+<li>用户对符合规则的字符进行查找和替换</li>
+</ul>
+</li>
+<li>初始元字符<ul>
+<li><code>^</code></li>
+<li><code>$</code></li>
+<li><code>*</code></li>
+</ul>
+</li>
+<li>扩展元字符</li>
+</ul>
+<h4 id="文本与文件查找"><a href="#文本与文件查找" class="headerlink" title="文本与文件查找"></a>文本与文件查找</h4><ul>
+<li>grep<ul>
+<li><code>-i</code> 忽略大小写</li>
+<li><code>-v</code> 反转</li>
+<li><code>-a</code> 处理二进制文件</li>
+<li><code>-R</code> 递归方式</li>
+</ul>
+</li>
+<li>find<ul>
+<li><code>-name</code> 按照文件名搜索</li>
+<li><code>-perm</code> 按照权限搜索</li>
+<li><code>-user</code> 按照属主搜索</li>
+<li><code>-type</code> 按照文件类型搜索</li>
+</ul>
+</li>
+</ul>
+<h4 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h4><ul>
+<li>网络配置命令<ul>
+<li><code>ifconfig</code> 查看和网络配置接口</li>
+<li><code>ip</code> 查看和配置网络接口、路由</li>
+<li><code>netstat</code> 查看进程监听端口和状态<ul>
+<li><code>-t</code> 指明显示 TCP 端口</li>
+<li><code>-u</code> 指明显示 UDP 端口</li>
+<li><code>-l</code> 仅显示监听套接字(所谓套接字就是使应用程序能够读写与收发通讯协议(protocol)与资料的程序)</li>
+<li><code>-p</code> 显示进程标识符和程序名称，每一个套接字/端口都属于一个程序。</li>
+<li><code>-n</code> 不进行 DNS 轮询，显示 IP(可以加速操作)</li>
+<li><code>netstat -ntlp</code> 查看当前所有 tcp 端口</li>
+<li><code>netstat -ntulp | grep 80</code> 查看所有 80 端口使用情况</li>
+</ul>
+</li>
+<li>network 与 NetworkManager 网络管理脚本</li>
+</ul>
+</li>
+<li>配置文件<ul>
+<li><code>ifcfg-eth0 eth0</code> 网卡配置文件</li>
+<li><code>networking</code> 主机名配置文件</li>
+<li><code>resolv.conf</code> 域名配置文件</li>
+</ul>
+</li>
+</ul>
+<h4 id="软件安装与更新"><a href="#软件安装与更新" class="headerlink" title="软件安装与更新"></a>软件安装与更新</h4><ul>
+<li>rpm 安装<ul>
+<li><code>-i</code> 安装</li>
+<li><code>-q</code> 查询</li>
+<li><code>-U</code> 升级</li>
+<li><code>-e</code> 卸载</li>
+</ul>
+</li>
+<li>源代码编译安装<ul>
+<li><code>./configure</code></li>
+<li><code>make</code></li>
+<li><code>make install</code></li>
+</ul>
+</li>
+<li>yum<ul>
+<li>安装 yum install xxx（软件名）</li>
+<li>卸载 yum remove xxx</li>
+<li>更新 yum update xxx</li>
+</ul>
+</li>
+</ul>
+<h4 id="服务与日志"><a href="#服务与日志" class="headerlink" title="服务与日志"></a>服务与日志</h4><ul>
+<li>服务状态的查看命令<ul>
+<li><code>service</code> 用法：<code>service 服务名 start|stop|restart|status</code></li>
+<li>systemctl 是 CentOS7 的服务管理工具中主要的工具，它融合之前 service 和 chkconfig 的功能于一体。 Systemctl 接受服务（.service），挂载点（.mount），套接口（.socket）和设备（.device）作为单元。</li>
+<li><code>systemctl</code> 用法：<code>systemctl start|stop|restart|status 服务名.service</code><ul>
+<li>在开机时启用一个服务：<code>systemctl enable firewalld.service</code></li>
+<li>在开机时禁用一个服务：<code>systemctl disable firewalld.service</code></li>
+<li>查看服务是否开机启动：<code>systemctl is-enabled firewalld.service</code></li>
+<li>查看已启动的服务列表：<code>systemctl list-unit-files|grep enabled</code></li>
+<li>查看启动失败的服务列表：<code>systemctl --failed</code></li>
+<li>列出当前系统服务的状态：<code>systemctl list-units</code></li>
+<li>列出所有可用单元：<code>systemctl list-unit-files</code></li>
+<li>查找某个服务：<code>systemctl list-units --type=service | grep network</code></li>
+<li>使用 systemctl 命令杀死服务：<code>systemctl kill network.service</code></li>
+<li>列出所有系统挂载点：<code>systemctl list-unit-files --type=moun</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>常用系统日志<ul>
+<li><code>/var/log</code> 系统日志默认目录</li>
+<li><code>message</code> 系统日志</li>
+<li><code>dmesg</code> 内核启动日志</li>
+<li><code>secure</code> 安全日志</li>
+</ul>
+</li>
+</ul>
+<h4 id="磁盘分区"><a href="#磁盘分区" class="headerlink" title="磁盘分区"></a>磁盘分区</h4><ul>
+<li>链接文件<ul>
+<li>符号文件</li>
+<li>硬链接</li>
+</ul>
+</li>
+<li>mount 挂载命令<ul>
+<li><code>-t</code> 文件系统类型</li>
+<li><code>-o</code> 挂载选项<ul>
+<li><code>ro</code> 只读挂载</li>
+<li><code>rw</code> 读写挂载</li>
+<li><code>remount</code> 重挂载</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>配置文件 /etc/fstab</li>
+</ul>
+<h4 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h4><ul>
+<li>常用命令<ul>
+<li><code>fdisk</code> 分区工具<ul>
+<li><code>-l</code> 查看分区信息</li>
+<li><code>fdisk /dev/sdX</code> 为某个存储分区</li>
+</ul>
+</li>
+<li><code>df</code> 查看分区使用空间大小(-h 人类可读单位)</li>
+<li><code>du</code> 查看文件夹使用空间大小(du -sh)</li>
+<li><code>mkfs</code> 格式化命令<ul>
+<li>mkfs.ext4 格式化为 ext4 系统</li>
+<li>mkfs.xfs 格式化为 XFS 文件系统</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="逻辑卷与-LVM"><a href="#逻辑卷与-LVM" class="headerlink" title="逻辑卷与 LVM"></a>逻辑卷与 LVM</h4><ul>
+<li>LVM 分为三层<ul>
+<li>PV 物理卷</li>
+<li>VG 卷组</li>
+<li>LV 逻辑卷</li>
+</ul>
+</li>
+<li>常用命令<ul>
+<li><code>pvcreate</code> 建立 PV, <code>psv</code> 查看 PV</li>
+<li><code>vgcreate</code> 建立 VG, <code>vgs</code> 查看 VG</li>
+<li><code>lvcreate</code> 建立 LV, <code>lvs</code> 查看 LV</li>
+<li><code>lvextend</code> 扩展 LV</li>
+</ul>
+</li>
+</ul>
+<h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><h5 id="SELinux"><a href="#SELinux" class="headerlink" title="SELinux"></a>SELinux</h5><ul>
+<li>访问控制方式分类<ul>
+<li>DAC 自主访问控制</li>
+<li>MAC 强制访问控制</li>
+</ul>
+</li>
+<li>常用命令<ul>
+<li><code>getenforce</code> 查看 SELinux 状态</li>
+<li><code>setenforce</code> 修改访问状态</li>
+</ul>
+</li>
+<li>配置文件<ul>
+<li><code>/etc/selinux/config</code></li>
+<li><code>enforcing</code> 强制控制</li>
+<li><code>permissive</code> 通知单不强制控制</li>
+<li><code>disable</code> 禁止访问控制</li>
+</ul>
+</li>
+</ul>
+<h5 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h5><ul>
+<li>表<ul>
+<li><code>filter</code> 用于过滤</li>
+<li><code>nat</code> 用于地址转换</li>
+</ul>
+</li>
+<li>链<ul>
+<li><code>INPUT</code> 进入本主机方向</li>
+<li><code>OUTPUT</code> 本主机发出方向</li>
+<li><code>FORWARD</code> 转发方向</li>
+<li><code>PREROUTING</code> 路由前转换</li>
+<li><code>POSTROUTING</code> 路由后转换</li>
+</ul>
+</li>
+<li>选项<ul>
+<li><code>-i -o 接口</code></li>
+<li><code>-s -d IP 地址 / 子网掩码</code></li>
+<li><code>-p tcp/udp 指定协议</code><ul>
+<li><code>--sport 源端口</code></li>
+<li><code>--dport 目的端口</code></li>
+</ul>
+</li>
+<li><code>-j</code> 动作<ul>
+<li><code>ACCEPT</code> 允许此规则匹配的数据包通过</li>
+<li><code>DROP</code> 丢弃此规则匹配的数据包</li>
+<li><code>REJECT</code> 拒绝此规则匹配的数据包并返回 rst 包</li>
+<li><code>SNAT</code> 源地址转换</li>
+<li><code>DNAT</code> 目的地址转换</li>
+<li><code>MASQUERADE</code> 动态源地址转换</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="firewalld"><a href="#firewalld" class="headerlink" title="firewalld"></a>firewalld</h5><ul>
+<li>基本使用<ul>
+<li>启动：<code>systemctl start firewalld</code></li>
+<li>查看状态：<code>systemctl status firewalld</code></li>
+<li>停止：<code>systemctl disable firewalld</code></li>
+<li>禁用：<code>systemctl stop firewalld</code></li>
+</ul>
+</li>
+<li>firewalld-cmd<ul>
+<li>查看版本：<code>firewall-cmd --version</code></li>
+<li>查看帮助：<code>firewall-cmd --help</code></li>
+<li>显示状态：<code>firewall-cmd --state</code></li>
+<li>查看所有打开的端口：<code>firewall-cmd --zone=public --list-ports</code></li>
+<li>更新防火墙规则：<code>firewall-cmd --reload</code></li>
+<li>查看区域信息: <code>firewall-cmd --get-active-zones</code></li>
+<li>查看指定接口所属区域：<code>firewall-cmd --get-zone-of-interface=eth0</code></li>
+<li>拒绝所有包：<code>firewall-cmd --panic-on</code></li>
+<li>取消拒绝状态：<code>firewall-cmd --panic-off</code></li>
+<li>查看是否拒绝：<code>firewall-cmd --query-panic</code></li>
+</ul>
+</li>
+<li>开启一个端口<ul>
+<li>添加：<code>firewall-cmd --zone=public --add-port=80/tcp --permanent （--permanent永久生效，没有此参数重启后失效）</code></li>
+<li>重新载入：<code>firewall-cmd --reload</code></li>
+<li>查看：<code>firewall-cmd --zone=public --query-port=80/tcp</code></li>
+<li>删除：<code>firewall-cmd --zone=public --remove-port=80/tcp --permanent</code></li>
+</ul>
+</li>
+</ul>
+<h5 id="tcpdump"><a href="#tcpdump" class="headerlink" title="tcpdump"></a>tcpdump</h5><ul>
+<li>保存和读取规则<ul>
+<li><code>-r filename</code> 从文件读取已抓取的数据包</li>
+<li><code>-w filename</code> 将抓取的数据包保存至文件</li>
+</ul>
+</li>
+<li>常用选项<ul>
+<li><code>-v</code> 显示详细信息</li>
+<li><code>-n</code> 不将 IP 地址解析为主机名</li>
+<li><code>-i</code> 接口</li>
+<li><code>host</code> 主机</li>
+<li><code>port</code> 端口</li>
+</ul>
+</li>
+</ul>
+<h4 id="系统启动过程与故障修复"><a href="#系统启动过程与故障修复" class="headerlink" title="系统启动过程与故障修复"></a>系统启动过程与故障修复</h4><ul>
+<li>系统启动过程简述<ul>
+<li>BIOS 选择启动设备</li>
+<li>MBR 硬盘引导扇区</li>
+<li>内核</li>
+<li>init 或 systemd (CentOS 7 以前为 init)</li>
+<li>service 服务或 systemd 服务 (CentOS 7 以前仅有 service 服务)</li>
+<li>启动 tty 等待用户登录</li>
+</ul>
+</li>
+<li>更新内核版本<ul>
+<li>RPM 方式更新<ul>
+<li>安速度快</li>
+<li>没有最新的版本</li>
+</ul>
+</li>
+<li>源代码编译方式更新<ul>
+<li>可以使用最新的版本</li>
+<li>编译时间较长</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Shell-篇"><a href="#Shell-篇" class="headerlink" title="Shell 篇"></a>Shell 篇</h3><h4 id="认识-BASH"><a href="#认识-BASH" class="headerlink" title="认识 BASH"></a>认识 BASH</h4><ul>
+<li>Shell 是命令解释器，翻译用户的命令给内核执行，并将结果返回给用户</li>
+<li>Shell 脚本的用处<ul>
+<li>组合系统命令实现自动化功能</li>
+<li>组成脚本的基本元素是命令，不用深入掌握系统函数库</li>
+</ul>
+</li>
+<li>内建命令与外部命令<ul>
+<li>内建命令不会创建子进程，但是对子 Shell 无效</li>
+<li>外部命令会创建子进程</li>
+</ul>
+</li>
+</ul>
+<h4 id="管道与重定向"><a href="#管道与重定向" class="headerlink" title="管道与重定向"></a>管道与重定向</h4><ul>
+<li>管道符 <code>|</code></li>
+<li>重定向符号<ul>
+<li><code>&lt;</code> 输入重定向</li>
+<li><code>&gt;</code> 输出重定向，覆盖方式</li>
+<li><code>&gt;&gt;</code> 输出重定向，追加方式</li>
+</ul>
+</li>
+<li><code>sort</code> 对文本进行排序</li>
+<li><code>join</code> 链接两个字符串</li>
+</ul>
+<h4 id="进程与内存的查看与调整"><a href="#进程与内存的查看与调整" class="headerlink" title="进程与内存的查看与调整"></a>进程与内存的查看与调整</h4><ul>
+<li>进程查看命令<ul>
+<li><code>ps</code> / <code>top</code> 对当前系统的进程信息进行查看(常用：ps -ef | grep mysqld)</li>
+</ul>
+</li>
+<li>内存查看命令<ul>
+<li><code>free</code> 查看系统的内存使用率(free -h)</li>
+<li><code>sar</code> 显示更详细的系统运行状态，用于故障排除</li>
+</ul>
+</li>
+<li>常用的第三方系统状态查看命令<ul>
+<li><code>iftop</code> 查看某一进程的网络流量</li>
+</ul>
+</li>
+</ul>
+<h4 id="变量与环境变量"><a href="#变量与环境变量" class="headerlink" title="变量与环境变量"></a>变量与环境变量</h4><ul>
+<li>变量的定义<ul>
+<li>Shell 变量无需声明</li>
+<li>销毁变量 <code>unset 变量名</code></li>
+</ul>
+</li>
+<li>变量的赋值 <code>变量名 = 变量值</code></li>
+<li>环境变量 <code>PATH</code> 命令解释路径</li>
+<li>环境变量的配置文件<ul>
+<li><code>/etc/profile</code> 系统环境变量默认保存文件</li>
+<li><code>/etc/bashrc</code> login shell 执行初始化的配置文件</li>
+</ul>
+</li>
+</ul>
+<h4 id="转义与引用"><a href="#转义与引用" class="headerlink" title="转义与引用"></a>转义与引用</h4><ul>
+<li>特殊符号</li>
+<li>转义符 <code>/</code></li>
+<li>引用符号<ul>
+<li><code>&#39;&#39;</code> 单引号</li>
+<li><code>&quot;&quot;</code> 双引号</li>
+</ul>
+</li>
+</ul>
+<h4 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h4><ul>
+<li>while 循环<ul>
+<li>while 循环根据 while 判断结果确定是否继续执行</li>
+<li>判断的结果为命令的返回值，如果为 0 则循环会继续执行</li>
+<li>如果判断结果一直为真”0”， 无法到达循环结束称作死循环</li>
+</ul>
+</li>
+<li>for 循环<ul>
+<li>Shell 的 for 循环使用遍历方式，<code>for...in..</code>格式</li>
+<li>for 循环支持 C 语音写法，需要使用<code>(())</code>格式</li>
+<li>支持使用<code>break</code>, <code>continue</code> 对循环进行控制</li>
+<li>for 循环支持嵌套使用</li>
+</ul>
+</li>
+</ul>
+<h4 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h4><ul>
+<li>函数的定义<ul>
+<li>函数是对重复利用的代码进行封装</li>
+<li>函数的定义方法是 <code>函数名(){}</code></li>
+</ul>
+</li>
+<li>函数的使用<ul>
+<li>使用函数的方式是直接使用<code>函数名</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="计划任务"><a href="#计划任务" class="headerlink" title="计划任务"></a>计划任务</h4><ul>
+<li>一次性计划任务 <code>at</code></li>
+<li>周期性计划任务 <code>cron</code><ul>
+<li><code>crontab -l</code> 查看周期性计划任务</li>
+<li><code>crontab -e</code> 编辑周期性计划任务</li>
+</ul>
+</li>
+</ul>
+<h4 id="运算符"><a href="#运算符" class="headerlink" title="运算符"></a>运算符</h4><ul>
+<li>运算符号<ul>
+<li><code>+ - * / %</code> 加 减 乘 除 取余</li>
+</ul>
+</li>
+<li>Shell 运算符的弊端<ul>
+<li>支持整数运算，但和编译语音比起来效率很低</li>
+<li>对浮点运算支持不好</li>
+</ul>
+</li>
+</ul>
+<h4 id="测试与判断"><a href="#测试与判断" class="headerlink" title="测试与判断"></a>测试与判断</h4><ul>
+<li><code>test</code> 测试<ul>
+<li>可以书写为<code>[]</code></li>
+<li>可以使用<code>[[]]</code> 扩展格式</li>
+<li>文件测试</li>
+<li>数字比较</li>
+</ul>
+</li>
+<li>if 判断<ul>
+<li>基本原理：根据命令的返回值是否为<code>0</code>进行分支判断</li>
+<li>支持 <code>if...else</code>写法</li>
+<li>支持 <code>if</code>嵌套写法</li>
+</ul>
+</li>
+<li>case 分支<ul>
+<li><code>case</code> 分支一般作为 if 判断的补充</li>
+<li><code>case</code> 分支的结束符号是<code>;;</code>, 它是<code>;</code>的转义形式</li>
+</ul>
+</li>
+</ul>
+<h3 id="文本操作篇"><a href="#文本操作篇" class="headerlink" title="文本操作篇"></a>文本操作篇</h3><h4 id="正则表达式与文本搜索"><a href="#正则表达式与文本搜索" class="headerlink" title="正则表达式与文本搜索"></a>正则表达式与文本搜索</h4><p>元字符</p>
+<ul>
+<li><code>.</code> 单个字符</li>
+<li><code>*</code> 一个（包括零个）它前面的字符</li>
+<li><code>[...]</code> 匹配方括号中的任意字符</li>
+<li><code>^</code> 匹配行开始</li>
+<li><code>$</code> 匹配行结尾</li>
+<li><code>\</code> 转义特殊字符</li>
+<li><code>{...}</code> 匹配出现的次数</li>
+<li><code>+</code> 匹配前面的正则表达式出现一次或多次</li>
+<li><code>?</code> 匹配前面的正则表达式出现零次或一次</li>
+<li><code>|</code> 并列匹配</li>
+<li><code>()</code> 分组</li>
+<li><code>POSIX</code> 字符类</li>
+</ul>
+<h4 id="sed-基础"><a href="#sed-基础" class="headerlink" title="sed 基础"></a>sed 基础</h4><ul>
+<li>基本语法<ul>
+<li>sed ‘cmd’ filename</li>
+<li>sed -e ‘cmd’ filename</li>
+</ul>
+</li>
+<li>sed 的工作方式<ul>
+<li>模式空间</li>
+</ul>
+</li>
+<li>sed 基础命令<ul>
+<li><code>s</code> 替换</li>
+<li><code>d</code> 删除</li>
+<li><code>a</code> 追加</li>
+<li><code>i</code> 插入</li>
+<li><code>c</code> 更改</li>
+<li><code>n</code> 下一步</li>
+<li><code>r</code> 读文件</li>
+<li><code>w</code> 写文件</li>
+<li><code>q</code> 退出</li>
+<li><code>y</code> 替换</li>
+<li><code>p</code> 打印</li>
+</ul>
+</li>
+</ul>
+<h4 id="sed-高级命令"><a href="#sed-高级命令" class="headerlink" title="sed 高级命令"></a>sed 高级命令</h4><ul>
+<li>多行命令<ul>
+<li><code>N</code> 将多行追加到模式空间进行处理</li>
+<li><code>D</code> 删除多行模式空间的第一个字符至第一个换行符，并返回到脚本的开头执行</li>
+<li><code>P</code> 输出模式空间中的第一个字符至第一个换行符</li>
+</ul>
+</li>
+<li>保持空间模式<ul>
+<li><code>h</code> 将模式空间中的内容存储至保持空间，并覆盖保持空间的内容</li>
+<li><code>H</code> 将模式空间中的内容存储至保持空间，并追加到保持空间的内容</li>
+<li><code>g</code> 将保持空间的内容存储至模式空间，并追加到模式空间</li>
+<li><code>G</code> 将保持空间的内容存储至模式空间，并追加到模式空间</li>
+<li><code>x</code> 交换模式空间和保持空间的内容</li>
+</ul>
+</li>
+<li>条件与分支<ul>
+<li><code>:</code> 标签</li>
+<li><code>b branch</code> 命令用于在脚本中将控制权转移到另一行，如果没有指定标签就转移到脚本的结尾</li>
+<li><code>t</code> 测试命令，如果当前匹配地址的进行了成功替换，test 命令就跳转到标签处，如果没有指定标签就转移到脚本的结尾</li>
+</ul>
+</li>
+</ul>
+<h4 id="AWK"><a href="#AWK" class="headerlink" title="AWK"></a>AWK</h4><ul>
+<li>WDK 的工作方式<ul>
+<li><code>BEGIN{}</code> 模式用于处理文件前的预处理</li>
+<li><code>{}</code> 模式用于对文件每行进行处理</li>
+<li><code>END{}</code> 模式用于处理完文件之后的操作</li>
+</ul>
+</li>
+<li>运算符<ul>
+<li>算数运算符</li>
+<li>关系运算符</li>
+<li>布尔运算符</li>
+</ul>
+</li>
+<li>循环<ul>
+<li>支持 while 循环</li>
+<li>支持 for 循环</li>
+<li>支持 break、continue</li>
+</ul>
+</li>
+<li>系统变量<ul>
+<li><code>FS</code> 字段分隔符</li>
+<li><code>OFS</code> 输出字段分隔符</li>
+<li><code>RS</code> 记录分隔符</li>
+<li><code>ORS</code> 输出记录分隔符</li>
+</ul>
+</li>
+<li>条件<ul>
+<li>和 C 语音用法相似</li>
+<li>语法格式为：<code>if(判断)</code></li>
+<li>支持 <code>if...else...</code> 用法</li>
+<li>支持 if 嵌套</li>
+</ul>
+</li>
+<li>函数<ul>
+<li>算数函数</li>
+<li>随机函数</li>
+<li>字符串函数</li>
+</ul>
+</li>
+</ul>
+<h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><h3 id="常见性能指标及-USE-法分类"><a href="#常见性能指标及-USE-法分类" class="headerlink" title="常见性能指标及 USE 法分类"></a>常见性能指标及 USE 法分类</h3><h4 id="CPU-性能指标"><a href="#CPU-性能指标" class="headerlink" title="CPU 性能指标"></a>CPU 性能指标</h4><ul>
+<li>CPU 使用率<ul>
+<li>用户 CPU</li>
+<li>系统 CPU</li>
+<li>IOWAIT</li>
+<li>软中断</li>
+<li>硬中断</li>
+<li>窃取 CPU</li>
+<li>客户 CPU</li>
+</ul>
+</li>
+<li>上下文切换<ul>
+<li>自愿上下文切换</li>
+<li>非自愿上下文切换</li>
+</ul>
+</li>
+<li>平均负载</li>
+<li>CPU 缓存命中率</li>
+</ul>
+<h4 id="内存性能指标"><a href="#内存性能指标" class="headerlink" title="内存性能指标"></a>内存性能指标</h4><ul>
+<li>系统内存指标<ul>
+<li>已用内存</li>
+<li>剩余内存</li>
+<li>可用内存</li>
+<li>缺页异常</li>
+<li>缓存/缓冲区</li>
+<li>Slabs</li>
+</ul>
+</li>
+<li>进程内存指标<ul>
+<li>虚拟内存(VSS)</li>
+<li>常驻内存(RSS)</li>
+<li>按比例分配共享内存后的物理内容(PSS)</li>
+<li>独占内存(USS)</li>
+<li>共享内存</li>
+<li>SWAP 内存</li>
+<li>缺页异常</li>
+</ul>
+</li>
+<li>SWAP<ul>
+<li>已用空间</li>
+<li>剩余空间</li>
+<li>换入速度</li>
+<li>换出速度</li>
+</ul>
+</li>
+</ul>
+<h4 id="I-O-性能指标"><a href="#I-O-性能指标" class="headerlink" title="I/O 性能指标"></a>I/O 性能指标</h4><ul>
+<li>文件系统<ul>
+<li>存储空间容量、使用量以及剩余空间</li>
+<li>索引节点容量、使用量以及剩余量</li>
+<li>缓存<ul>
+<li>页缓存</li>
+<li>目录项缓存</li>
+<li>索引节点缓存</li>
+<li>具体文件系统缓存（如 ext4 的缓存）</li>
+</ul>
+</li>
+<li>IOPS(文件 I/O)</li>
+<li>响应时间（延迟）</li>
+<li>吞吐量（B/s)</li>
+</ul>
+</li>
+<li>磁盘<ul>
+<li>使用率</li>
+<li>IOPS</li>
+<li>吞吐量(B/s)</li>
+<li>响应时间（延迟）</li>
+<li>缓冲区</li>
+<li>相关因素<ul>
+<li>读写类型（如循序还是随机）</li>
+<li>读写比例</li>
+<li>读写大小</li>
+<li>存储类型（如 <code>RAID</code> 级别、本地还是网络）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="网络性能指标"><a href="#网络性能指标" class="headerlink" title="网络性能指标"></a>网络性能指标</h4><ul>
+<li>应用层<ul>
+<li>QPS(每秒请求数)</li>
+<li>套接字缓冲区大小</li>
+<li>DNS 解析延迟</li>
+<li>响应时间</li>
+<li>错误数</li>
+</ul>
+</li>
+<li>传输层<ul>
+<li>TCP 链接数<ul>
+<li>全连接</li>
+<li>半链接</li>
+<li>TIMEWAIT</li>
+</ul>
+</li>
+<li>链接跟踪数</li>
+<li>重传数</li>
+<li>丢包数</li>
+<li>延迟</li>
+</ul>
+</li>
+<li>网络层<ul>
+<li>丢包数</li>
+<li>TTL</li>
+<li>拆包</li>
+</ul>
+</li>
+<li>链路层<ul>
+<li>PPS(每秒网络帧数)</li>
+<li>BPS(每秒字节数)</li>
+<li>丢包数</li>
+<li>错误数</li>
+</ul>
+</li>
+</ul>
+<h4 id="常见指标分类（USE-法）"><a href="#常见指标分类（USE-法）" class="headerlink" title="常见指标分类（USE 法）"></a>常见指标分类（USE 法）</h4><p>USE 法（Utilization Saturation and Errors），专门用于系统资源性能监控的分类方法。</p>
+<table>
+<thead>
+<tr>
+<th align="left">资源</th>
+<th align="left">类型</th>
+<th align="left">性能指标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">CPU</td>
+<td align="left">使用率</td>
+<td align="left">CPU 使用率</td>
+</tr>
+<tr>
+<td align="left">CPU</td>
+<td align="left">饱和度</td>
+<td align="left">运行队列长度或平均负载</td>
+</tr>
+<tr>
+<td align="left">CPU</td>
+<td align="left">错误数</td>
+<td align="left">硬件 CPU 错误数</td>
+</tr>
+<tr>
+<td align="left">内存</td>
+<td align="left">使用率</td>
+<td align="left">已用内存百分比或 SWAP 用量百分比</td>
+</tr>
+<tr>
+<td align="left">内存</td>
+<td align="left">饱和度</td>
+<td align="left">内存换页量</td>
+</tr>
+<tr>
+<td align="left">内存</td>
+<td align="left">错误数</td>
+<td align="left">内存分配失败或 00M</td>
+</tr>
+<tr>
+<td align="left">存储设备 I/O</td>
+<td align="left">使用率</td>
+<td align="left">设备 I/O 时间百分比</td>
+</tr>
+<tr>
+<td align="left">存储设备 I/O</td>
+<td align="left">饱和度</td>
+<td align="left">等待队列长度或延迟</td>
+</tr>
+<tr>
+<td align="left">存储设备 I/O</td>
+<td align="left">错误数</td>
+<td align="left">I/O 错误数</td>
+</tr>
+<tr>
+<td align="left">文件系统</td>
+<td align="left">使用率</td>
+<td align="left">已用容量百分比</td>
+</tr>
+<tr>
+<td align="left">文件系统</td>
+<td align="left">饱和度</td>
+<td align="left">已用容量百分比</td>
+</tr>
+<tr>
+<td align="left">文件系统</td>
+<td align="left">错误数</td>
+<td align="left">文件读写错误数</td>
+</tr>
+<tr>
+<td align="left">网络</td>
+<td align="left">使用率</td>
+<td align="left">带宽使用率</td>
+</tr>
+<tr>
+<td align="left">网络</td>
+<td align="left">饱和度</td>
+<td align="left">重传报文数</td>
+</tr>
+<tr>
+<td align="left">网络</td>
+<td align="left">错误数</td>
+<td align="left">网卡收发错误数，丢包数</td>
+</tr>
+<tr>
+<td align="left">文件描述符</td>
+<td align="left">使用率</td>
+<td align="left">已用文件描述符数百分比</td>
+</tr>
+<tr>
+<td align="left">连接跟踪</td>
+<td align="left">使用率</td>
+<td align="left">已用链接跟踪数百分比</td>
+</tr>
+<tr>
+<td align="left">连接数</td>
+<td align="left">饱和度</td>
+<td align="left">TIMEWAIT 状态连接数</td>
+</tr>
+</tbody></table>
+<h3 id="常见性能工具"><a href="#常见性能工具" class="headerlink" title="常见性能工具"></a>常见性能工具</h3><h4 id="CPU-性能工具"><a href="#CPU-性能工具" class="headerlink" title="CPU 性能工具"></a>CPU 性能工具</h4><table>
+<thead>
+<tr>
+<th align="left">性能指标</th>
+<th align="left">性能工具</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">平均负载</td>
+<td align="left"><code>uptime</code>、<code>top</code>、<code>/proc/loadavg</code></td>
+<td align="left">uptime 最简单；top 提供了更全的指标; /proc/loadavg 常用于监控系统</td>
+</tr>
+<tr>
+<td align="left">系统 CPU 使用率</td>
+<td align="left"><code>vmstat</code>、<code>mpstat</code>、<code>top</code>、<code>sar</code>、<code>/proc/stat</code></td>
+<td align="left">top、vmstat、mpstat 只可以动态查看，而 sar 还可以记录历史数据；/proc/stat 是其他性能工具的数据来源，也常用于监控</td>
+</tr>
+<tr>
+<td align="left">进程 CPU 使用率</td>
+<td align="left"><code>top</code>、<code>ps</code>、<code>pidstat</code>、<code>htop</code>、<code>atop</code></td>
+<td align="left">top 和 ps 可以按 CPU 使用率给进程排序，而 pidstat 只显示实际用了 CPU 的进程；htop 和 atop 以不同颜色显示更加直观</td>
+</tr>
+<tr>
+<td align="left">系统上下切换</td>
+<td align="left"><code>vmstat</code></td>
+<td align="left">除了上下切换次数，还提供运行状态和不可中断状态进程的数量</td>
+</tr>
+<tr>
+<td align="left">进程上下切换</td>
+<td align="left"><code>pidstat</code></td>
+<td align="left">加上 -w 选项</td>
+</tr>
+<tr>
+<td align="left">软中断</td>
+<td align="left"><code>top</code>、<code>mpstat</code>、<code>/proc/softirqs</code></td>
+<td align="left">top 提供软中断 CPU 使用率，而<code>/proc/softirqs</code> 和 mpstat 提供各种软中断在每个 CPU 上的运行次数</td>
+</tr>
+<tr>
+<td align="left">硬中断</td>
+<td align="left"><code>vmstat</code>、<code>/proc/interrupts</code></td>
+<td align="left">vmstat 提供总的中断次数，而<code>/proc/interrupts</code>提供各种中断在每个 CPU 上运行的累计次数</td>
+</tr>
+<tr>
+<td align="left">网络</td>
+<td align="left"><code>dstat</code>、<code>sar</code>、<code>tcpdump</code></td>
+<td align="left">dstat、sar 提供总的网络接收和发生情况，而 tcpdump 则是动态抓取正在进行的网络通讯</td>
+</tr>
+<tr>
+<td align="left">I/O</td>
+<td align="left"><code>dstat</code>、<code>sar</code></td>
+<td align="left">dstat 和 sar 都提供 I/O 的整体情况</td>
+</tr>
+<tr>
+<td align="left">CPU 缓存</td>
+<td align="left"><code>perf</code></td>
+<td align="left">使用 perf stat 子命令</td>
+</tr>
+<tr>
+<td align="left">CPU 数</td>
+<td align="left"><code>lscpu</code>、<code>/proc/cpuinfo</code></td>
+<td align="left">lscpu 更直观</td>
+</tr>
+<tr>
+<td align="left">事件剖析</td>
+<td align="left"><code>perf</code>、<code>火焰图</code>、<code>execsnoop</code></td>
+<td align="left">perf 和火焰图用来分析热点函数以及调用栈，execsnoop 用来监测短时进程</td>
+</tr>
+<tr>
+<td align="left">动态追踪</td>
+<td align="left"><code>ftrace</code>、<code>bcc</code>、<code>systemtap</code></td>
+<td align="left">ftrace 用于跟踪内核函数调用栈，而 bcc 和 systemtap 则用于跟踪内核或应用程序的执行过程（bcc 要求内核版本<code>&gt;=4.1</code>)</td>
+</tr>
+</tbody></table>
+<h4 id="内存性能工具"><a href="#内存性能工具" class="headerlink" title="内存性能工具"></a>内存性能工具</h4><table>
+<thead>
+<tr>
+<th align="left">性能指标</th>
+<th align="left">性能工具</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">系统已用、可用、剩余内存</td>
+<td align="left"><code>free</code>、<code>vmstat</code>、<code>sar</code>、<code>/proc/meminfo</code></td>
+<td align="left">free 最为简单，而 vmstat、sar 更为全面；/proc/meminfo 是其他工具的数据来源，也常用于监控系统中</td>
+</tr>
+<tr>
+<td align="left">进程虚拟、常驻、共享内存</td>
+<td align="left"><code>ps</code>、<code>top</code>、<code>pidstat</code>、<code>/proc/pid/stat</code>、<code>/proc/pid/status</code></td>
+<td align="left">ps 和 top 最为简单，而 pidstat 则要加上-r 选项；/proc/pid/stat 和/proc/pid/status 是其他工具的数据来源</td>
+</tr>
+<tr>
+<td align="left">进程内存分布</td>
+<td align="left"><code>pmap</code>、<code>/proc/pid/maps</code></td>
+<td align="left">/proc/pid/maps 是 pmap 的数据来源</td>
+</tr>
+<tr>
+<td align="left">进程 Swap 换出内存</td>
+<td align="left"><code>top</code>、<code>/proc/pid/status</code></td>
+<td align="left">/proc/pid/status 是 top 的数据来源</td>
+</tr>
+<tr>
+<td align="left">进程缺页异常</td>
+<td align="left"><code>ps</code>、<code>top</code>、<code>pidstat</code></td>
+<td align="left">给 pidstat 加上-r 选项</td>
+</tr>
+<tr>
+<td align="left">系统换页情况</td>
+<td align="left"><code>sar</code></td>
+<td align="left">加上-B 选项</td>
+</tr>
+<tr>
+<td align="left">缓存/缓冲区用量</td>
+<td align="left"><code>free</code>、<code>vmstat</code>、<code>sar</code>、<code>cachestat</code></td>
+<td align="left">vmstat 最常用，而 cachestat 需要安装 bcc</td>
+</tr>
+<tr>
+<td align="left">缓存/缓冲区命中率</td>
+<td align="left"><code>cachetop</code></td>
+<td align="left">需要安装 bcc</td>
+</tr>
+<tr>
+<td align="left">SWAP 已用空间和剩余空间</td>
+<td align="left"><code>free</code>、<code>sar</code></td>
+<td align="left">free 最为简单，而 sar 还可以记录历史</td>
+</tr>
+<tr>
+<td align="left">Swap 换入换出</td>
+<td align="left"><code>vmstat</code>、<code>sar</code></td>
+<td align="left">vmstat 最为简单，而 sar 还可以记录历史</td>
+</tr>
+<tr>
+<td align="left">内存泄漏检测</td>
+<td align="left"><code>memleak</code>、<code>valgrind</code></td>
+<td align="left">memleak 需要安装 bcc, valgrind 可以在旧版本（如 3.x）内核中使用</td>
+</tr>
+<tr>
+<td align="left">指定文件的缓存</td>
+<td align="left"><code>pcstat</code></td>
+<td align="left">需要从源码下载安装</td>
+</tr>
+</tbody></table>
+<h4 id="文件系统和磁盘-I-O-性能工具"><a href="#文件系统和磁盘-I-O-性能工具" class="headerlink" title="文件系统和磁盘 I/O 性能工具"></a>文件系统和磁盘 I/O 性能工具</h4><table>
+<thead>
+<tr>
+<th align="left">性能指标</th>
+<th align="left">性能工具</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">文件系统空间容量、使用量以及剩余空间</td>
+<td align="left">df</td>
+<td align="left">详细文档可以执行 info coreutils ‘df invocation’命令查询</td>
+</tr>
+<tr>
+<td align="left">索引节点容量、使用以及剩余量</td>
+<td align="left">df</td>
+<td align="left">注意加上-i 选项</td>
+</tr>
+<tr>
+<td align="left">缓存页和可回收 Slab 缓存</td>
+<td align="left"><code>/proc/meminfo</code>、<code>sar</code>、<code>vmstat</code></td>
+<td align="left">注意 sar 需要加上-r 选项，而/proc/meminfo 是其他工具的数据来源</td>
+</tr>
+<tr>
+<td align="left">缓冲区</td>
+<td align="left">/proc/meminfo、sar、vmstat</td>
+<td align="left">注意 sar 需要加上-r 选项，而/proc/meminfo 是其他工具的数据来源</td>
+</tr>
+<tr>
+<td align="left">目录项、索引节点以及文件系统的缓存</td>
+<td align="left"><code>/proc/slabinfo</code>、slabtop</td>
+<td align="left">slabtop 更直观</td>
+</tr>
+<tr>
+<td align="left">磁盘 I/O 使用率、IOPS、吞吐量、响应时间、I/O 平均大小以及等待队列长度</td>
+<td align="left">iostat、sar、dstat、<code>/proc/diskstats</code></td>
+<td align="left">iostat 最为常用、注意使用 iostat -d -x 或 sar -d 选项；<code>/proc/diskstats</code>则是其他工具的数据来源</td>
+</tr>
+<tr>
+<td align="left">进程 I/O 大小以及 I/O 延迟</td>
+<td align="left">pidstat、iotop</td>
+<td align="left">注意使用 pidstat -d 选项</td>
+</tr>
+<tr>
+<td align="left">块设备 I/O 事件跟踪</td>
+<td align="left"><code>blktrace</code></td>
+<td align="left">需要跟 blkparse 配合使用，比如 blktrace -d /dev/sda -o</td>
+</tr>
+<tr>
+<td align="left">进程 I/O 系统调用跟踪</td>
+<td align="left"><code>strace</code>、<code>perf</code> <code>trace</code></td>
+<td align="left">strace 只可以跟踪单个进程，而 perf trace 还可以跟踪所有进程的系统调用</td>
+</tr>
+<tr>
+<td align="left">进程块设备 I/O 大小跟踪</td>
+<td align="left"><code>biosnoop</code>、<code>biotop</code></td>
+<td align="left">需要安装 bcc</td>
+</tr>
+<tr>
+<td align="left">动态追踪</td>
+<td align="left"><code>ftrace</code>、<code>bcc</code>、<code>systemtap</code></td>
+<td align="left">ftrace 用于跟踪内核函数调用栈，而 bcc 和 systemap 则用于跟踪内核或应用程序的执行过程</td>
+</tr>
+</tbody></table>
+<h4 id="网络性能工具"><a href="#网络性能工具" class="headerlink" title="网络性能工具"></a>网络性能工具</h4><table>
+<thead>
+<tr>
+<th align="left">性能指标</th>
+<th align="left">性能工具</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">吞吐量(BPS)</td>
+<td align="left"><code>ifconfig</code>、<code>ip</code>、<code>sar</code>、<code>nethogs</code>、<code>iftop</code>、<code>/proc/net/dev</code></td>
+<td align="left">分别可以查看网络接口、进程以及 IP 地址的网络吞吐量;<code>/proc/net/dev</code>常用于监控</td>
+</tr>
+<tr>
+<td align="left">吞吐量(PPS)</td>
+<td align="left"><code>sar</code>、<code>/proc/net/dev</code></td>
+<td align="left">注意使用</td>
+</tr>
+<tr>
+<td align="left">网络连接数</td>
+<td align="left"><code>netstat</code>、<code>ss</code></td>
+<td align="left">ss 速度更快</td>
+</tr>
+<tr>
+<td align="left">网络错误数</td>
+<td align="left"><code>netstat</code>、<code>ss</code></td>
+<td align="left">注意使用 netstat -s 或者 sar -n EDEV/EIP 选项</td>
+</tr>
+<tr>
+<td align="left">网络延迟</td>
+<td align="left"><code>ping</code>、<code>hping3</code></td>
+<td align="left">ping 基于 ICMP 而 hping3 则基于 TCP 协议</td>
+</tr>
+<tr>
+<td align="left">连接跟踪数</td>
+<td align="left"><code>connetrack</code>、<code>/proc/sys/net/netfilter/nf_conntrack_count</code>、<code>/proc/sys/net/netfilter/nf_conntrack_mac</code></td>
+<td align="left">conntr 可以用来查看所有连接跟踪的信息，nf_conntrack_count 只是连接跟踪的数量，而 nf_conntrack_max 则限制了总的连接跟总数</td>
+</tr>
+<tr>
+<td align="left">路由</td>
+<td align="left"><code>mtr</code>、<code>traceroute</code>、<code>route</code></td>
+<td align="left">route 用于查询路由表，而 mtr 和 traceroute 则用来排查和定位网络链路中的路由问题</td>
+</tr>
+<tr>
+<td align="left">DNS</td>
+<td align="left"><code>dig</code>、<code>nslookup</code></td>
+<td align="left">用于排查 DNS 解析问题</td>
+</tr>
+<tr>
+<td align="left">防火墙和 NAT</td>
+<td align="left"><code>iptables</code></td>
+<td align="left">用于排查防火墙及 NAT 的问题</td>
+</tr>
+<tr>
+<td align="left">网卡选项</td>
+<td align="left"><code>ethtool</code></td>
+<td align="left">用于查看和配置网络接口的功能选项</td>
+</tr>
+<tr>
+<td align="left">网络抓包</td>
+<td align="left"><code>tcpdump</code>、<code>Wireshark</code></td>
+<td align="left">通常在服务器中使用 tcpdump 抓包再复制出来用 Wireshark 的图形界面分析</td>
+</tr>
+<tr>
+<td align="left">动态追踪</td>
+<td align="left"><code>ftrace</code>、<code>bcc</code>、<code>systemtap</code></td>
+<td align="left">ftrace 用于跟踪内核函数调用栈，而 bcc 和 systemap 则用于跟踪内核或应用程序的执行过程</td>
+</tr>
+</tbody></table>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《极客时间 Linux 操作系统知识地图》</li>
+<li><a href="https://man.linuxde.net/" target="_blank" rel="noopener">Linux 命令大全</a></li>
+<li><a href="https://www.linuxcool.com/" target="_blank" rel="noopener">Linux 命令大全(手册)</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/map/" rel="tag"># map</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/front-end/rn/rn-zero-to-one/" rel="prev" title="React Native 之 从0到1">
+      <i class="fa fa-chevron-left"></i> React Native 之 从0到1
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/back-end/linux/vmware-esxi-centos7/" rel="next" title="在 VMware ESXi 中安装 CentOS7">
+      在 VMware ESXi 中安装 CentOS7 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基础知识"><span class="nav-number">1.</span> <span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基础篇"><span class="nav-number">1.1.</span> <span class="nav-text">基础篇</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#操作系统篇"><span class="nav-number">1.2.</span> <span class="nav-text">操作系统篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#帮助命令"><span class="nav-number">1.2.1.</span> <span class="nav-text">帮助命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件与目录管理"><span class="nav-number">1.2.2.</span> <span class="nav-text">文件与目录管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#用户管理"><span class="nav-number">1.2.3.</span> <span class="nav-text">用户管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#权限管理"><span class="nav-number">1.2.4.</span> <span class="nav-text">权限管理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统管理篇"><span class="nav-number">1.3.</span> <span class="nav-text">系统管理篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#正则表达式"><span class="nav-number">1.3.1.</span> <span class="nav-text">正则表达式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文本与文件查找"><span class="nav-number">1.3.2.</span> <span class="nav-text">文本与文件查找</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#网络配置"><span class="nav-number">1.3.3.</span> <span class="nav-text">网络配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软件安装与更新"><span class="nav-number">1.3.4.</span> <span class="nav-text">软件安装与更新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务与日志"><span class="nav-number">1.3.5.</span> <span class="nav-text">服务与日志</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#磁盘分区"><span class="nav-number">1.3.6.</span> <span class="nav-text">磁盘分区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件系统"><span class="nav-number">1.3.7.</span> <span class="nav-text">文件系统</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#逻辑卷与-LVM"><span class="nav-number">1.3.8.</span> <span class="nav-text">逻辑卷与 LVM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#防火墙"><span class="nav-number">1.3.9.</span> <span class="nav-text">防火墙</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#SELinux"><span class="nav-number">1.3.9.1.</span> <span class="nav-text">SELinux</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#iptables"><span class="nav-number">1.3.9.2.</span> <span class="nav-text">iptables</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#firewalld"><span class="nav-number">1.3.9.3.</span> <span class="nav-text">firewalld</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#tcpdump"><span class="nav-number">1.3.9.4.</span> <span class="nav-text">tcpdump</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#系统启动过程与故障修复"><span class="nav-number">1.3.10.</span> <span class="nav-text">系统启动过程与故障修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shell-篇"><span class="nav-number">1.4.</span> <span class="nav-text">Shell 篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#认识-BASH"><span class="nav-number">1.4.1.</span> <span class="nav-text">认识 BASH</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#管道与重定向"><span class="nav-number">1.4.2.</span> <span class="nav-text">管道与重定向</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程与内存的查看与调整"><span class="nav-number">1.4.3.</span> <span class="nav-text">进程与内存的查看与调整</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#变量与环境变量"><span class="nav-number">1.4.4.</span> <span class="nav-text">变量与环境变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#转义与引用"><span class="nav-number">1.4.5.</span> <span class="nav-text">转义与引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#循环"><span class="nav-number">1.4.6.</span> <span class="nav-text">循环</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#函数"><span class="nav-number">1.4.7.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#计划任务"><span class="nav-number">1.4.8.</span> <span class="nav-text">计划任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#运算符"><span class="nav-number">1.4.9.</span> <span class="nav-text">运算符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试与判断"><span class="nav-number">1.4.10.</span> <span class="nav-text">测试与判断</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文本操作篇"><span class="nav-number">1.5.</span> <span class="nav-text">文本操作篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#正则表达式与文本搜索"><span class="nav-number">1.5.1.</span> <span class="nav-text">正则表达式与文本搜索</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sed-基础"><span class="nav-number">1.5.2.</span> <span class="nav-text">sed 基础</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sed-高级命令"><span class="nav-number">1.5.3.</span> <span class="nav-text">sed 高级命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWK"><span class="nav-number">1.5.4.</span> <span class="nav-text">AWK</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能优化"><span class="nav-number">2.</span> <span class="nav-text">性能优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常见性能指标及-USE-法分类"><span class="nav-number">2.1.</span> <span class="nav-text">常见性能指标及 USE 法分类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU-性能指标"><span class="nav-number">2.1.1.</span> <span class="nav-text">CPU 性能指标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内存性能指标"><span class="nav-number">2.1.2.</span> <span class="nav-text">内存性能指标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#I-O-性能指标"><span class="nav-number">2.1.3.</span> <span class="nav-text">I&#x2F;O 性能指标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#网络性能指标"><span class="nav-number">2.1.4.</span> <span class="nav-text">网络性能指标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见指标分类（USE-法）"><span class="nav-number">2.1.5.</span> <span class="nav-text">常见指标分类（USE 法）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见性能工具"><span class="nav-number">2.2.</span> <span class="nav-text">常见性能工具</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU-性能工具"><span class="nav-number">2.2.1.</span> <span class="nav-text">CPU 性能工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内存性能工具"><span class="nav-number">2.2.2.</span> <span class="nav-text">内存性能工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件系统和磁盘-I-O-性能工具"><span class="nav-number">2.2.3.</span> <span class="nav-text">文件系统和磁盘 I&#x2F;O 性能工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#网络性能工具"><span class="nav-number">2.2.4.</span> <span class="nav-text">网络性能工具</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Richard"
+      src="https://avatars3.githubusercontent.com/u/18113256?v=3&s=460">
+  <p class="site-author-name" itemprop="name">Richard</p>
+  <div class="site-description" itemprop="description">惶者生存，偏执者成功</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xinlc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/xinlc" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;xinlc" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://learnxinyminutes.com/" title="https:&#x2F;&#x2F;learnxinyminutes.com" rel="noopener" target="_blank">Learn X in Y minutes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://justjavac.com/" title="http:&#x2F;&#x2F;justjavac.com" rel="noopener" target="_blank">justjavac</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.ruanyifeng.com/blog/" title="http:&#x2F;&#x2F;www.ruanyifeng.com&#x2F;blog&#x2F;" rel="noopener" target="_blank">阮一峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.liaoxuefeng.com/" title="https:&#x2F;&#x2F;www.liaoxuefeng.com" rel="noopener" target="_blank">廖雪峰</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tech.meituan.com/" title="https:&#x2F;&#x2F;tech.meituan.com" rel="noopener" target="_blank">美团技术</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.v2ex.com/" title="https:&#x2F;&#x2F;www.v2ex.com" rel="noopener" target="_blank">V2EX</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://caniuse.com/" title="https:&#x2F;&#x2F;caniuse.com" rel="noopener" target="_blank">caniuse/工具</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.css88.com/nav/" title="http:&#x2F;&#x2F;www.css88.com&#x2F;nav&#x2F;" rel="noopener" target="_blank">css88/doc</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://overapi.com/" title="http:&#x2F;&#x2F;overapi.com&#x2F;" rel="noopener" target="_blank">OverAPI/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://devdocs.io/" title="http:&#x2F;&#x2F;devdocs.io&#x2F;" rel="noopener" target="_blank">DevDocs/api</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.oschina.net/" title="http:&#x2F;&#x2F;tool.oschina.net&#x2F;" rel="noopener" target="_blank">在线工具/索引</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://tool.lu/" title="http:&#x2F;&#x2F;tool.lu&#x2F;" rel="noopener" target="_blank">ToolBox</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hao.shejidaren.com/" title="http:&#x2F;&#x2F;hao.shejidaren.com&#x2F;" rel="noopener" target="_blank">设计导航</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Richard</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
