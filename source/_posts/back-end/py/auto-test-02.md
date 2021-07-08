@@ -1319,7 +1319,7 @@ D:\_Automation\lagouTest>python -m pytest tests/test_sample.py
 import pytest
 import os
 import glob
-# 查找所有待执行的测试用例module，见《04|必知必会，打好Python基本功》
+# 查找所有待执行的测试用例module
 def find_modules_from_folder(folder):
     absolute_f = os.path.abspath(folder)
     md = glob.glob(os.path.join(absolute_f, "*.py"))
@@ -1422,7 +1422,7 @@ D:\_Automation\lagouTest>pytest
 
 各个__init__.py 文件都是空文件。
 
-tests 文件夹下的 test_baidu.py 是我们在第 7、8课时**“你的第一个 Web 测试框架”**里创建的，里面的内容我们保持不变，仍然以 unittest 作为测试框架的核心模块。
+tests 文件夹下的 test_baidu.py 是我们在**“你的第一个 Web 测试框架”**里创建的，里面的内容我们保持不变，仍然以 unittest 作为测试框架的核心模块。
 
 tests 文件夹下的另外一个文件 test_lagou.py 是我刚刚在**unittest 框架集成 Requests**这一小节建立的，当时我们是以 unittest 作为测试框架的核心驱动模块，现在我们把它更改为由 pytest 驱动。
 
@@ -2203,7 +2203,7 @@ allure serve allure_reports
 - https://www.python.org
 
 [1]: /images/py/auto-test-02/1.png
-[2]: /images/py/auto-test-02/2png
+[2]: /images/py/auto-test-02/2.png
 [3]: /images/py/auto-test-02/3.png
 [4]: /images/py/auto-test-02/4.png
 [5]: /images/py/auto-test-02/5.png
